@@ -11,8 +11,10 @@ One-line install custom bashrc setup with safe config (Node, Bun friendly).
 ```bash
 bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/.../raw/install.sh)
 ```
+```
 ohmybash/
 ├── install.sh
 ├── config.sh
 ├── README.md
 ├── LICENSE
+```
