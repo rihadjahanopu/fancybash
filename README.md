@@ -59,6 +59,7 @@ Run this in your terminal:
 bash <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/ohmybash/main/install.sh)
 
 ```
+```
 ohmybash/
 ├── install.sh      # The magic installer (safe & idempotent)
 ├── config.sh       # All aliases, prompt style, PATH, colors — edit this!
