@@ -1005,7 +1005,7 @@ keep() {
     # Header with gradient effect
 
     echo -e "${CYAN} ╔══════════════════════════════════════════════════════════════════════════╗${RESET}"
-    echo -e "${CYAN} ║${RESET}  ${BOLD}${PINK}${ICON_ROCKET}  MASTER COMMAND CENTER ${RESET}${CYAN}│${RESET} ${GRAY}Developer Rihad's Ultimate Bash Environment${RESET}      ${CYAN} ${RESET}"
+    echo -e "${CYAN} ║${RESET}  ${BOLD}${PINK}${ICON_ROCKET}  MASTER COMMAND CENTER ${RESET}${CYAN}│${RESET} ${GRAY}Developer Ultimate Bash Environment${RESET}      ${CYAN} ${RESET}"
     echo -e "${CYAN} ╚══════════════════════════════════════════════════════════════════════════╝${RESET}"
     echo -e "${GRAY}  v2.0 • Modern Terminal UX • $(date +'%B %d, %Y')${RESET}\n"
 
@@ -1320,7 +1320,7 @@ uc() {
     # 🔐 TRAP & LOG SETUP
     # ==============================
     local LOG_FILE="/tmp/uc-optimizer-$(id -u).log"
-    
+
     # Try to use HOME first, fallback to /tmp
     if [[ -d "${HOME:-}" ]]; then
         local cache_dir="${HOME}/.cache/uc-optimizer"
@@ -1527,12 +1527,12 @@ uc() {
             "${HOME}/bin"
             "${HOME}/.fzf/bin"
         )
-        
+
         local new_path=""
         for p in "${paths[@]}"; do
             [[ -d "$p" ]] && new_path="${new_path:+$new_path:}$p"
         done
-        
+
         # Preserve existing PATH entries not in our list
         local IFS=':'
         for p in $PATH; do
@@ -1541,12 +1541,12 @@ uc() {
             fi
         done
         unset IFS
-        
+
         export PATH="$new_path"
-        
+
         # Refresh hash table
         hash -r 2>/dev/null || true
-        
+
         # Source bashrc if exists (for new completions)
         [[ -f "$HOME/.bashrc" ]] && source "$HOME/.bashrc" 2>/dev/null || true
     }
@@ -1556,10 +1556,10 @@ uc() {
     # ==============================
     _install_fzf() {
         echo -e "${YELLOW}⚠️  fzf not found. Installing...${NC}"
-        
+
         # Try package manager first
         local pkg_name="fzf"
-        
+
         # Some distros have different names
         case "$DISTRO_ID" in
             alpine) pkg_name="fzf" ;;
@@ -1572,7 +1572,7 @@ uc() {
 
         # Fallback: Git installation
         echo -e "${YELLOW}📥 Package manager failed. Trying git install...${NC}"
-        
+
         if ! command -v git >/dev/null 2>&1; then
             _pkg_install "git" || {
                 echo -e "${RED}❌ git not available${NC}" >&2
@@ -1582,7 +1582,7 @@ uc() {
 
         local fzf_dir="${HOME}/.fzf"
         rm -rf "$fzf_dir" 2>/dev/null || true
-        
+
         if git clone --depth 1 https://github.com/junegunn/fzf.git "$fzf_dir" 2>/dev/null; then
             "$fzf_dir/install" --all --no-bash --no-fish --no-zsh 2>/dev/null || true
             _configure_fzf
@@ -1595,9 +1595,9 @@ uc() {
 
     _configure_fzf() {
         echo -e "${BLUE}🔧 Configuring fzf...${NC}"
-        
+
         _refresh_env
-        
+
         # Verify fzf is available
         if ! command -v fzf >/dev/null 2>&1; then
             # Manual PATH addition
@@ -1608,7 +1608,7 @@ uc() {
         # Setup shell integration
         local bashrc="${HOME}/.bashrc"
         local fzf_shell=""
-        
+
         # Find fzf shell files
         for d in "/usr/share/doc/fzf/examples" "/usr/share/fzf" "/usr/share/fzf/shell" "${HOME}/.fzf/shell"; do
             [[ -f "$d/completion.bash" ]] && fzf_shell="$d" && break
@@ -1642,18 +1642,18 @@ uc() {
 
     _install_sensors() {
         echo -e "${YELLOW}⚠️  sensors not found. Installing...${NC}"
-        
+
         local pkg_name="lm-sensors"
         [[ "$DISTRO_ID" == "arch" || "$DISTRO_ID" == "manjaro" ]] && pkg_name="lm_sensors"
         [[ "$DISTRO_ID" == "alpine" ]] && pkg_name="lm-sensors"
-        
+
         if ! _pkg_install "$pkg_name"; then
             echo -e "${RED}❌ lm-sensors installation failed${NC}" >&2
             return 1
         fi
 
         echo -e "${BLUE}🔧 Configuring sensors...${NC}"
-        
+
         if ! command -v sensors-detect >/dev/null 2>&1; then
             echo -e "${YELLOW}⚠️  sensors-detect not found${NC}"
             return 0  # Partial success
@@ -1661,13 +1661,13 @@ uc() {
 
         # Non-interactive configuration
         echo -e "${CYAN}🌡️  Detecting hardware sensors (this may take a moment)...${NC}"
-        
+
         # Create answers file for sensors-detect
         local answers=""
         for _ in {1..10}; do
             answers="${answers}YES\n"
         done
-        
+
         echo -e "$answers" | sudo sensors-detect --no-interactive 2>/dev/null || \
         echo -e "$answers" | sudo sensors-detect 2>/dev/null || true
 
@@ -1694,16 +1694,16 @@ uc() {
         else
             echo -e "${YELLOW}⚠️  sensors configured but no sensors detected${NC}"
         fi
-        
+
         return 0
     }
 
     _install_zram() {
         echo -e "${YELLOW}⚠️  zram tools not found. Installing...${NC}"
-        
+
         local pkg_name="util-linux"
         local extra_pkgs=()
-        
+
         case "$DISTRO_ID" in
             ubuntu|debian|linuxmint|pop)
                 pkg_name="zram-tools"
@@ -1722,14 +1722,14 @@ uc() {
                 pkg_name="systemd-zram-service"
                 ;;
         esac
-        
+
         if ! _pkg_install "$pkg_name" "${extra_pkgs[@]}"; then
             echo -e "${RED}❌ zram package installation failed${NC}" >&2
             return 1
         fi
 
         echo -e "${BLUE}🔧 Configuring zram...${NC}"
-        
+
         # Check if zram already configured
         if [[ -e /dev/zram0 ]] && swapon -s 2>/dev/null | grep -q zram; then
             echo -e "${GREEN}✅ zram already active${NC}"
@@ -1748,15 +1748,15 @@ uc() {
         local mem_total zram_size
         mem_total=$(awk '/MemTotal/{print $2}' /proc/meminfo 2>/dev/null || echo "0")
         zram_size=$((mem_total * 512))  # KB to bytes / 2
-        
+
         [[ "$zram_size" -lt 104857600 ]] && zram_size=536870912  # Minimum 512MB
-        
+
         # Configure
         echo "$zram_size" | sudo tee /sys/block/zram0/disksize >/dev/null 2>/dev/null || {
             echo -e "${RED}❌ Cannot set zram size${NC}" >&2
             return 1
         }
-        
+
         sudo mkswap /dev/zram0 >/dev/null 2>&1 || true
         sudo swapon /dev/zram0 -p 100 >/dev/null 2>&1 || {
             echo -e "${RED}❌ Cannot enable zram swap${NC}" >&2
@@ -1784,7 +1784,7 @@ EOF
     # 🔍 DEPENDENCY CHECK
     # ==============================
     echo -e "${BLUE}🔍 Checking dependencies...${NC}"
-    
+
     local -a missing_tools=()
     local install_failed=0
 
@@ -1796,25 +1796,25 @@ EOF
         echo -e "${YELLOW}📋 Missing: ${missing_tools[*]}${NC}"
         echo -e "${CYAN}🚀 Installing...${NC}"
         echo ""
-        
+
         for tool in "${missing_tools[@]}"; do
             case "$tool" in
-                fzf) 
+                fzf)
                     if ! _install_fzf; then
                         install_failed=$((install_failed + 1))
                         echo -e "${RED}CRITICAL: fzf is required${NC}" >&2
                     fi
                     ;;
-                sensors) 
+                sensors)
                     _install_sensors || install_failed=$((install_failed + 1))
                     ;;
-                zram) 
+                zram)
                     _install_zram || install_failed=$((install_failed + 1))
                     ;;
             esac
             echo ""
         done
-        
+
         _refresh_env
     fi
 
@@ -1824,11 +1824,11 @@ EOF
         echo -e "${RED}❌ CRITICAL: fzf not available${NC}" >&2
         critical_fail=1
     fi
-    
+
     if ! command -v sensors >/dev/null 2>&1; then
         echo -e "${YELLOW}⚠️  sensors not available (temp monitoring disabled)${NC}"
     fi
-    
+
     if ! command -v zramctl >/dev/null 2>&1; then
         echo -e "${YELLOW}⚠️  zramctl not available (zram monitoring disabled)${NC}"
     fi
@@ -1878,13 +1878,13 @@ EOF
 
     _get_temp_zram() {
         local temp="N/A" zram_used="0"
-        
+
         if command -v sensors >/dev/null 2>&1; then
             temp=$(sensors 2>/dev/null | awk '
                 /°C/ {
                     gsub(/[+|°C]/, "", $2)
                     if ($2+0 > max && $2 ~ /^[0-9]+\.?[0-9]*$/) max=$2
-                } 
+                }
                 END {
                     if (max > 0) printf "%.0f", max
                     else print "N/A"
@@ -1899,14 +1899,14 @@ EOF
                         disk += $1
                         data += $2
                     }
-                } 
+                }
                 END {
                     if (disk > 0) printf "%.0f", (data/disk)*100
                     else print "0"
                 }
             ')
         fi
-        
+
         printf '%s %s' "${temp:-N/A}" "${zram_used:-0}"
     }
 
@@ -1919,10 +1919,10 @@ EOF
     _format_size() {
         local kb=$1
         [[ "$kb" =~ ^[0-9]+$ ]] || { echo "0KB"; return; }
-        
+
         local mb=$((kb / 1024))
         local gb=$((mb / 1024))
-        
+
         if [[ $kb -lt 1024 ]]; then echo "${kb}KB"
         elif [[ $mb -lt 1024 ]]; then echo "${mb}MB"
         else echo "${gb}GB"
@@ -1949,23 +1949,23 @@ EOF
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}        ⚡ OS CLEAN             ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
-        
+
         read -r -p "Proceed with OS cleanup? [y/N]: " confirm
         [[ "$confirm" =~ ^[Yy]$ ]] || return 0
 
         _sudo_check || return 1
-        
+
         echo -e "${CYAN}🗑️  Cleaning package cache...${NC}"
         _pkg_clean
-        
+
         echo -e "${CYAN}📋 Vacuuming journals...${NC}"
         sudo journalctl --vacuum-time=3d --quiet 2>/dev/null || true
-        
+
         echo -e "${CYAN}🖼️  Cleaning thumbnails...${NC}"
         if [[ -d "$HOME/.cache/thumbnails" ]]; then
             find "$HOME/.cache/thumbnails" -type f -atime +7 -delete 2>/dev/null || true
         fi
-        
+
         echo -e "${CYAN}🗑️  Emptying trash...${NC}"
         if [[ -d "$HOME/.local/share/Trash/files" ]]; then
             rm -rf "$HOME/.local/share/Trash/files/"* 2>/dev/null || true
@@ -1982,12 +1982,12 @@ EOF
         _log "OS clean executed"
     }
 
-    
+
     _container_clean() {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}      🐳 CONTAINER CLEAN        ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
-        
+
         read -r -p "Proceed with container cleanup? [y/N]: " confirm
         [[ "$confirm" =~ ^[Yy]$ ]] || return 0
 
@@ -2001,7 +2001,7 @@ EOF
 
             local snap_output
             snap_output=$(snap list --all 2>/dev/null | awk '/disabled/{print $1, $3}')
-            
+
             if [[ -n "$snap_output" ]]; then
                 while read -r name rev; do
                     [[ "$name" =~ ^[a-z0-9-]+$ ]] || continue
@@ -2012,7 +2012,7 @@ EOF
             fi
 
             sudo rm -rf /var/lib/snapd/cache/* 2>/dev/null || true
-            
+
             end_space=$(_get_free_kb)
             saved=$(( (end_space - start_space) * 1024 ))
             [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
@@ -2023,17 +2023,17 @@ EOF
         if command -v flatpak >/dev/null 2>&1; then
             echo -e "${CYAN}📦 Cleaning flatpak...${NC}"
             local start_space=$(_get_free_kb)
-            
+
             flatpak uninstall --unused -y 2>/dev/null || true
             flatpak repair 2>/dev/null || true
-            
+
             # Clean app caches
             if [[ -d "$HOME/.var/app" ]]; then
                 for app in "$HOME/.var/app/"*; do
                     [[ -d "$app/cache" ]] && rm -rf "$app/cache/"* 2>/dev/null || true
                 done
             fi
-            
+
             local end_space=$(_get_free_kb)
             local saved=$(( (end_space - start_space) * 1024 ))
             [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
@@ -2045,9 +2045,9 @@ EOF
             echo -e "${CYAN}🐳 Cleaning docker...${NC}"
             if sudo docker info >/dev/null 2>&1; then
                 local start_space=$(_get_free_kb)
-                
+
                 docker system prune -a --volumes -f 2>/dev/null || true
-                
+
                 local end_space=$(_get_free_kb)
                 local saved=$(( (end_space - start_space) * 1024 ))
                 [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
@@ -2072,7 +2072,7 @@ EOF
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}        🔗 FIX LINKS            ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
-        
+
         read -r -p "Remove broken symlinks in $HOME? [y/N]: " confirm
         [[ "$confirm" =~ ^[Yy]$ ]] || return 0
 
@@ -2089,7 +2089,7 @@ EOF
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}       ⚡ KERNEL CLEAN           ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
-        
+
         local current_kernel
         current_kernel=$(uname -r)
         echo -e "Current kernel: ${GREEN}$current_kernel${NC}"
@@ -2157,13 +2157,13 @@ EOF
                 if [[ -n "$orphans" ]]; then
                     echo "$orphans" | sudo pacman -Rns --noconfirm - 2>/dev/null || true
                 fi
-                
+
                 if command -v paccache >/dev/null 2>&1; then
                     echo -e "${CYAN}Cleaning package cache...${NC}"
                     sudo paccache -rk2 2>/dev/null || true
                 fi
                 ;;
-            
+
             opensuse*)
                 echo -e "${CYAN}Cleaning kernels...${NC}"
                 sudo zypper purge-kernels 2>/dev/null || true
@@ -2245,31 +2245,31 @@ EOF
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}       📊 SYSTEM REPORT         ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
-        
+
         echo -e "${CYAN}OS Information:${NC}"
         echo -e "   Distribution: $DISTRO_NAME"
         echo -e "   Kernel:       $(uname -r)"
         echo -e "   Architecture: $(uname -m)"
         echo -e "   Hostname:     $(hostname)"
-        
+
         local uptime_str
         uptime_str=$(uptime -p 2>/dev/null || uptime | sed 's/.*up \([^,]*\),.*/\1/')
         echo -e "   Uptime:       $uptime_str"
 
         echo -e "\n${CYAN}Resources:${NC}"
-        
+
         # Memory
         free -h | awk '/Mem:/{printf "   Memory:       %s / %s (%.1f%% used)\n", $3, $2, ($3/$2)*100}'
-        
+
         # Disk
         df -h / | awk 'NR==2{printf "   Disk (/):     %s / %s (%s used)\n", $3, $2, $5}'
-        
+
         # Temperature & ZRAM
         local temp zram_used
         read -r temp zram_used < <(_get_temp_zram)
         echo -e "   Temperature:  ${temp}°C"
         echo -e "   ZRAM Usage:   ${zram_used}%"
-        
+
         # CPU
         echo -e "   CPU:          $(nproc) cores"
         if [[ -r /proc/cpuinfo ]]; then
@@ -2301,7 +2301,7 @@ EOF
             "📊  System Report"
             "❌  Exit"
         )
-        
+
         local choice
         choice=$(printf "%s\n" "${choices[@]}" | \
             fzf --height=70% \
@@ -2317,11 +2317,11 @@ EOF
                 --cycle)
 
         [[ -z "$choice" ]] && return 1
-        
+
         # Extract action (remove emoji and padding)
         local action="${choice#*[[:space:]]}"
         action="${action#*[[:space:]]}"
-        
+
         case "$action" in
             "Full System Boost")
                 _os_clean
@@ -2338,12 +2338,12 @@ EOF
             "Kernel Clean") _orphan_engine ;;
             "System Report") _report ;;
             "Exit") return 0 ;;
-            *) 
+            *)
                 echo -e "${RED}Unknown option: $action${NC}" >&2
                 return 1
                 ;;
         esac
-        
+
         return 0
     }
 
@@ -2351,14 +2351,14 @@ EOF
     # 🎯 MAIN EXECUTION
     # ==============================
     local menu_result=0
-    
+
     while true; do
         echo ""
         if ! _show_menu; then
             menu_result=1
             break
         fi
-        
+
         echo ""
         read -r -p "Press Enter to continue..." dummy </dev/tty
         clear
@@ -2367,7 +2367,7 @@ EOF
     trap - INT TERM EXIT
     _log "Session ended (result: $menu_result)"
     echo -e "${GREEN}👋 Goodbye!${NC}"
-    
+
     return $menu_result
 }
 
@@ -3260,4 +3260,3 @@ shopt -s autocd
 # ======================================================
 # End of .bashrc
 # ======================================================
-
