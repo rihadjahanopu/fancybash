@@ -53,6 +53,9 @@ ohmybash/
 That's all — back to your previous setup.
 
 
-
-Made with ❤️ in Dhaka by Rihad Jahan
+<p align="center">
+Made with ❤️ in Bangladesh by Rihad Jahan Opu
+</p>
+<p align="center">
 If you use it daily — give it a ⭐ to help others find it!
+</p>
