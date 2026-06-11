@@ -1,5 +1,4 @@
 
-
 # ==============================================================================
 #   ULTRA-THIN COMPACT PRO BASH ENVIRONMENT
 #   Author: [Rihad Jahan Opu]
@@ -135,13 +134,16 @@ blink_cursor="\[\e[5m\]❯❯❯\[\e[25m\]"
 # 🎯 TWO LINE PROMPT - SIZE ON FIRST LINE
 # ======================================================
 
-# LINE 1: Emoji + Folder + Size + Git
-PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] "
-PS1+="\$(folder_size) [🌿 \$(parse_git_branch)]\$(cpu_temp) \$(disk_usage) \$(load_avg) \$(get_duration) \$(check_readonly) \$(pending_updates)\n"
+# # LINE 1: Emoji + Folder + Size + Git
+# PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] "
+# PS1+="\$(folder_size) [🌿 \$(parse_git_branch)]\$(cpu_temp) \$(disk_usage) \$(load_avg) \$(get_duration) \$(check_readonly) \$(pending_updates)\n"
 
-# LINE 2: Node | NPM | Bun | Date | Sys | Battery + Cursor
-PS1+="\$(node_version) │ \$(npm_version) │ \$(bun_version) │ \$(kernel_version) │ "
-PS1+="\$(time_date) │ \$(sys_info) │ \$(battery_info)\n"
+# # LINE 2: Node | NPM | Bun | Date | Sys | Battery + Cursor
+# PS1+="\$(node_version) │ \$(npm_version) │ \$(bun_version) │ \$(kernel_version) │ "
+# PS1+="\$(time_date) │ \$(sys_info) │ \$(battery_info)\n"
+
+PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] \n"
+
 PS1+="${blink_cursor} "
 
 
@@ -1005,7 +1007,7 @@ keep() {
     # Header with gradient effect
 
     echo -e "${CYAN} ╔══════════════════════════════════════════════════════════════════════════╗${RESET}"
-    echo -e "${CYAN} ║${RESET}  ${BOLD}${PINK}${ICON_ROCKET}  MASTER COMMAND CENTER ${RESET}${CYAN}│${RESET} ${GRAY}Developer Ultimate Bash Environment${RESET}      ${CYAN} ${RESET}"
+    echo -e "${CYAN} ║${RESET}  ${BOLD}${PINK}${ICON_ROCKET}  MASTER COMMAND CENTER ${RESET}${CYAN}│${RESET} ${GRAY}Developer Rihad's Ultimate Bash Environment${RESET}      ${CYAN} ${RESET}"
     echo -e "${CYAN} ╚══════════════════════════════════════════════════════════════════════════╝${RESET}"
     echo -e "${GRAY}  v2.0 • Modern Terminal UX • $(date +'%B %d, %Y')${RESET}\n"
 
@@ -1216,20 +1218,48 @@ run() {
     echo -e "${YELLOW}👉 Enter file number (or Ctrl+C):${NC}"
     read -p "❯ " choice
 
-    # Execution logic
+    # File selection validation
     if [[ $choice -gt 0 && $choice -le ${#files[@]} ]]; then
         selected_file=${files[$((choice-1))]}
 
-        echo -e "\n${GREEN}✔ Launching:${NC} ${BOLD}$selected_file${NC}"
-        echo -e "${BLUE}⚙ Executing 'bun run'...${NC}\n"
+        echo -e "\n${GREEN}✔ Selected:${NC} ${BOLD}$selected_file${NC}"
+        echo -e "${CYAN}────────────────────────────────────────────${NC}"
 
-        # Run the file with Bun
-        bun run "$selected_file"
+        # Mode Selection Menu
+        echo -e "\n${YELLOW}👉 Choose run mode:${NC}"
+        echo -e "${CYAN}  [1]${NC}  🚀  ${BOLD}bun run${NC}     (default)"
+        echo -e "${CYAN}  [2]${NC}  🔥  ${BOLD}bun --hot${NC}   (hot reload)"
+        echo -e "${CYAN}  [3]${NC}  👁  ${BOLD}bun --watch${NC} (watch mode)"
+        echo -e "${CYAN}────────────────────────────────────────────${NC}"
+        read -p "❯ " mode
+
+        # Determine command based on mode
+        case "$mode" in
+            2)
+                cmd="bun --hot"
+                mode_label="HOT RELOAD"
+                mode_color="${RED}"
+                ;;
+            3)
+                cmd="bun --watch"
+                mode_label="WATCH MODE"
+                mode_color="${YELLOW}"
+                ;;
+            *)
+                cmd="bun run"
+                mode_label="RUN"
+                mode_color="${GREEN}"
+                ;;
+        esac
+
+        echo -e "\n${mode_color}⚙ $mode_label:${NC} ${BOLD}$selected_file${NC}\n"
+
+        # Execute
+        $cmd "$selected_file"
     else
         echo -e "\n${RED}✘ Error: Invalid selection!${NC}"
     fi
 }
-
 
 # ======================================================
 #  📦 VIDEO FILLTER AND OPEN
@@ -3212,6 +3242,8 @@ alias brd='bun run dev'
 alias brb='bun run build'
 alias brs='bun run start'
 alias html='bun run index.html'
+alias w='bun --watch'
+alias h='bun --hot'
 
 # --- Git Shortcuts ---
 alias gi='git init'
@@ -3234,7 +3266,7 @@ alias gpop='git stash pop'
 # Fetch and prune deleted branches
 alias gfp='git fetch --prune'
 
-alias zed="flatpak run dev.zed.Zed"
+
 alias vlc="flatpak run org.videolan.VLC"
 alias brave="flatpak run com.brave.Browser"
 alias youtube="brave --app=https://www.youtube.com"
@@ -3257,6 +3289,21 @@ alias vi='cd ~/Downloads/Video'
 shopt -s autocd
 
 
+# Remove any Flatpak app paths from LD_LIBRARY_PATH
+if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/app/"* ]]; then
+    # Filter out Flatpak app paths, keep system paths
+    new_path=$(echo "$LD_LIBRARY_PATH" | tr ':' '\n' | grep -v "/var/lib/flatpak/app/" | grep -v "$HOME/.local/share/flatpak/app/" | paste -sd ':' -)
+    if [[ -n "$new_path" ]]; then
+        export LD_LIBRARY_PATH="$new_path"
+    else
+        unset LD_LIBRARY_PATH
+    fi
+fi
+
+
+
 # ======================================================
 # End of .bashrc
 # ======================================================
+
+
