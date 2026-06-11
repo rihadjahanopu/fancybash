@@ -43,7 +43,7 @@ bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ec
 ```
 ## Uninstall
 ```bash
-sed -i '/# >>> opu-bashrc >>>/,/# <<< opu-bashrc <<</d' ~/.bashrc && source ~/.bashrc
+sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc
 ```
 
 ```
