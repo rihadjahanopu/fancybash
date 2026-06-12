@@ -1,3 +1,5 @@
+setopt PROMPT_SUBST
+
 
 # ==============================================================================
 #   ULTRA-THIN COMPACT PRO BASH ENVIRONMENT
@@ -14,7 +16,7 @@
 rainbow_colors=(31 32 33 34 35 36 91 92 93 94 95 96)
 
 rand_color() {
-  echo "${rainbow_colors[$RANDOM % ${#rainbow_colors[@]}]}"
+  echo "${rainbow_colors[($RANDOM % ${#rainbow_colors[@]}) + 1]}"
 }
 
 rand_emoji() {
@@ -26,7 +28,7 @@ rand_emoji() {
     *py* )    echo "🐍" ;;
     *proj* )  echo "💻" ;;
     * ) local emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)
-        echo "${emojis[$RANDOM % ${#emojis[@]}]}" ;;
+        echo "${emojis[($RANDOM % ${#emojis[@]}) + 1]}" ;;
   esac
 }
 
@@ -90,8 +92,7 @@ load_avg() {
 
 
 # এটি কাজ করার জন্য আপনার .bashrc এর একদম শুরুতে এই ২ লাইন থাকতে হবে:
-function timer_start { timer=${timer:-$SECONDS}; }
-trap 'timer_start' DEBUG
+preexec() { timer=${timer:-$SECONDS}; }
 
 get_duration() {
   local delta=$((SECONDS - timer))
@@ -128,21 +129,21 @@ pending_updates() {
   fi
 }
 
-blink_cursor="\[\e[5m\]❯❯❯\[\e[25m\]"
+blink_cursor="%{\e[5m%}❯❯❯%{\e[25m%}"
 
 # ======================================================
 # 🎯 TWO LINE PROMPT - SIZE ON FIRST LINE
 # ======================================================
 
 # # LINE 1: Emoji + Folder + Size + Git
-# PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] "
+# PS1="\$(rand_emoji) %{\033[\$(rand_color)m%}%1~%{\033[0m%} "
 # PS1+="\$(folder_size) [🌿 \$(parse_git_branch)]\$(cpu_temp) \$(disk_usage) \$(load_avg) \$(get_duration) \$(check_readonly) \$(pending_updates)\n"
 
 # # LINE 2: Node | NPM | Bun | Date | Sys | Battery + Cursor
 # PS1+="\$(node_version) │ \$(npm_version) │ \$(bun_version) │ \$(kernel_version) │ "
 # PS1+="\$(time_date) │ \$(sys_info) │ \$(battery_info)\n"
 
-PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] \n"
+PS1="\$(rand_emoji) %{\033[\$(rand_color)m%}%1~%{\033[0m%} \n"
 
 PS1+="${blink_cursor} "
 
@@ -1565,7 +1566,7 @@ uc() {
 
         # Preserve existing PATH entries not in our list
         local IFS=':'
-        for p in $PATH; do
+        for p in ${=PATH}; do
             if [[ ":$new_path:" != *":$p:"* ]] && [[ -d "$p" ]]; then
                 new_path="$new_path:$p"
             fi
@@ -2060,7 +2061,7 @@ EOF
             # Clean app caches (DISABLED: Causes browsers to lose cookies/sessions)
             # if [[ -d "$HOME/.var/app" ]]; then
             #     for app in "$HOME/.var/app/"*; do
-            #         [[ -d "$app/cache" ]] && rm -rf "$app/cache/"* 2>/dev/null || true
+            #         # [[ -d "$app/cache" ]] && rm -rf "$app/cache/"* 2>/dev/null || true
             #     done
             # fi
 

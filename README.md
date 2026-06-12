@@ -91,8 +91,14 @@ One file. One install. Zero drama.
 
 ### One-Line Install (Recommended)
 
+**For Bash (`.bashrc`):**
 ```bash
 bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.sh)
+```
+
+**For Zsh (`.zshrc`):**
+```zsh
+zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.zsh)
 ```
 
 The installer will:
@@ -106,18 +112,30 @@ The installer will:
 ```bash
 git clone https://github.com/rihadjahanopu/fancybash.git
 cd fancybash
+
+# For Bash:
 cat config.sh >> ~/.bashrc
 source ~/.bashrc
+
+# For Zsh:
+cat config.zsh >> ~/.zshrc
+source ~/.zshrc
 ```
 
 ---
 
 ## 🗑️ Uninstall
 
-Cleanly removes **only** the fancybash block from your `.bashrc`, leaving the rest untouched:
+Cleanly removes **only** the fancybash block from your config file, leaving the rest untouched:
 
+**For Bash:**
 ```bash
 sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc
+```
+
+**For Zsh:**
+```zsh
+sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
 ```
 
 ---
@@ -373,8 +391,10 @@ uu
 
 ```
 fancybash/
-├── install.sh      # Safe, idempotent installer with spinner & backup
-├── config.sh       # All aliases, functions, prompt, colors — edit this!
+├── install.sh      # Bash installer with spinner & backup
+├── install.zsh     # Zsh installer with spinner & backup
+├── config.sh       # Bash configuration, aliases, prompt, colors
+├── config.zsh      # Zsh configuration, aliases, prompt, colors
 ├── README.md       # You are here
 └── LICENSE         # MIT — free to use, fork, and modify
 ```
