@@ -1,7 +1,10 @@
 # ==============================================================================
-#   ULTRA-THIN COMPACT PRO BASH ENVIRONMENT
+#   ULTRA-THIN COMPACT PRO WINDOWS POWERSHELL ENVIRONMENT
 #   Author: [Rihad Jahan Opu]
+#   Version: 1.0.0 Windows PowerShell Edition
 #   Purpose: A fast, beautiful, and productive terminal for Web Development
+#   Supports: Windows PowerShell
+#   Verified: 2026
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
