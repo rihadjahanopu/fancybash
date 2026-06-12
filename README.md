@@ -51,6 +51,7 @@ _Beautiful • Fast • Smart • Zero Bloat_
   - [⚙️ System Tools](#-system--maintenance)
   - [🔨 Utilities](#-utility-tools)
 - [🏗️ Project Structure](#️-project-structure)
+- [🖥️ Zed IDE Settings](#️-zed-ide-settings)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -428,14 +429,16 @@ uu
 
 ```
 fancybash/
-├── install.sh      # Bash installer with spinner & backup
-├── install.zsh     # Zsh installer with spinner & backup
-├── install.ps1     # PowerShell installer with backup & profile integration
-├── config.sh       # Bash configuration, aliases, prompt, colors
-├── config.zsh      # Zsh configuration, aliases, prompt, colors
-├── config.ps1      # PowerShell configuration, aliases, prompt, colors
-├── README.md       # You are here
-└── LICENSE         # MIT — free to use, fork, and modify
+├── install.sh          # Bash installer with spinner & backup
+├── install.zsh         # Zsh installer with spinner & backup
+├── install.ps1         # PowerShell installer with backup & profile integration
+├── config.sh           # Bash configuration, aliases, prompt, colors
+├── config.zsh          # Zsh configuration, aliases, prompt, colors
+├── config.ps1          # PowerShell configuration, aliases, prompt, colors
+├── zed/
+│   └── install-settings.sh  # Zed IDE settings installer (Flatpak + native)
+├── README.md           # You are here
+└── LICENSE             # MIT — free to use, fork, and modify
 ```
 
 ### How the installer works
@@ -451,6 +454,46 @@ install.sh
 ├── append to .bashrc      # Wrapped in >>> / <<< markers
 └── source ~/.bashrc       # Auto-reloads the shell
 ```
+
+---
+
+## 🖥️ Zed IDE Settings
+
+Install a fully-configured `settings.json` for the [Zed](https://zed.dev) editor — works for both the **Flatpak** and **native** installations in one shot.
+
+### One-Line Install
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/main/zed/install-settings.sh)
+```
+
+The script will:
+
+1. 💾 **Back up** any existing `settings.json` with a timestamp
+2. ✍️ **Write** the new config to both paths:
+   - `~/.var/app/dev.zed.Zed/config/zed/settings.json` _(Flatpak)_
+   - `~/.config/zed/settings.json` _(native)_
+3. ✅ Print a confirmation for each path
+
+> **Restart Zed** after running the script for all settings to take effect.
+
+### What's included
+
+| Setting | Value |
+| ------- | ----- |
+| Theme | `BlackFox` (dark) / `Everforest Light Hard` (light) |
+| Buffer Font | `Cascadia Code` 22px (fallback: JetBrains Mono, Fira Code) |
+| UI Font | `JetBrains Mono` 20px |
+| Terminal Font | `JetBrains Mono` 22px + `FiraCode Nerd Font` fallback |
+| Tab Size | `2` spaces |
+| Soft Wrap | `editor_width` |
+| Autosave | `on_focus_change` |
+| Keymap | `VSCode` |
+| Inlay Hints | Enabled with background |
+| Inline Diagnostics | Enabled |
+| Minimap | `auto` |
+| Prettier | Allowed |
+| Git Inline Blame | With commit summary |
 
 ---
 
