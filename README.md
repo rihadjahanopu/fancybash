@@ -13,7 +13,7 @@
 
 ### ⚡ The Ultimate Bash Environment for Modern Developers
 
-*Beautiful • Fast • Smart • Zero Bloat*
+_Beautiful • Fast • Smart • Zero Bloat_
 
 <br>
 
@@ -68,20 +68,20 @@ One file. One install. Zero drama.
 
 ## 🌟 Feature Highlights
 
-| Feature | Description |
-|---|---|
-| ⚡ **Lightning Fast** | No heavy plugins or slow git parsing — stays snappy even on old hardware |
-| 🛡️ **100% Safe Install** | Never blindly overwrites `.bashrc` — creates a timestamped backup every time |
-| 🔄 **Idempotent** | Running the installer multiple times is always safe — detects existing installs |
-| 🌈 **Dynamic Prompt** | Rainbow colors, random emoji per folder type, git branch with dirty state indicator |
-| 🟢 **Node.js First-Class** | Built-in `nvm` support, Node/NPM/Bun version display, and instant aliases |
-| 🥐 **Bun First-Class** | `bi`, `brd`, `brb`, `brs` shortcuts — runs `.ts` files with zero config |
-| 🔧 **Single Config File** | Everything lives in `config.sh` — easy to read, fork, and customize |
+| Feature                      | Description                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| ⚡ **Lightning Fast**        | No heavy plugins or slow git parsing — stays snappy even on old hardware            |
+| 🛡️ **100% Safe Install**     | Never blindly overwrites `.bashrc` — creates a timestamped backup every time        |
+| 🔄 **Idempotent**            | Running the installer multiple times is always safe — detects existing installs     |
+| 🌈 **Dynamic Prompt**        | Rainbow colors, random emoji per folder type, git branch with dirty state indicator |
+| 🟢 **Node.js First-Class**   | Built-in `nvm` support, Node/NPM/Bun version display, and instant aliases           |
+| 🥐 **Bun First-Class**       | `bi`, `brd`, `brb`, `brs` shortcuts — runs `.ts` files with zero config             |
+| 🔧 **Single Config File**    | Everything lives in `config.sh` — easy to read, fork, and customize                 |
 | 📦 **Universal Uninstaller** | `uu` — interactive fuzzy app remover with `fzf`, supports apt/snap/flatpak/AppImage |
-| 🔁 **Mega Updater** | `uup` — updates OS + Snap + Flatpak + Bun + Node.js in one interactive command |
-| 🌡️ **System Health Prompt** | CPU temp with color-coded alerts, disk space, load average, command timer |
-| 🔑 **Secret Key Generator** | `gen 32` — cryptographically secure random key generation via OpenSSL |
-| 🗜️ **Universal Extractor** | `ex` — handles `.zip`, `.tar.gz`, `.rar`, `.7z`, `.bz2` and more |
+| 🔁 **Mega Updater**          | `uup` — updates OS + Snap + Flatpak + Bun + Node.js in one interactive command      |
+| 🌡️ **System Health Prompt**  | CPU temp with color-coded alerts, disk space, load average, command timer           |
+| 🔑 **Secret Key Generator**  | `gen 32` — cryptographically secure random key generation via OpenSSL               |
+| 🗜️ **Universal Extractor**   | `ex` — handles `.zip`, `.tar.gz`, `.rar`, `.7z`, `.bz2` and more                    |
 
 ---
 
@@ -92,16 +92,19 @@ One file. One install. Zero drama.
 ### One-Line Install (Recommended)
 
 **For Bash (`.bashrc`):**
+
 ```bash
 bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.sh)
 ```
 
 **For Zsh (`.zshrc`):**
+
 ```zsh
-zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.zsh)
+zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/raw/73539d01666e7cc834cb0cdf20ac92915322dc99/config.zsh)
 ```
 
 The installer will:
+
 1. ✅ Check for existing installation (safe to re-run)
 2. 💾 Create a timestamped backup of your current `.bashrc`
 3. 📥 Download and append the config with boundary markers
@@ -129,11 +132,13 @@ source ~/.zshrc
 Cleanly removes **only** the fancybash block from your config file, leaving the rest untouched:
 
 **For Bash:**
+
 ```bash
 sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc
 ```
 
 **For Zsh:**
+
 ```zsh
 sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
 ```
@@ -213,19 +218,19 @@ fancybash renders a smart two-part prompt with contextual awareness:
 
 **Prompt features include:**
 
-| Element | Description |
-|---|---|
-| `rand_emoji` | Folder-aware emoji — `🌐` for web, `🟢` for node, `🥐` for bun, `🐍` for py, random otherwise |
-| `rand_color` | Rainbow color cycle on every prompt render |
-| `parse_git_branch` | Shows `branchname ❗` when working tree is dirty |
-| `cpu_temp` | 🟢 Green / 🟡 Yellow / 🔴 Red based on temperature thresholds |
-| `disk_usage` | Shows free disk space on `/` |
-| `load_avg` | System load average |
-| `get_duration` | Shows `⏱️ Ns` for any command taking longer than 1 second |
-| `check_readonly` | Shows `🔒` when current directory is not writable |
-| `pending_updates` | Shows `🆙 N` if system packages need updating |
-| `battery_info` | Shows battery % when available |
-| `kernel_version` | Displays current kernel version |
+| Element            | Description                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `rand_emoji`       | Folder-aware emoji — `🌐` for web, `🟢` for node, `🥐` for bun, `🐍` for py, random otherwise |
+| `rand_color`       | Rainbow color cycle on every prompt render                                                    |
+| `parse_git_branch` | Shows `branchname ❗` when working tree is dirty                                              |
+| `cpu_temp`         | 🟢 Green / 🟡 Yellow / 🔴 Red based on temperature thresholds                                 |
+| `disk_usage`       | Shows free disk space on `/`                                                                  |
+| `load_avg`         | System load average                                                                           |
+| `get_duration`     | Shows `⏱️ Ns` for any command taking longer than 1 second                                     |
+| `check_readonly`   | Shows `🔒` when current directory is not writable                                             |
+| `pending_updates`  | Shows `🆙 N` if system packages need updating                                                 |
+| `battery_info`     | Shows battery % when available                                                                |
+| `kernel_version`   | Displays current kernel version                                                               |
 
 ---
 
@@ -237,52 +242,52 @@ fancybash renders a smart two-part prompt with contextual awareness:
 
 ### 📂 Navigation & Movement
 
-| Command | Action |
-|---|---|
-| `..` | Go up one directory |
-| `...` | Go up two directories |
-| `....` | Go up three directories |
-| `dev` | Jump to `~/Development` |
-| `fr` / `ba` / `fu` | Jump to Frontend / Backend / Fullstack project folder |
-| `fig` / `ar` / `de` | Jump to Figma / Archive / Dev folders |
-| `des` / `doc` / `dow` | Jump to Desktop / Documents / Downloads |
+| Command               | Action                                                |
+| --------------------- | ----------------------------------------------------- |
+| `..`                  | Go up one directory                                   |
+| `...`                 | Go up two directories                                 |
+| `....`                | Go up three directories                               |
+| `dev`                 | Jump to `~/Development`                               |
+| `fr` / `ba` / `fu`    | Jump to Frontend / Backend / Fullstack project folder |
+| `fig` / `ar` / `de`   | Jump to Figma / Archive / Dev folders                 |
+| `des` / `doc` / `dow` | Jump to Desktop / Documents / Downloads               |
 
 ---
 
 ### 📦 NPM & Bun Commands
 
-| Alias | Expands To |
-|---|---|
-| `ni` | `npm install` |
-| `nid` | `npm install -D` |
-| `nr` | `npm run` |
-| `nrd` | `npm run dev` |
-| `nrb` | `npm run build` |
-| `nrs` | `npm run start` |
-| `bi` | `bun install` |
-| `br` | `bun run` |
-| `brd` | `bun run dev` |
-| `brb` | `bun run build` |
-| `brs` | `bun run start` |
+| Alias  | Expands To           |
+| ------ | -------------------- |
+| `ni`   | `npm install`        |
+| `nid`  | `npm install -D`     |
+| `nr`   | `npm run`            |
+| `nrd`  | `npm run dev`        |
+| `nrb`  | `npm run build`      |
+| `nrs`  | `npm run start`      |
+| `bi`   | `bun install`        |
+| `br`   | `bun run`            |
+| `brd`  | `bun run dev`        |
+| `brb`  | `bun run build`      |
+| `brs`  | `bun run start`      |
 | `html` | `bun run index.html` |
 
 ---
 
 ### 🌿 Git Version Control
 
-| Command | Description |
-|---|---|
-| `gi` | Initialize new git repository |
-| `gs` | Git status (short format) |
-| `ga` | Stage all files (`git add .`) |
-| `gcm "msg"` | Commit with message |
-| `gps` / `gpl` | Push / Pull from remote |
-| `gl` | Pretty git log with graph |
-| `gco <branch>` | Checkout branch |
-| `gcb <name>` | Create & checkout new branch |
-| `gd` | View diff |
-| `gst` / `gsta` / `gpop` | Stash / Apply stash / Pop stash |
-| `gwip "msg"` | Quick WIP commit + auto push to current branch |
+| Command                 | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `gi`                    | Initialize new git repository                  |
+| `gs`                    | Git status (short format)                      |
+| `ga`                    | Stage all files (`git add .`)                  |
+| `gcm "msg"`             | Commit with message                            |
+| `gps` / `gpl`           | Push / Pull from remote                        |
+| `gl`                    | Pretty git log with graph                      |
+| `gco <branch>`          | Checkout branch                                |
+| `gcb <name>`            | Create & checkout new branch                   |
+| `gd`                    | View diff                                      |
+| `gst` / `gsta` / `gpop` | Stash / Apply stash / Pop stash                |
+| `gwip "msg"`            | Quick WIP commit + auto push to current branch |
 
 #### `gwip` — Smart WIP Pusher
 
@@ -295,15 +300,15 @@ gwip "add auth middleware"   # Custom message
 
 ### 🔧 Project Initialization
 
-| Command | Description |
-|---|---|
-| `init` | Interactive project init — choose Bun or NPM, auto-creates `.gitignore` |
-| `next` | Scaffold Next.js app (`create-next-app`) via Bun or NPM |
-| `vite` | Scaffold Vite project with optional Tailwind CSS v4 setup |
-| `ui` | Install & init Shadcn/UI with optional component selection |
-| `css` | Auto-detect package manager and install Tailwind CSS + `clsx` + `tailwind-merge` |
-| `run` | Interactive JS/TS file runner via Bun |
-| `pg` | Generate `package.json` for current project |
+| Command | Description                                                                      |
+| ------- | -------------------------------------------------------------------------------- |
+| `init`  | Interactive project init — choose Bun or NPM, auto-creates `.gitignore`          |
+| `next`  | Scaffold Next.js app (`create-next-app`) via Bun or NPM                          |
+| `vite`  | Scaffold Vite project with optional Tailwind CSS v4 setup                        |
+| `ui`    | Install & init Shadcn/UI with optional component selection                       |
+| `css`   | Auto-detect package manager and install Tailwind CSS + `clsx` + `tailwind-merge` |
+| `run`   | Interactive JS/TS file runner via Bun                                            |
+| `pg`    | Generate `package.json` for current project                                      |
 
 #### `vite` example flow:
 
@@ -319,23 +324,23 @@ vite
 
 ### ⚙️ System & Maintenance
 
-| Command | Description |
-|---|---|
-| `uup` | **Mega Updater** — interactive fzf menu: OS core, Snap, Flatpak, Bun, Node.js, NPM, deep clean |
-| `uu` | **Universal Uninstaller** — fuzzy search across apt/snap/flatpak/AppImage, shows size & install date |
-| `uc` | Universal system clean (cache, orphans, logs) |
-| `update` | Update system packages |
-| `clean` | Clean apt cache & remove orphaned packages |
-| `setuppc` | Bootstrap a new PC with all essential developer tools |
-| `rt` | Install Node.js (via nvm), Bun, and Deno |
-| `ut` | Setup optimized CLI tooling for the PC |
-| `rel` | Reload `.bashrc` configuration |
-| `myip` | Show your public IP address |
-| `iploc` | Show IP + city/region/org info via `ipinfo.io` |
-| `ports` | List all open ports |
-| `kp <port>` | Kill the process running on a given port |
-| `serve` | Start a local Python HTTP server in current directory |
-| `rn` | Rename all files — removes special characters (`@`, `%`, `*`, `#`) |
+| Command     | Description                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------------- |
+| `uup`       | **Mega Updater** — interactive fzf menu: OS core, Snap, Flatpak, Bun, Node.js, NPM, deep clean       |
+| `uu`        | **Universal Uninstaller** — fuzzy search across apt/snap/flatpak/AppImage, shows size & install date |
+| `uc`        | Universal system clean (cache, orphans, logs)                                                        |
+| `update`    | Update system packages                                                                               |
+| `clean`     | Clean apt cache & remove orphaned packages                                                           |
+| `setuppc`   | Bootstrap a new PC with all essential developer tools                                                |
+| `rt`        | Install Node.js (via nvm), Bun, and Deno                                                             |
+| `ut`        | Setup optimized CLI tooling for the PC                                                               |
+| `rel`       | Reload `.bashrc` configuration                                                                       |
+| `myip`      | Show your public IP address                                                                          |
+| `iploc`     | Show IP + city/region/org info via `ipinfo.io`                                                       |
+| `ports`     | List all open ports                                                                                  |
+| `kp <port>` | Kill the process running on a given port                                                             |
+| `serve`     | Start a local Python HTTP server in current directory                                                |
+| `rn`        | Rename all files — removes special characters (`@`, `%`, `*`, `#`)                                   |
 
 #### `uup` — Interactive Mega Updater
 
@@ -366,20 +371,20 @@ uu
 
 ### 🔨 Utility Tools
 
-| Command | Description | Example |
-|---|---|---|
-| `mkd <name>` | Create directory and `cd` into it | `mkd my-app` |
-| `rmd <name>` | Force remove directory recursively | `rmd old-build` |
-| `rmf <file>` | Safely remove a file | `rmf config.bak` |
-| `bak <file>` | Create a `.bak` backup copy | `bak .env` |
-| `trash <file>` | Move file to system trash (safe delete) | `trash temp.log` |
-| `ex <archive>` | Extract any archive format | `ex project.tar.gz` |
-| `ff <name>` | Find file by name (skips `node_modules`, `.git`) | `ff tsconfig` |
-| `gen <len>` | Generate a cryptographically secure secret key | `gen 32` |
-| `h <word>` | Search command history | `h docker` |
-| `to` | Open current directory in VS Code | |
-| `v` | Play video in terminal | |
-| `c` / `cls` | Clear the terminal screen | |
+| Command        | Description                                      | Example             |
+| -------------- | ------------------------------------------------ | ------------------- |
+| `mkd <name>`   | Create directory and `cd` into it                | `mkd my-app`        |
+| `rmd <name>`   | Force remove directory recursively               | `rmd old-build`     |
+| `rmf <file>`   | Safely remove a file                             | `rmf config.bak`    |
+| `bak <file>`   | Create a `.bak` backup copy                      | `bak .env`          |
+| `trash <file>` | Move file to system trash (safe delete)          | `trash temp.log`    |
+| `ex <archive>` | Extract any archive format                       | `ex project.tar.gz` |
+| `ff <name>`    | Find file by name (skips `node_modules`, `.git`) | `ff tsconfig`       |
+| `gen <len>`    | Generate a cryptographically secure secret key   | `gen 32`            |
+| `h <word>`     | Search command history                           | `h docker`          |
+| `to`           | Open current directory in VS Code                |                     |
+| `v`            | Play video in terminal                           |                     |
+| `c` / `cls`    | Clear the terminal screen                        |                     |
 
 #### Archive formats supported by `ex`:
 
@@ -421,7 +426,7 @@ Contributions are welcome! Whether it's a new alias, a bug fix, or a feature ide
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feat/my-feature`
-3. **Commit** your changes: `gcm "feat: add my feature"` *(or regular `git commit`)*
+3. **Commit** your changes: `gcm "feat: add my feature"` _(or regular `git commit`)_
 4. **Push** and open a **Pull Request**
 
 Please keep functions focused, well-commented, and compatible with **Bash 4+**.
