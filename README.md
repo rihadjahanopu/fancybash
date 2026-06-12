@@ -22,6 +22,7 @@ _Beautiful • Fast • Smart • Zero Bloat_
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-0ea5e9?style=for-the-badge&logo=linux&logoColor=white)](#)
 [![Stars](https://img.shields.io/github/stars/rihadjahanopu/fancybash?style=for-the-badge&logo=github&color=f59e0b&logoColor=white)](https://github.com/rihadjahanopu/fancybash)
 [![Version](https://img.shields.io/badge/Version-2.0-ec4899?style=for-the-badge)](#)
+[![Website](https://img.shields.io/badge/Website-fancybash.netlify.app-22d3ee?style=for-the-badge&logo=netlify&logoColor=white)](https://fancybash.netlify.app)
 
 <br>
 
@@ -30,6 +31,8 @@ _Beautiful • Fast • Smart • Zero Bloat_
 <img src="https://i.postimg.cc/tCzMZ1P1/terminal1.png" alt="fancybash terminal preview 2" width="85%">
 
 <br>
+
+**🌐 Live Website: [fancybash.netlify.app](https://fancybash.netlify.app)**
 
 </div>
 
@@ -156,9 +159,10 @@ sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.
 **For PowerShell:**
 
 ```powershell
-# Run in PowerShell to remove the config block:
 $p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# >>> fancy-powershell >>>.*?# <<< fancy-powershell <<<\s*', '' | Set-Content $p
 ```
+
+> 💡 Your original config remains untouched — only the `fancybash` block wrapped in `>>> / <<<` markers is removed.
 
 ---
 
@@ -435,6 +439,10 @@ fancybash/
 ├── config.sh           # Bash configuration, aliases, prompt, colors
 ├── config.zsh          # Zsh configuration, aliases, prompt, colors
 ├── config.ps1          # PowerShell configuration, aliases, prompt, colors
+├── web/
+│   ├── index.html      # Landing page (fancybash.netlify.app)
+│   ├── style.css       # Design system & responsive styles
+│   └── main.js         # Interactive tabs, animations, copy buttons
 ├── zed/
 │   └── install-settings.sh  # Zed IDE settings installer (Flatpak + native)
 ├── README.md           # You are here
@@ -524,6 +532,9 @@ MIT © [Rihad Jahan Opu](https://github.com/rihadjahanopu)
 
 Made with ❤️ in Bangladesh
 
+[![Website](https://img.shields.io/badge/Website-fancybash.netlify.app-22d3ee?style=for-the-badge&logo=netlify&logoColor=white)](https://fancybash.netlify.app)
 [![GitHub](https://img.shields.io/badge/GitHub-rihadjahanopu-181717?style=for-the-badge&logo=github)](https://github.com/rihadjahanopu)
+
+© 2026 Rihad Jahan Opu. All rights reserved.
 
 </div>

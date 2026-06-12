@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fancybash — The Ultimate Bash Environment for Modern Developers</title>
+  <meta name="description" content="fancybash is a production-ready, opinionated Bash/Zsh/PowerShell configuration designed for modern web developers. Beautiful • Fast • Smart • Zero Bloat." />
+  <meta property="og:title" content="fancybash — The Ultimate Bash Environment" />
+  <meta property="og:description" content="One file. One install. Zero drama. Replace your dull terminal with a fully-featured, intelligent shell environment." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" aria-label="fancybash home">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">fancybash</span>
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#uninstall-details">Uninstall</a></li>
+        <li><a href="#commands">Commands</a></li>
+        <li><a href="#prompt">Prompt</a></li>
+        <li><a href="https://github.com/rihadjahanopu/fancybash" target="_blank" rel="noopener" class="nav-github">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a></li>
+      </ul>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-links-mobile">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile" id="nav-links-mobile" aria-hidden="true">
+      <div class="nav-mobile-inner">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#uninstall-details">Uninstall</a>
+        <a href="#commands">Commands</a>
+        <a href="#prompt">Prompt</a>
+        <a href="https://github.com/rihadjahanopu/fancybash" target="_blank" rel="noopener" class="nav-mobile-github">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          ⭐ Star on GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="hero" class="hero" aria-label="Hero">
+      <div class="hero-bg">
+        <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-3" aria-hidden="true"></div>
+        <div class="hero-grid" aria-hidden="true"></div>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          v2.0 — Now with PowerShell support
+        </div>
+        <pre class="hero-ascii" aria-label="fancybash logo">
+███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗
+██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║
+█████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║
+██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║
+██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║
+╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝</pre>
+        <h1 class="hero-title">The Ultimate Bash Environment<br/><span class="gradient-text">for Modern Developers</span></h1>
+        <p class="hero-sub">Beautiful &bull; Fast &bull; Smart &bull; Zero Bloat</p>
+        <p class="hero-desc">One file. One install. Zero drama. Replace your dull terminal with a fully-featured, intelligent shell environment — without the overhead of frameworks like Oh My Zsh.</p>
+
+        <div class="hero-actions">
+          <a href="#install" class="btn btn-primary" id="hero-install-btn">
+            <span>⚡</span> Quick Install
+          </a>
+          <a href="https://github.com/rihadjahanopu/fancybash" target="_blank" rel="noopener" class="btn btn-outline" id="hero-github-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <div class="hero-badges">
+          <img src="https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="MIT License" loading="lazy" />
+          <img src="https://img.shields.io/badge/Shell-Bash-22c55e?style=for-the-badge&logo=gnubash&logoColor=white" alt="Bash Shell" loading="lazy" />
+          <img src="https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-0ea5e9?style=for-the-badge&logo=linux&logoColor=white" alt="Platform" loading="lazy" />
+          <img src="https://img.shields.io/badge/Version-2.0-ec4899?style=for-the-badge" alt="Version 2.0" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- Terminal Preview -->
+      <div class="terminal-preview-wrapper">
+        <div class="terminal-window" id="terminal-preview" aria-label="Terminal preview">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="terminal-title">bash — fancybash</span>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="t-prompt">🚀 <span class="t-dir">myproject</span></span>
+              <span class="t-branch"> 🌿 main</span>
+              <span class="t-info"> 🌡️ 45°C  💾 120GB  ⚙️ 0.42</span>
+            </div>
+            <div class="terminal-line t-cmd-line">
+              <span class="t-arrow">❯❯❯</span>
+              <span class="t-typed" id="typed-text"></span>
+              <span class="t-cursor" aria-hidden="true">▋</span>
+            </div>
+            <div class="terminal-output" id="terminal-output"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar" aria-label="Statistics">
+      <div class="stats-inner">
+        <div class="stat-item">
+          <span class="stat-icon">⚡</span>
+          <div>
+            <div class="stat-num" data-target="200">0</div>
+            <div class="stat-label">+ Aliases & Functions</div>
+          </div>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item">
+          <span class="stat-icon">🛡️</span>
+          <div>
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Safe Install</div>
+          </div>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item">
+          <span class="stat-icon">🌐</span>
+          <div>
+            <div class="stat-num">3</div>
+            <div class="stat-label">Shells Supported</div>
+          </div>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item">
+          <span class="stat-icon">📄</span>
+          <div>
+            <div class="stat-num">1</div>
+            <div class="stat-label">File. That's It.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section features-section" aria-labelledby="features-heading">
+      <div class="section-inner">
+        <div class="section-header">
+          <span class="section-eyebrow">Why fancybash?</span>
+          <h2 id="features-heading" class="section-title">Feature <span class="gradient-text">Highlights</span></h2>
+          <p class="section-desc">Everything you need in a modern shell environment, nothing you don't.</p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card feature-card--wide" id="feat-prompt">
+            <div class="feature-icon">🌈</div>
+            <h3>Dynamic Smart Prompt</h3>
+            <p>Rainbow colors, random emoji per folder type, git branch with dirty state indicator, CPU temp color alerts, and more — all in a clean two-line layout.</p>
+            <div class="feature-prompt-demo" aria-label="Prompt demo">
+              <div class="fp-line fp-line-1">🚀 <span class="fp-dir">myproject</span> <span class="fp-branch">🌿 main ❗</span> <span class="fp-metrics">🌡️ 72°C 💾 45GB ⚙️ 1.2</span></div>
+              <div class="fp-line fp-line-2"><span class="fp-node">🟢 v20</span> <span class="fp-sep">│</span> <span class="fp-npm">npm 10</span> <span class="fp-sep">│</span> <span class="fp-bun">🥐 1.1</span> <span class="fp-sep">│</span> <span class="fp-time">⏱️ 3s</span></div>
+              <div class="fp-line fp-line-3"><span class="fp-arrow">❯❯❯</span> <span class="fp-cursor">▋</span></div>
+            </div>
+          </article>
+
+          <article class="feature-card" id="feat-fast">
+            <div class="feature-icon">⚡</div>
+            <h3>Lightning Fast</h3>
+            <p>No heavy plugins or slow git parsing. Stays snappy even on old hardware. Shell startup measured in milliseconds, not seconds.</p>
+          </article>
+
+          <article class="feature-card" id="feat-safe">
+            <div class="feature-icon">🛡️</div>
+            <h3>100% Safe Install</h3>
+            <p>Never blindly overwrites your config. Creates timestamped backups every time and wraps config in clearly marked boundary blocks.</p>
+          </article>
+
+          <article class="feature-card" id="feat-node">
+            <div class="feature-icon">🟢</div>
+            <h3>Node.js First-Class</h3>
+            <p>Built-in <code>nvm</code> support, Node/NPM version display, and instant aliases for all common workflows. <code>nrd</code>, <code>nrb</code>, <code>nrs</code> — done.</p>
+          </article>
+
+          <article class="feature-card" id="feat-bun">
+            <div class="feature-icon">🥐</div>
+            <h3>Bun First-Class</h3>
+            <p><code>bi</code>, <code>brd</code>, <code>brb</code>, <code>brs</code> shortcuts — runs <code>.ts</code> files with zero config. Full Bun runtime integration out of the box.</p>
+          </article>
+
+          <article class="feature-card" id="feat-updater">
+            <div class="feature-icon">🔁</div>
+            <h3>Mega Updater</h3>
+            <p><code>uup</code> — updates OS + Snap + Flatpak + Bun + Node.js in one interactive <code>fzf</code> menu. System maintenance made beautiful.</p>
+          </article>
+
+          <article class="feature-card" id="feat-uninstall">
+            <div class="feature-icon">📦</div>
+            <h3>Universal Uninstaller</h3>
+            <p><code>uu</code> — interactive fuzzy app remover with <code>fzf</code>, supports apt/snap/flatpak/AppImage. Shows size and install date.</p>
+          </article>
+
+          <article class="feature-card" id="feat-keygen">
+            <div class="feature-icon">🔑</div>
+            <h3>Secret Key Generator</h3>
+            <p><code>gen 32</code> — cryptographically secure random key generation via OpenSSL. Perfect for API keys, JWT secrets, and more.</p>
+          </article>
+
+          <article class="feature-card" id="feat-extractor">
+            <div class="feature-icon">🗜️</div>
+            <h3>Universal Extractor</h3>
+            <p><code>ex archive.tar.gz</code> — handles <code>.zip</code>, <code>.tar.gz</code>, <code>.rar</code>, <code>.7z</code>, <code>.bz2</code> and more with one simple command.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install Section -->
+    <section id="install" class="section install-section" aria-labelledby="install-heading">
+      <div class="section-inner">
+        <div class="section-header">
+          <span class="section-eyebrow">Get Started</span>
+          <h2 id="install-heading" class="section-title">Quick <span class="gradient-text">Install</span></h2>
+          <p class="section-desc">One command. Works on Linux, macOS, and Windows. Requires only <code>curl</code> and your shell.</p>
+        </div>
+
+        <div class="install-tabs" role="tablist" aria-label="Shell selection">
+          <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-bash" id="tab-btn-bash" data-tab="bash">
+            <span>🐧</span> Bash
+          </button>
+          <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-zsh" id="tab-btn-zsh" data-tab="zsh">
+            <span>🦄</span> Zsh
+          </button>
+          <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-ps" id="tab-btn-ps" data-tab="ps">
+            <span>🪟</span> PowerShell
+          </button>
+        </div>
+
+        <div class="tab-panels">
+          <div class="tab-panel active" role="tabpanel" id="tab-bash" aria-labelledby="tab-btn-bash">
+            <div class="code-block" id="code-bash">
+              <div class="code-header">
+                <span class="code-lang">bash</span>
+                <button class="copy-btn" aria-label="Copy bash install command" data-copy="bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.sh)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code>bash &lt;(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.sh)</code></pre>
+            </div>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="tab-zsh" aria-labelledby="tab-btn-zsh" hidden>
+            <div class="code-block" id="code-zsh">
+              <div class="code-header">
+                <span class="code-lang">zsh</span>
+                <button class="copy-btn" aria-label="Copy zsh install command" data-copy="zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/install.zsh)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code>zsh &lt;(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/install.zsh)</code></pre>
+            </div>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="tab-ps" aria-labelledby="tab-btn-ps" hidden>
+            <div class="code-block" id="code-ps">
+              <div class="code-header">
+                <span class="code-lang">powershell</span>
+                <button class="copy-btn" aria-label="Copy PowerShell install command" data-copy="Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://gist.githubusercontent.com/rihadjahanopu/54b3d3bf8aac456b1aa19a62ac76a993/raw/install.ps1)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Copy
+                </button>
+              </div>
+              <pre><code>Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://gist.githubusercontent.com/rihadjahanopu/54b3d3bf8aac456b1aa19a62ac76a993/raw/install.ps1)</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="install-steps">
+          <h3>What the installer does</h3>
+          <ol class="steps-list">
+            <li class="step-item">
+              <span class="step-icon">✅</span>
+              <div>
+                <strong>Check for existing install</strong>
+                <p>Safe to re-run — detects if already installed and exits gracefully.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-icon">💾</span>
+              <div>
+                <strong>Backup your config</strong>
+                <p>Creates a timestamped backup of your current <code>.bashrc</code> / <code>.zshrc</code> / <code>$PROFILE</code>.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-icon">📥</span>
+              <div>
+                <strong>Download & append config</strong>
+                <p>Downloads the config and appends it with clear <code>&gt;&gt;&gt; / &lt;&lt;&lt;</code> boundary markers.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-icon">🔄</span>
+              <div>
+                <strong>Reload your shell</strong>
+                <p>Automatically sources your shell config so everything is live instantly.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- Uninstall -->
+        <details class="uninstall-details" id="uninstall-details">
+          <summary>🗑️ How to Uninstall</summary>
+          <div class="uninstall-content">
+            <p>Cleanly removes <strong>only</strong> the fancybash block from your config, leaving the rest untouched.</p>
+
+            <div class="uninstall-tabs" role="tablist" aria-label="Uninstall shell selection">
+              <button class="utab-btn active" role="tab" aria-selected="true" aria-controls="utab-bash" id="utab-btn-bash" data-utab="bash">🐧 Bash</button>
+              <button class="utab-btn" role="tab" aria-selected="false" aria-controls="utab-zsh" id="utab-btn-zsh" data-utab="zsh">🦄 Zsh</button>
+              <button class="utab-btn" role="tab" aria-selected="false" aria-controls="utab-ps" id="utab-btn-ps" data-utab="ps">🪟 PowerShell</button>
+            </div>
+
+            <div class="utab-panel active" role="tabpanel" id="utab-bash" aria-labelledby="utab-btn-bash">
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">bash</span>
+                  <button class="copy-btn" aria-label="Copy uninstall bash" data-copy="sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc">Copy</button>
+                </div>
+                <pre><code>sed -i '/# &gt;&gt;&gt; fancy-bashrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-bashrc &lt;&lt;&lt;/d' ~/.bashrc &amp;&amp; source ~/.bashrc</code></pre>
+              </div>
+            </div>
+
+            <div class="utab-panel" role="tabpanel" id="utab-zsh" aria-labelledby="utab-btn-zsh" hidden>
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">zsh</span>
+                  <button class="copy-btn" aria-label="Copy uninstall zsh" data-copy="sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc">Copy</button>
+                </div>
+                <pre><code>sed -i '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc &lt;&lt;&lt;/d' ~/.zshrc &amp;&amp; source ~/.zshrc</code></pre>
+              </div>
+            </div>
+
+            <div class="utab-panel" role="tabpanel" id="utab-ps" aria-labelledby="utab-btn-ps" hidden>
+              <div class="code-block">
+                <div class="code-header">
+                  <span class="code-lang">powershell</span>
+                  <button class="copy-btn" aria-label="Copy uninstall PowerShell" data-copy="$p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# >>> fancy-powershell >>>.*?# <<< fancy-powershell <<<\s*', '' | Set-Content $p">Copy</button>
+                </div>
+                <pre><code>$p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# &gt;&gt;&gt; fancy-powershell &gt;&gt;&gt;.*?# &lt;&lt;&lt; fancy-powershell &lt;&lt;&lt;\s*', '' | Set-Content $p</code></pre>
+              </div>
+            </div>
+
+            <p class="uninstall-note">
+              <span class="uninstall-note-icon">💡</span>
+              <span>Your original config remains untouched — only the <code>fancybash</code> block wrapped in <code>&gt;&gt;&gt; / &lt;&lt;&lt;</code> markers is removed.</span>
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Commands Section -->
+    <section id="commands" class="section commands-section" aria-labelledby="commands-heading">
+      <div class="section-inner">
+        <div class="section-header">
+          <span class="section-eyebrow">Supercharged Terminal</span>
+          <h2 id="commands-heading" class="section-title">Command <span class="gradient-text">Reference</span></h2>
+          <p class="section-desc">Run <code>keep</code> in your terminal to see the full reference at any time.</p>
+        </div>
+
+        <div class="cmd-categories" role="tablist" aria-label="Command categories">
+          <button class="cmd-cat-btn active" role="tab" aria-selected="true" data-cat="nav" id="cmd-tab-nav">📂 Navigation</button>
+          <button class="cmd-cat-btn" role="tab" aria-selected="false" data-cat="npm" id="cmd-tab-npm">📦 NPM & Bun</button>
+          <button class="cmd-cat-btn" role="tab" aria-selected="false" data-cat="git" id="cmd-tab-git">🌿 Git</button>
+          <button class="cmd-cat-btn" role="tab" aria-selected="false" data-cat="project" id="cmd-tab-project">🔧 Project</button>
+          <button class="cmd-cat-btn" role="tab" aria-selected="false" data-cat="system" id="cmd-tab-system">⚙️ System</button>
+          <button class="cmd-cat-btn" role="tab" aria-selected="false" data-cat="util" id="cmd-tab-util">🔨 Utilities</button>
+        </div>
+
+        <div class="cmd-panel active" data-panel="nav" role="tabpanel" aria-labelledby="cmd-tab-nav">
+          <div class="cmd-table-wrapper">
+            <table class="cmd-table">
+              <thead><tr><th>Command</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><code>..</code></td><td>Go up one directory</td></tr>
+                <tr><td><code>...</code></td><td>Go up two directories</td></tr>
+                <tr><td><code>....</code></td><td>Go up three directories</td></tr>
+                <tr><td><code>dev</code></td><td>Jump to <code>~/Development</code></td></tr>
+                <tr><td><code>fr / ba / fu</code></td><td>Jump to Frontend / Backend / Fullstack folder</td></tr>
+                <tr><td><code>fig / ar / de</code></td><td>Jump to Figma / Archive / Dev folders</td></tr>
+                <tr><td><code>des / doc / dow</code></td><td>Jump to Desktop / Documents / Downloads</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cmd-panel" data-panel="npm" role="tabpanel" aria-labelledby="cmd-tab-npm" hidden>
+          <div class="cmd-table-wrapper">
+            <table class="cmd-table">
+              <thead><tr><th>Alias</th><th>Expands To</th></tr></thead>
+              <tbody>
+                <tr><td><code>ni</code></td><td><code>npm install</code></td></tr>
+                <tr><td><code>nid</code></td><td><code>npm install -D</code></td></tr>
+                <tr><td><code>nr</code></td><td><code>npm run</code></td></tr>
+                <tr><td><code>nrd</code></td><td><code>npm run dev</code></td></tr>
+                <tr><td><code>nrb</code></td><td><code>npm run build</code></td></tr>
+                <tr><td><code>nrs</code></td><td><code>npm run start</code></td></tr>
+                <tr><td><code>bi</code></td><td><code>bun install</code></td></tr>
+                <tr><td><code>brd</code></td><td><code>bun run dev</code></td></tr>
+                <tr><td><code>brb</code></td><td><code>bun run build</code></td></tr>
+                <tr><td><code>brs</code></td><td><code>bun run start</code></td></tr>
+                <tr><td><code>html</code></td><td><code>bun run index.html</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cmd-panel" data-panel="git" role="tabpanel" aria-labelledby="cmd-tab-git" hidden>
+          <div class="cmd-table-wrapper">
+            <table class="cmd-table">
+              <thead><tr><th>Command</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>gi</code></td><td>Initialize new git repository</td></tr>
+                <tr><td><code>gs</code></td><td>Git status (short format)</td></tr>
+                <tr><td><code>ga</code></td><td>Stage all files (<code>git add .</code>)</td></tr>
+                <tr><td><code>gcm "msg"</code></td><td>Commit with message</td></tr>
+                <tr><td><code>gps / gpl</code></td><td>Push / Pull from remote</td></tr>
+                <tr><td><code>gl</code></td><td>Pretty git log with graph</td></tr>
+                <tr><td><code>gco &lt;branch&gt;</code></td><td>Checkout branch</td></tr>
+                <tr><td><code>gcb &lt;name&gt;</code></td><td>Create & checkout new branch</td></tr>
+                <tr><td><code>gd</code></td><td>View diff</td></tr>
+                <tr><td><code>gwip "msg"</code></td><td>Quick WIP commit + auto push to current branch</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cmd-panel" data-panel="project" role="tabpanel" aria-labelledby="cmd-tab-project" hidden>
+          <div class="cmd-table-wrapper">
+            <table class="cmd-table">
+              <thead><tr><th>Command</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>init</code></td><td>Interactive project init — choose Bun or NPM</td></tr>
+                <tr><td><code>next</code></td><td>Scaffold Next.js app via Bun or NPM</td></tr>
+                <tr><td><code>vite</code></td><td>Scaffold Vite project with optional Tailwind CSS v4</td></tr>
+                <tr><td><code>ui</code></td><td>Install & init Shadcn/UI with component selection</td></tr>
+                <tr><td><code>css</code></td><td>Auto-install Tailwind CSS + clsx + tailwind-merge</td></tr>
+                <tr><td><code>run</code></td><td>Interactive JS/TS file runner via Bun</td></tr>
+                <tr><td><code>pg</code></td><td>Generate <code>package.json</code> for current project</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cmd-panel" data-panel="system" role="tabpanel" aria-labelledby="cmd-tab-system" hidden>
+          <div class="cmd-table-wrapper">
+            <table class="cmd-table">
+              <thead><tr><th>Command</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>uup</code></td><td>Mega Updater — OS + Snap + Flatpak + Bun + Node.js via fzf</td></tr>
+                <tr><td><code>uu</code></td><td>Universal Uninstaller — fuzzy search across all package managers</td></tr>
+                <tr><td><code>uc</code></td><td>Universal system clean (cache, orphans, logs)</td></tr>
+                <tr><td><code>setuppc</code></td><td>Bootstrap a new PC with all essential developer tools</td></tr>
+                <tr><td><code>rt</code></td><td>Install Node.js (via nvm), Bun, and Deno</td></tr>
+                <tr><td><code>myip</code></td><td>Show your public IP address</td></tr>
+                <tr><td><code>iploc</code></td><td>Show IP + city/region/org info via <code>ipinfo.io</code></td></tr>
+                <tr><td><code>ports</code></td><td>List all open ports</td></tr>
+                <tr><td><code>kp &lt;port&gt;</code></td><td>Kill the process running on a given port</td></tr>
+                <tr><td><code>serve</code></td><td>Start a local Python HTTP server in current directory</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cmd-panel" data-panel="util" role="tabpanel" aria-labelledby="cmd-tab-util" hidden>
+          <div class="cmd-table-wrapper">
+            <table class="cmd-table">
+              <thead><tr><th>Command</th><th>Description</th><th>Example</th></tr></thead>
+              <tbody>
+                <tr><td><code>mkd &lt;name&gt;</code></td><td>Create directory and <code>cd</code> into it</td><td><code>mkd my-app</code></td></tr>
+                <tr><td><code>rmd &lt;name&gt;</code></td><td>Force remove directory recursively</td><td><code>rmd old-build</code></td></tr>
+                <tr><td><code>bak &lt;file&gt;</code></td><td>Create a <code>.bak</code> backup copy</td><td><code>bak .env</code></td></tr>
+                <tr><td><code>trash &lt;file&gt;</code></td><td>Move file to system trash (safe delete)</td><td><code>trash temp.log</code></td></tr>
+                <tr><td><code>ex &lt;archive&gt;</code></td><td>Extract any archive format</td><td><code>ex project.tar.gz</code></td></tr>
+                <tr><td><code>ff &lt;name&gt;</code></td><td>Find file by name (skips <code>node_modules</code>)</td><td><code>ff tsconfig</code></td></tr>
+                <tr><td><code>gen &lt;len&gt;</code></td><td>Generate cryptographically secure secret key</td><td><code>gen 32</code></td></tr>
+                <tr><td><code>h &lt;word&gt;</code></td><td>Search command history</td><td><code>h docker</code></td></tr>
+                <tr><td><code>to</code></td><td>Open current directory in VS Code</td><td></td></tr>
+                <tr><td><code>c / cls</code></td><td>Clear the terminal screen</td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Prompt Section -->
+    <section id="prompt" class="section prompt-section" aria-labelledby="prompt-heading">
+      <div class="section-inner">
+        <div class="section-header">
+          <span class="section-eyebrow">Smart Awareness</span>
+          <h2 id="prompt-heading" class="section-title">Prompt <span class="gradient-text">System</span></h2>
+          <p class="section-desc">A context-aware two-line prompt that tells you everything at a glance.</p>
+        </div>
+
+        <div class="prompt-showcase">
+          <div class="prompt-demo-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <span class="terminal-title">fancybash — full two-line prompt</span>
+            </div>
+            <div class="terminal-body">
+              <div class="pdemo-line">
+                <span class="pd-emoji">🌐</span>
+                <span class="pd-dir pd-purple">webproject</span>
+                <span class="pd-text pd-dim"> [</span><span class="pd-branch pd-green">🌿 feat/auth ❗</span><span class="pd-text pd-dim">]</span>
+                <span class="pd-temp pd-green"> 🌡️ 48°C</span>
+                <span class="pd-disk"> 💾 85GB</span>
+                <span class="pd-load"> ⚙️ 0.71</span>
+                <span class="pd-timer pd-yellow"> ⏱️ 3s</span>
+              </div>
+              <div class="pdemo-line">
+                <span class="pd-node pd-green">🟢 v20.11</span>
+                <span class="pd-sep"> │ </span>
+                <span class="pd-npm">npm 10.4</span>
+                <span class="pd-sep"> │ </span>
+                <span class="pd-bun pd-orange">🥐 1.1.3</span>
+                <span class="pd-sep"> │ </span>
+                <span class="pd-kernel">🐧 6.8.0</span>
+                <span class="pd-sep"> │ </span>
+                <span class="pd-time pd-blue">12:34:56</span>
+                <span class="pd-sep"> │ </span>
+                <span class="pd-bat pd-green">🔋 87%</span>
+              </div>
+              <div class="pdemo-line">
+                <span class="pd-arrow pd-cyan">❯❯❯</span>
+                <span class="pd-cursor pd-cyan"> ▋</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="prompt-elements">
+            <h3>Prompt Elements</h3>
+            <div class="prompt-elements-grid">
+              <div class="pe-item">
+                <span class="pe-icon">🌐</span>
+                <div>
+                  <strong>Smart Emoji</strong>
+                  <p><code>🌐</code> web, <code>🟢</code> node, <code>🥐</code> bun, <code>🐍</code> py</p>
+                </div>
+              </div>
+              <div class="pe-item">
+                <span class="pe-icon">🌿</span>
+                <div>
+                  <strong>Git Branch</strong>
+                  <p>Branch name + <code>❗</code> when dirty</p>
+                </div>
+              </div>
+              <div class="pe-item">
+                <span class="pe-icon">🌡️</span>
+                <div>
+                  <strong>CPU Temp</strong>
+                  <p>🟢 &lt;60° / 🟡 &lt;80° / 🔴 &gt;80°</p>
+                </div>
+              </div>
+              <div class="pe-item">
+                <span class="pe-icon">⏱️</span>
+                <div>
+                  <strong>Command Timer</strong>
+                  <p>Shows duration for commands &gt; 1 second</p>
+                </div>
+              </div>
+              <div class="pe-item">
+                <span class="pe-icon">🔒</span>
+                <div>
+                  <strong>Read-only Indicator</strong>
+                  <p>Shows when current dir is not writable</p>
+                </div>
+              </div>
+              <div class="pe-item">
+                <span class="pe-icon">🆙</span>
+                <div>
+                  <strong>Pending Updates</strong>
+                  <p>Shows count when system packages need updating</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zed IDE Section -->
+    <section id="zed" class="section zed-section" aria-labelledby="zed-heading">
+      <div class="section-inner">
+        <div class="zed-content">
+          <div class="zed-text">
+            <span class="section-eyebrow">Bonus</span>
+            <h2 id="zed-heading" class="section-title">Zed IDE <span class="gradient-text">Settings</span></h2>
+            <p>Get a fully-configured <code>settings.json</code> for the <a href="https://zed.dev" target="_blank" rel="noopener" class="text-link">Zed editor</a> — works for both Flatpak and native installations.</p>
+            <ul class="zed-features">
+              <li>🎨 <strong>BlackFox</strong> dark theme + Everforest light</li>
+              <li>✍️ <strong>Cascadia Code 22px</strong> with JetBrains Mono fallback</li>
+              <li>⌨️ <strong>VSCode</strong> keymap for familiar shortcuts</li>
+              <li>💡 Inlay hints, inline diagnostics, minimap enabled</li>
+              <li>💾 Autosave on focus change</li>
+              <li>🔍 Git inline blame with commit summary</li>
+            </ul>
+            <div class="code-block" id="code-zed-install">
+              <div class="code-header">
+                <span class="code-lang">bash</span>
+                <button class="copy-btn" aria-label="Copy Zed install command" data-copy="bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/bb56371f87793c21a8fad4e4b9815a9b/raw/install-settings.sh)">Copy</button>
+              </div>
+              <pre><code>bash &lt;(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/bb56371f87793c21a8fad4e4b9815a9b/raw/install-settings.sh)</code></pre>
+            </div>
+          </div>
+          <div class="zed-table-wrapper">
+            <table class="zed-table">
+              <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Theme</td><td>BlackFox (dark) / Everforest Light Hard</td></tr>
+                <tr><td>Buffer Font</td><td>Cascadia Code 22px</td></tr>
+                <tr><td>UI Font</td><td>JetBrains Mono 20px</td></tr>
+                <tr><td>Terminal Font</td><td>JetBrains Mono 22px</td></tr>
+                <tr><td>Tab Size</td><td>2 spaces</td></tr>
+                <tr><td>Keymap</td><td>VSCode</td></tr>
+                <tr><td>Minimap</td><td>auto</td></tr>
+                <tr><td>Git Blame</td><td>With commit summary</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" aria-labelledby="cta-heading">
+      <div class="section-inner">
+        <div class="cta-card">
+          <div class="cta-orb cta-orb-1" aria-hidden="true"></div>
+          <div class="cta-orb cta-orb-2" aria-hidden="true"></div>
+          <h2 id="cta-heading">Ready to upgrade your terminal?</h2>
+          <p>Join developers who've made their shell <strong>beautiful, fast, and smart</strong>.</p>
+          <div class="cta-actions">
+            <a href="#install" class="btn btn-primary" id="cta-install-btn">⚡ Install Now</a>
+            <a href="https://github.com/rihadjahanopu/fancybash" target="_blank" rel="noopener" class="btn btn-outline" id="cta-github-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+              ⭐ Star on GitHub
+            </a>
+          </div>
+          <p class="cta-note">MIT Licensed · Made with ❤️ in Bangladesh</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">fancybash</span>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#commands">Commands</a>
+        <a href="https://github.com/rihadjahanopu/fancybash" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/rihadjahanopu/fancybash/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+      </nav>
+      <p class="footer-copy">© 2026 <a href="https://github.com/rihadjahanopu" target="_blank" rel="noopener" class="text-link">Rihad Jahan Opu</a>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
