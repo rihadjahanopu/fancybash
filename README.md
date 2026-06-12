@@ -248,6 +248,22 @@ fancybash renders a smart two-part prompt with contextual awareness:
 | `battery_info`     | Shows battery % when available                                                                |
 | `kernel_version`   | Displays current kernel version                                                               |
 
+### ⚙️ Customizing the Prompt Layout
+
+By default, fancybash/fancyzsh renders a clean, minimalistic **single-line** prompt. However, all the dynamic system monitoring metrics listed above (such as CPU temp, disk space, active runtime versions) are already built-in and ready to be used.
+
+You can modify or toggle the prompt layout to your liking by editing your shell configuration file (`~/.bashrc` or `~/.zshrc`) and uncommenting/commenting the lines under the **`🎯 TWO LINE PROMPT`** section:
+
+```bash
+# 💡 Uncomment these lines in your ~/.bashrc or ~/.zshrc if you want the full two-line prompt:
+# PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] "
+# PS1+="\$(folder_size) [🌿 \$(parse_git_branch)]\$(cpu_temp) \$(disk_usage) \$(load_avg) \$(get_duration) \$(check_readonly) \$(pending_updates)\n"
+# PS1+="\$(node_version) │ \$(npm_version) │ \$(bun_version) │ \$(kernel_version) │ "
+# PS1+="\$(time_date) │ \$(sys_info) │ \$(battery_info)\n"
+```
+
+Feel free to customize, add, or remove any helper functions (like `node_version`, `cpu_temp`, etc.) from your configuration block to design your own custom layout!
+
 ---
 
 ## 🛠️ Command Reference
