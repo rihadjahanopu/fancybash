@@ -100,13 +100,13 @@ bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ec
 **For Zsh (`.zshrc`):**
 
 ```zsh
-zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/raw/73539d01666e7cc834cb0cdf20ac92915322dc99/config.zsh)
+zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/install.zsh)
 ```
 
 **For PowerShell (`$PROFILE`):**
 
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.ps1)
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://gist.githubusercontent.com/rihadjahanopu/54b3d3bf8aac456b1aa19a62ac76a993/raw/install.ps1)
 ```
 
 The installer will:
