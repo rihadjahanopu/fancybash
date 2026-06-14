@@ -1181,22 +1181,23 @@ keep() {
 #  📦 Run ts / js file on terminal
 # ======================================================
 
-
-
 run() {
     # Color Codes
-    CYAN='\033[0;36m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[1;34m'
-    GREEN='\033[1;32m'
-    RED='\033[0;31m'
-    BOLD='\033[1m'
-    NC='\033[0m'
+    local CYAN='\033[0;36m'
+    local YELLOW='\033[1;33m'
+    local BLUE='\033[1;34m'
+    local GREEN='\033[1;32m'
+    local RED='\033[0;31m'
+    local BOLD='\033[1m'
+    local NC='\033[0m'
 
-    # File list (.js and .ts)
-    files=($(ls *.js *.ts 2>/dev/null))
+    # zsh: nullglob enable (local scope)
+    setopt localoptions nullglob
 
-    if [ ${#files[@]} -eq 0 ]; then
+    # Safe file collection - zsh native glob with (N) qualifier
+    local files=(*.js(N) *.ts(N))
+
+    if (( ${#files} == 0 )); then
         echo -e "${RED}󱓇 No .js or .ts files found!${NC}"
         return 1
     fi
@@ -1207,29 +1208,30 @@ run() {
     echo -e "${CYAN}╰──────────────────────────────────────────╯${NC}"
 
     # List Display with Icons
-    for i in "${!files[@]}"; do
+    local i ext icon
+    # zsh: array index 1-based
+    for (( i = 1; i <= ${#files}; i++ )); do
         ext="${files[$i]##*.}"
-
-        # Icon selection based on extension
         if [[ "$ext" == "ts" ]]; then
-            icon="${BLUE}📘${NC}" # Blue Book for TS
+            icon="${BLUE}📘${NC}"
         else
-            icon="${YELLOW}📒${NC}" # Yellow Book for JS
+            icon="${YELLOW}📒${NC}"
         fi
-
-        # Beautifully aligned row
-        printf "${CYAN}  [%2d]${NC}  %b  %-30s\n" "$((i+1))" "$icon" "${files[$i]}"
+        printf "${CYAN}  [%2d]${NC}  %b  %-30s\n" "$i" "$icon" "${files[$i]}"
     done
 
     echo -e "${CYAN}────────────────────────────────────────────${NC}"
 
     # Smart Input Prompt
     echo -e "${YELLOW}👉 Enter file number (or Ctrl+C):${NC}"
-    read -p "❯ " choice
+    echo -ne "${YELLOW}❯ ${NC}"
+    local choice
+    read -r choice
 
-    # File selection validation
-    if [[ $choice -gt 0 && $choice -le ${#files[@]} ]]; then
-        selected_file=${files[$((choice-1))]}
+    # Strict validation
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#files} )); then
+        # zsh: 1-based index, so direct access
+        local selected_file="${files[$choice]}"
 
         echo -e "\n${GREEN}✔ Selected:${NC} ${BOLD}$selected_file${NC}"
         echo -e "${CYAN}────────────────────────────────────────────${NC}"
@@ -1240,9 +1242,11 @@ run() {
         echo -e "${CYAN}  [2]${NC}  🔥  ${BOLD}bun --hot${NC}   (hot reload)"
         echo -e "${CYAN}  [3]${NC}  👁  ${BOLD}bun --watch${NC} (watch mode)"
         echo -e "${CYAN}────────────────────────────────────────────${NC}"
-        read -p "❯ " mode
+        echo -ne "${YELLOW}❯ ${NC}"
+        local mode
+        read -r mode
 
-        # Determine command based on mode
+        local cmd mode_label mode_color
         case "$mode" in
             2)
                 cmd="bun --hot"
@@ -1254,7 +1258,13 @@ run() {
                 mode_label="WATCH MODE"
                 mode_color="${YELLOW}"
                 ;;
+            1|"")
+                cmd="bun run"
+                mode_label="RUN"
+                mode_color="${GREEN}"
+                ;;
             *)
+                echo -e "\n${RED}✘ Error: Invalid mode! Defaulting to 'bun run'.${NC}"
                 cmd="bun run"
                 mode_label="RUN"
                 mode_color="${GREEN}"
@@ -1267,8 +1277,10 @@ run() {
         $cmd "$selected_file"
     else
         echo -e "\n${RED}✘ Error: Invalid selection!${NC}"
+        return 1
     fi
 }
+
 
 # ======================================================
 #  📦 VIDEO FILLTER AND OPEN
@@ -3309,8 +3321,8 @@ alias ss='cd ~/Downloads/Screenshot'
 alias vi='cd ~/Downloads/Video'
 
 
-#shopt -s autocd
-
+# Zsh-এর জন্য autocd active করার নিয়ম
+setopt autocd
 
 # Remove any Flatpak app paths from LD_LIBRARY_PATH
 if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/app/"* ]]; then
