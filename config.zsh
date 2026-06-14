@@ -132,17 +132,6 @@ pending_updates() {
 # 🎯 zsh PROMPT (With Your Original Comments & Absolute Fix)
 # ======================================================
 
-# Option 1: %F/%f ব্যবহার করে (সবচেয়ে নিরাপদ এবং ক্লিন)
-# PS1='$(rand_emoji) %F{$(rand_color)}%1~%f '
-# PS1+='$(folder_size) [🌿 $(parse_git_branch)]$(cpu_temp) $(disk_usage) $(load_avg) $(get_duration) $(check_readonly) $(pending_updates)'$'\n'
-# PS1+='$(node_version) │ $(npm_version) │ $(bun_version) │ $(kernel_version) │ '
-# PS1+='$(time_date) │ $(sys_info) │ $(battery_info)'$'\n'
-
-# Option 2: $'\e[33m' ব্যবহার করে (আপনার স্টাইল)
-# Zsh-এ ব্লিন্কিং ইফেক্টের পারফেক্ট এস্কেপ সিকোয়েন্স:
-blink_cursor="❯❯❯"
-
-# ডাইনামিক প্রোম্পট ইভালুয়েশন অন করা
 setopt prompt_subst
 
 build_prompt() {
@@ -157,7 +146,8 @@ build_prompt() {
   PROMPT="$(rand_emoji) %F{$col}%1~%f "$'\n'
 
   # তৃতীয় লাইন: ব্লিন্কিং কার্সার
-  PROMPT+="${blink_cursor} "
+
+  PROMPT=$'%{\e[5m%}❯❯❯%{\e[25m%} '
 }
 
 # প্রতিবার প্রম্পট রিলোডের জন্য হুক অ্যাসাইন
@@ -3327,6 +3317,14 @@ if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/ap
         unset LD_LIBRARY_PATH
     fi
 fi
+
+# Enable autocomplete
+autoload -Uz compinit
+compinit
+
+# Autocomplete and Syntax Highlighting
+source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
 # =====================================================
