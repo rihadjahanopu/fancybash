@@ -398,29 +398,40 @@ trash() {
 
 
 gwip() {
+    # Color Codes
+    local CYAN='\033[1;36m'
+    local YELLOW='\033[1;33m'
+    local GREEN='\033[0;32m'
+    local RED='\033[0;31m'
+    local BOLD='\033[1m'
+    local NC='\033[0m'
+
     # ১. সব ফাইল স্টেজ করা
     git add .
 
-    # ২. ইউজার থেকে মেসেজ নেওয়া
-    echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
+    # ২. Header দেখানো
+    echo -e "\n${CYAN}🚀 Git Quick Push Mode${NC}"
+    echo -e "${CYAN}────────────────────────────${NC}\n"
 
-    # Zsh-এর জন্য সঠিক read syntax (variable?prompt_text)
-    read "msg?📝 Enter commit message [Enter for default]: "
+    # ৩. মেসেজ ইনপুট (zsh-safe way)
+    echo -ne "${BOLD}📝 Enter commit message${NC} ${YELLOW}[Enter for default]${NC}: "
+    local msg
+    read -r msg
 
-    # ৩. মেসেজ সেট করা (খালি থাকলে ডিফল্ট নিবে)
+    # ৪. মেসেজ সেট করা (খালি থাকলে ডিফল্ট)
     local final_msg="${msg:-Work in progress (Save Point)}"
 
-    # ৪. কমিট করা
+    # ৫. কমিট করা
+    echo -e "\n${CYAN}📦 Committing...${NC}"
     git commit -m "🚧 WIP: $final_msg"
 
-    # ৫. অটো পুশ করা (কারেন্ট ব্রাঞ্চে)
-    echo -e "📤 \033[1;33mPushing to remote...\033[0m"
-    git push
-
-    if [ $? -eq 0 ]; then
-        echo -e "✅ \033[0;32mEverything committed and pushed successfully!\033[0m"
+    # ৬. পুশ করা
+    echo -e "\n${YELLOW}📤 Pushing to remote...${NC}"
+    if git push; then
+        echo -e "\n${GREEN}✅ Everything committed and pushed successfully!${NC}"
     else
-        echo -e "❌ \033[0;31mPush failed! Check your internet or remote settings.\033[0m"
+        echo -e "\n${RED}❌ Push failed! Check your internet or remote settings.${NC}"
+        return 1
     fi
 }
 
