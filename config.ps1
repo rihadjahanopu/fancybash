@@ -234,70 +234,532 @@ Set-Alias -Name cls -Value Clear-Host
 Set-Alias -Name h -Value Get-History
 
 
-# Remove default cd alias to use custom function
-if (Test-Path alias:cd) { Remove-Item alias:cd }
+function ui {
+    Write-Host "🎨 Setup Shadcn UI with:"
+    Write-Host "1) Bun"
+    Write-Host "2) NPM"
+    $c = Read-Host "Choice"
 
-# Global variable for previous directory
-$global:OLDPWD = $HOME
+    $components = Read-Host "Add specific components? (e.g. button card input)"
 
-function cd {
-    param([string]$path = $HOME)
+    switch ($c) {
+        "1" {
+            Write-Host "🧱 Initializing Shadcn UI with Bun..."
+            bunx --bun shadcn@latest init -t vite
 
-    # cd - : previous directory toggle (like bash)
-    if ($path -eq '-') {
-        if ($global:OLDPWD -and (Test-Path $global:OLDPWD)) {
-            $tmp = $PWD.Path
-            Set-Location $global:OLDPWD
-            $global:OLDPWD = $tmp
-            return
-        } else {
-            Write-Host "❌ No previous directory found." -ForegroundColor Red
+            if (-not [string]::IsNullOrWhiteSpace($components)) {
+                Write-Host "🔘 Adding components: $components..."
+                bunx --bun shadcn@latest add $components
+            } else {
+                Write-Host "🔘 Adding default Button component..."
+                bunx --bun shadcn@latest add button
+            }
+        }
+        "2" {
+            Write-Host "🧱 Initializing Shadcn UI with NPM..."
+            npx shadcn@latest init -t vite
+
+            if (-not [string]::IsNullOrWhiteSpace($components)) {
+                Write-Host "🔘 Adding components: $components..."
+                npx shadcn@latest add $components
+            } else {
+                Write-Host "🔘 Adding default Button component..."
+                npx shadcn@latest add button
+            }
+        }
+        default {
+            Write-Host "Invalid choice"
             return
         }
     }
 
-    # Save current before moving
-    $global:OLDPWD = $PWD.Path
+    Write-Host "---------------------------------------------------"
+    Write-Host "✅ Shadcn UI setup complete!"
+    Write-Host "🚀 Happy coding with Shadcn!"
+    Write-Host "---------------------------------------------------"
+}
 
-    # Auto-cd: if no path given, go home
-    if (-not $path) {
-        Set-Location $HOME
+
+function vite {
+    Write-Host "⚡ Setup Vite with:"
+    Write-Host "1) Bun"
+    Write-Host "2) NPM"
+    $c = Read-Host "Choice"
+
+    $tw = Read-Host "Add Tailwind CSS v4? (y/n)"
+
+    switch ($c) {
+        "1" {
+            bunx create-vite@latest .
+            if ($tw -eq "y") {
+                try {
+                    bun add tailwindcss @tailwindcss/vite
+                } catch {
+                    Write-Host "❌ Install failed with Bun."
+                    $force = Read-Host "Try with --force? (y/n)"
+                    if ($force -eq "y") {
+                        bun add tailwindcss @tailwindcss/vite --force
+                    }
+                }
+            }
+        }
+        "2" {
+            npx create-vite@latest .
+            if ($tw -eq "y") {
+                try {
+                    npm install tailwindcss @tailwindcss/vite
+                } catch {
+                    Write-Host "❌ Install failed with NPM (Peer Dependency Conflict likely)."
+                    $legacy = Read-Host "Try with --legacy-peer-deps? (y/n)"
+                    if ($legacy -eq "y") {
+                        npm install tailwindcss @tailwindcss/vite --legacy-peer-deps
+                    }
+                }
+            }
+        }
+        default {
+            Write-Host "Invalid choice"
+            return
+        }
+    }
+
+    if ($tw -eq "y") {
+        # Create src folder and CSS file setup
+        New-Item -ItemType Directory -Force -Path "src" | Out-Null
+
+        $CSS_FILE = "src/index.css"
+        if (Test-Path "src/style.css") {
+            $CSS_FILE = "src/style.css"
+        }
+
+        # Add the Tailwind v4 import
+        '@import "tailwindcss";' | Out-File -FilePath $CSS_FILE -Encoding utf8
+
+        Write-Host "---------------------------------------------------"
+        Write-Host "✅ Tailwind CSS v4 packages installed!"
+        Write-Host "✅ Added '@import `"tailwindcss`";' to $CSS_FILE"
+        Write-Host ""
+        Write-Host "⚠️  ACTION REQUIRED: You must update your Vite config manually."
+        Write-Host ""
+        Write-Host "Open your vite.config.ts (or .js) and add these two lines:"
+        Write-Host "  1. import tailwindcss from '@tailwindcss/vite'"
+        Write-Host "  2. Add tailwindcss() to the plugins array."
+        Write-Host "---------------------------------------------------"
+    }
+}
+
+function next {
+    Write-Host "⚡ Setup Next.js with:"
+    Write-Host "1) Bun"
+    Write-Host "2) NPM"
+    $c = Read-Host "Choice"
+
+    switch ($c) {
+        "1" { bunx create-next-app@latest . }
+        "2" { npx create-next-app@latest . }
+        default { Write-Host "Invalid choice" }
+    }
+}
+
+
+function css {
+    if (-not (Test-Path "package.json")) {
+        Write-Host "❌ Error: package.json not found!"
+        return 1
+    }
+
+    # Auto-detect package manager
+    $pm = "npm"
+    if (Test-Path "bun.lockb") {
+        $pm = "bun"
+    }
+
+    Write-Host "📦 Installing Tailwind via $pm..."
+    if ($pm -eq "bun") {
+        bun add -D tailwindcss clsx tailwind-merge
+        bunx tailwindcss init -p
+    } else {
+        npm install -D tailwindcss clsx tailwind-merge
+        npx tailwindcss init -p
+    }
+    Write-Host "✅ Tailwind CSS Ready!"
+}
+
+function uup {
+    $ESC = [char]27
+    $RED = "$ESC[1;31m"; $GRN = "$ESC[1;32m"; $YLW = "$ESC[1;33m"
+    $BLU = "$ESC[1;34m"; $PUR = "$ESC[1;35m"; $CYN = "$ESC[1;36m"
+    $BOLD = "$ESC[1m"; $NC = "$ESC[0m"
+
+    # Admin Check
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin) {
+        Write-Host "${RED}❌ Run as Administrator!${NC}"
         return
     }
 
-    # Smart path resolution
-    $target = $path
+    # Package Managers
+    $hasWinget = $null -ne (Get-Command winget -ErrorAction SilentlyContinue)
+    $hasChoco = $null -ne (Get-Command choco -ErrorAction SilentlyContinue)
+    $hasScoop = $null -ne (Get-Command scoop -ErrorAction SilentlyContinue)
 
-    # If path doesn't exist, try fuzzy matching
-    if (-not (Test-Path $target)) {
-        # Try exact match first
-        $exact = Get-ChildItem -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -eq $target } | Select-Object -First 1
-
-        if ($exact) {
-            $target = $exact.FullName
-        } else {
-            # Try wildcard/fuzzy match
-            $fuzzy = Get-ChildItem -Directory -ErrorAction SilentlyContinue |
-                Where-Object { $_.Name -like "*$target*" } | Select-Object -First 1
-
-            if ($fuzzy) {
-                $target = $fuzzy.FullName
-                Write-Host "🔍 Fuzzy match: $($fuzzy.Name)" -ForegroundColor Yellow
-            }
+    # fzf with full path resolution
+    $fzfExe = (Get-Command fzf -ErrorAction SilentlyContinue)?.Source
+    if (-not $fzfExe) {
+        # Search common install paths
+        $searchPaths = @(
+            "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\junegunn.fzf*\fzf.exe",
+            "$env:PROGRAMFILES\fzf\fzf.exe",
+            "$env:LOCALAPPDATA\fzf\fzf.exe"
+        )
+        foreach ($sp in $searchPaths) {
+            $found = Get-ChildItem -Path $sp -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) { $fzfExe = $found.FullName; break }
         }
     }
 
-    # Final navigation
-    if (Test-Path $target -PathType Container) {
-        Set-Location $target
-    } else {
-        Write-Host "❌ cd: no such directory: $path" -ForegroundColor Red
+    # Install fzf if not found
+    if (-not $fzfExe) {
+        Write-Host "${YLW}🔍 fzf not found. Installing...${NC}"
+        if ($hasWinget) {
+            winget install --id junegunn.fzf -e --accept-source-agreements --accept-package-agreements
+            # Re-search after install
+            $fzfExe = Get-ChildItem -Path "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\junegunn.fzf*\fzf.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+        }
+        if (-not $fzfExe) {
+            Write-Host "${RED}❌ fzf install failed. Please install manually.${NC}"
+            return
+        }
+    }
+
+    Clear-Host
+    Write-Host "  ${BOLD}User:${NC} $($env:USERNAME) | ${BOLD}OS:${NC} Windows"
+    Write-Host "  Winget: $(if($hasWinget){'✅'}else{'❌'}) | Choco: $(if($hasChoco){'✅'}else{'❌'}) | Scoop: $(if($hasScoop){'✅'}else{'❌'})"
+    Write-Host ""
+
+    $tasks = @(
+        "0. ALL_MAINTENANCE_TASKS"
+        "1. Winget_Package_Update"
+        "2. Chocolatey_Package_Update"
+        "3. Scoop_Package_Update"
+        "4. Bun_Runtime_Upgrade"
+        "5. Node.js_LTS_Sync"
+        "6. Global_NPM_Update"
+        "7. Full_System_Deep_Clean"
+    )
+
+    # Fixed preview with proper quoting
+    $previewCmd = 'powershell -NoProfile -Command "if (''{1}'' -eq ''0.'') { Write-Host ''Execute all Windows updates and cleanup.'' } else { $t = ''{1}'' -replace ''_'', '' ''; Write-Host ''Action: $t'' }"'
+    $SELECTED_TASKS = $tasks | & $fzfExe --ansi --multi --height=18 --layout=reverse --border=rounded `
+        --prompt="⚡ Action: " --header="[TAB] Select | [ENTER] Execute" `
+        --color='bg+:#292e42,hl:#bb9af7,prompt:#7dcfff,pointer:#f7768e,marker:#9ece6a' `
+        --preview $previewCmd --preview-window='up:1:wrap'
+
+    if ([string]::IsNullOrWhiteSpace($SELECTED_TASKS)) {
+        Write-Host "${RED}❌ No tasks selected. Aborting...${NC}"
+        return
+    }
+
+    # Convert to array for consistent handling
+    $selectedArray = @($SELECTED_TASKS -split "`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    if ($selectedArray -contains "0. ALL_MAINTENANCE_TASKS") {
+        $selectedArray = $tasks
+    }
+
+    # Helper function for error checking
+    function Invoke-WithCheck {
+        param([scriptblock]$Command, [string]$SuccessMsg, [string]$FailMsg)
+        & $Command
+        if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq $null) {
+            Write-Host "  ${GRN}✅ $SuccessMsg${NC}"
+        } else {
+            Write-Host "  ${RED}❌ $FailMsg (Code: $LASTEXITCODE)${NC}"
+        }
+    }
+
+    # 1. Winget
+    if ($selectedArray -contains "1. Winget_Package_Update") {
+        Write-Host "`n${BOLD}${BLU}📦 [1/7] Winget Packages...${NC}`n"
+        if ($hasWinget) {
+            Invoke-WithCheck { winget upgrade --all --accept-source-agreements --accept-package-agreements } "Winget updated!" "Winget update failed"
+        } else {
+            Write-Host "  ${YLW}⚠ Winget not available${NC}"
+        }
+    }
+
+    # 2. Chocolatey
+    if ($selectedArray -contains "2. Chocolatey_Package_Update") {
+        Write-Host "`n${BOLD}${CYN}🍫 [2/7] Chocolatey...${NC}`n"
+        if ($hasChoco) {
+            Invoke-WithCheck { choco upgrade all -y } "Chocolatey updated!" "Choco update failed"
+        } else {
+            Write-Host "  ${YLW}⚠ Choco not installed${NC}"
+        }
+    }
+
+    # 3. Scoop
+    if ($selectedArray -contains "3. Scoop_Package_Update") {
+        Write-Host "`n${BOLD}${PUR}🥄 [3/7] Scoop...${NC}`n"
+        if ($hasScoop) {
+            Invoke-WithCheck { scoop update; scoop update * } "Scoop updated!" "Scoop update failed"
+        } else {
+            Write-Host "  ${YLW}⚠ Scoop not installed${NC}"
+        }
+    }
+
+    # 4. Bun
+    if ($selectedArray -contains "4. Bun_Runtime_Upgrade") {
+        Write-Host "`n${BOLD}${CYN}🥬 [4/7] Bun...${NC}`n"
+        if (Get-Command bun -ErrorAction SilentlyContinue) {
+            Invoke-WithCheck { bun upgrade } "Bun upgraded!" "Bun upgrade failed"
+        } else {
+            Write-Host "  ${YLW}⚠ Bun not installed${NC}"
+        }
+    }
+
+    # 5. Node.js
+    if ($selectedArray -contains "5. Node.js_LTS_Sync") {
+        Write-Host "`n${BOLD}${GRN}🟢 [5/7] Node.js LTS...${NC}`n"
+        $nvmPath = "$env:NVM_HOME\nvm.exe"
+        if (-not (Test-Path $nvmPath)) { $nvmPath = "$env:APPDATA\nvm\nvm.exe" }
+        if (Test-Path $nvmPath) {
+            Invoke-WithCheck { & $nvmPath install lts; & $nvmPath use lts } "Node.js LTS synced!" "NVM failed"
+        } else {
+            Write-Host "  ${YLW}⚠ NVM not found${NC}"
+        }
+    }
+
+    # 6. NPM
+    if ($selectedArray -contains "6. Global_NPM_Update") {
+        Write-Host "`n${BOLD}${YLW}✨ [6/7] NPM...${NC}`n"
+        if (Get-Command npm -ErrorAction SilentlyContinue) {
+            Invoke-WithCheck { npm install -g npm@latest } "NPM updated!" "NPM update failed"
+        } else {
+            Write-Host "  ${YLW}⚠ NPM not installed${NC}"
+        }
+    }
+
+    # 7. Deep Clean
+    if ($selectedArray -contains "7. Full_System_Deep_Clean") {
+        Write-Host "`n${BOLD}${RED}🧹 [7/7] Deep Clean...${NC}`n"
+
+        # Temp files
+        Write-Host "  ${CYN}🗑️ Temp files...${NC}"
+        @("$env:TEMP", "$env:LOCALAPPDATA\Temp", "C:\Windows\Temp") | ForEach-Object {
+            if (Test-Path $_) {
+                Get-ChildItem -Path $_ -Recurse -Force -ErrorAction SilentlyContinue |
+                    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+        Write-Host "  ${GRN}✅ Temp cleaned${NC}"
+
+        # Recycle Bin (fixed)
+        Write-Host "  ${CYN}♻️ Recycle Bin...${NC}"
+        try {
+            Clear-RecycleBin -Force -ErrorAction Stop
+            Write-Host "  ${GRN}✅ Recycle Bin emptied${NC}"
+        } catch {
+            Write-Host "  ${YLW}⚠ Could not empty Recycle Bin${NC}"
+        }
+
+        # Windows Update (fixed service handling)
+        Write-Host "  ${CYN}🧽 Windows Update cache...${NC}"
+        $wuauserv = Get-Service wuauserv -ErrorAction SilentlyContinue
+        if ($wuauserv -and $wuauserv.Status -eq 'Running') {
+            Stop-Service wuauserv -Force
+            Get-ChildItem -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+            Start-Service wuauserv
+            Write-Host "  ${GRN}✅ WU cache cleaned${NC}"
+        } else {
+            Write-Host "  ${YLW}⚠ WU service not running${NC}"
+        }
+
+        # Prefetch
+        Write-Host "  ${CYN}⚡ Prefetch...${NC}"
+        Get-ChildItem -Path "C:\Windows\Prefetch\*.pf" -ErrorAction SilentlyContinue |
+            Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+        Write-Host "  ${GRN}✅ Prefetch cleaned${NC}"
+
+        # DNS
+        Write-Host "  ${CYN}🌐 DNS cache...${NC}"
+        ipconfig /flushdns | Out-Null
+        Write-Host "  ${GRN}✅ DNS flushed${NC}"
+
+        # DISM cleanup (replaced cleanmgr)
+        Write-Host "  ${CYN}💿 Component cleanup...${NC}"
+        Invoke-WithCheck { Dism /Online /Cleanup-Image /StartComponentCleanup } "Component cleanup done!" "DISM failed"
+    }
+
+    Write-Host "`n${PUR}────────────────────────────────────────${NC}"
+    Write-Host "  ${BOLD}${GRN}✅ MISSION ACCOMPLISHED!${NC}"
+    Write-Host "${PUR}────────────────────────────────────────${NC}"
+
+    # Notification (simplified)
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show("All tasks completed!", "uup Tool", "OK", "Information") | Out-Null
+    } catch {
+        # Silent fail
     }
 }
 
-# Auto-cd: If you type just a directory name without any command, auto-navigate
-# This requires PSReadLine Option
-if (Get-Module PSReadLine -ErrorAction SilentlyContinue) {
-    Set-PSReadLineOption -ExtraPromptLineCount 1
+function run {
+    # Color Codes
+    $ESC = [char]27
+    $CYAN = "$ESC[0;36m"
+    $YELLOW = "$ESC[1;33m"
+    $BLUE = "$ESC[1;34m"
+    $GREEN = "$ESC[1;32m"
+    $RED = "$ESC[0;31m"
+    $BOLD = "$ESC[1m"
+    $NC = "$ESC[0m"
+
+    # File list (.js and .ts)
+    $files = @(Get-ChildItem -Path "*.js", "*.ts" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+
+    if ($files.Count -eq 0) {
+        Write-Host "${RED}󱓇 No .js or .ts files found!${NC}"
+        return 1
+    }
+
+    # Modern Header
+    Write-Host ""
+    Write-Host "${CYAN}╭──────────────────────────────────────────╮${NC}"
+    Write-Host "${CYAN}│${NC}  ${BOLD}⚡ BUN INTERACTIVE RUNNER${NC}               ${CYAN}│${NC}"
+    Write-Host "${CYAN}╰──────────────────────────────────────────╯${NC}"
+
+    # List Display with Icons
+    for ($i = 0; $i -lt $files.Count; $i++) {
+        $ext = [System.IO.Path]::GetExtension($files[$i]).TrimStart('.')
+
+        # Icon selection based on extension
+        if ($ext -eq "ts") {
+            $icon = "${BLUE}📘${NC}"  # Blue Book for TS
+        } else {
+            $icon = "${YELLOW}📒${NC}"  # Yellow Book for JS
+        }
+
+        # Beautifully aligned row
+        Write-Host ("${CYAN}  [{0,2}]{NC}  {1}  {2,-30}" -f ($i + 1), $icon, $files[$i])
+    }
+
+    Write-Host "${CYAN}────────────────────────────────────────────${NC}"
+
+    # Smart Input Prompt
+    Write-Host "${YELLOW}👉 Enter file number (or Ctrl+C):${NC}"
+    $choice = Read-Host "❯"
+
+    # File selection validation
+    if ($choice -match '^\d+$' -and [int]$choice -gt 0 -and [int]$choice -le $files.Count) {
+        $selected_file = $files[[int]$choice - 1]
+
+        Write-Host ""
+        Write-Host "${GREEN}✔ Selected:${NC} ${BOLD}$selected_file${NC}"
+        Write-Host "${CYAN}────────────────────────────────────────────${NC}"
+
+        # Mode Selection Menu
+        Write-Host ""
+        Write-Host "${YELLOW}👉 Choose run mode:${NC}"
+        Write-Host "${CYAN}  [1]${NC}  🚀  ${BOLD}bun run${NC}     (default)"
+        Write-Host "${CYAN}  [2]${NC}  🔥  ${BOLD}bun --hot${NC}   (hot reload)"
+        Write-Host "${CYAN}  [3]${NC}  👁  ${BOLD}bun --watch${NC} (watch mode)"
+        Write-Host "${CYAN}────────────────────────────────────────────${NC}"
+        $mode = Read-Host "❯"
+
+        # Determine command based on mode
+        switch ($mode) {
+            "2" {
+                $cmd = "bun"
+                $cmdArgs = @("--hot", $selected_file)
+                $mode_label = "HOT RELOAD"
+                $mode_color = "$RED"
+            }
+            "3" {
+                $cmd = "bun"
+                $cmdArgs = @("--watch", $selected_file)
+                $mode_label = "WATCH MODE"
+                $mode_color = "$YELLOW"
+            }
+            default {
+                $cmd = "bun"
+                $cmdArgs = @("run", $selected_file)
+                $mode_label = "RUN"
+                $mode_color = "$GREEN"
+            }
+        }
+
+        Write-Host ""
+        Write-Host "${mode_color}⚙ $mode_label:${NC} ${BOLD}$selected_file${NC}"
+        Write-Host ""
+
+        # Execute
+        & $cmd @cmdArgs
+    } else {
+        Write-Host ""
+        Write-Host "${RED}✘ Error: Invalid selection!${NC}"
+    }
 }
+
+
+# Auto 'ls' after cd
+function cd {
+    param([string]$Path)
+    if ($Path) {
+        Set-Location $Path
+    } else {
+        Set-Location ~
+    }
+    Get-ChildItem -Force
+}
+Set-Alias -Name c -Value cd
+
+# ============================================
+#  📦 DEV STACK ALIASES (NPM, BUN, GIT)
+# ============================================
+
+# --- NPM Shortcuts ---
+function ni { npm install @args }
+function nid { npm install -D @args }
+function nr { npm run @args }
+function nrd { npm run dev }
+function nrb { npm run build }
+function nrs { npm run start }
+
+# --- Bun Shortcuts ---
+function bi { bun install @args }
+function br { bun run @args }
+function brd { bun run dev }
+function brb { bun run build }
+function brs { bun run start }
+function html { bun run index.html }
+function w { bun --watch @args }
+function h { bun --hot @args }
+
+# --- Git Shortcuts ---
+function gi { git init }
+function gs { git status -sb }
+function gl {
+    git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+}
+function gd { git diff }
+function gco { git checkout @args }
+function gcm { git commit -m @args }
+function gpl { git pull }
+function gps { git push }
+function gb { git branch }
+function gcb { git checkout -b @args }
+function ga { git add . }
+function gr { git restore @args }
+function grh { git reset HEAD~1 }
+function gc { git clone @args }
+function gst { git stash }
+function gsta { git stash apply }
+function gpop { git stash pop }
+function gfp { git fetch --prune }
+
+
+# ======================================================
+# End of .bashrc
+# ======================================================
