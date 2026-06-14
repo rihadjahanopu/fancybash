@@ -1,6 +1,3 @@
-setopt PROMPT_SUBST
-
-
 
 # ==============================================================================
 #   ULTRA-THIN COMPACT PRO Zsh ENVIRONMENT
@@ -11,16 +8,30 @@ setopt PROMPT_SUBST
 #   Verified: 2026 - Cross-platform compatibility
 # ==============================================================================
 
+plugins=(
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+
+
+
+setopt PROMPT_SUBST
 
 
 # ======================================================
 # 🎨 RAINBOW COLOR & EMOJI SETUP (zsh compatible)
 # ======================================================
 
+# ======================================================
+# 🌀 CONFIGS & ARRAYS (Zsh Pure Native Fix)
+# ======================================================
+typeset -g -a rainbow_colors
 rainbow_colors=(31 32 33 34 35 36 91 92 93 94 95 96)
 
 rand_color() {
-  echo "${rainbow_colors[($RANDOM % ${#rainbow_colors[@]}) + 1]}"
+  local idx=$(( (RANDOM % ${#rainbow_colors}) + 1 ))
+  echo "${rainbow_colors[$idx]}"
 }
 
 rand_emoji() {
@@ -31,114 +42,126 @@ rand_emoji() {
     *bun* )   echo "🥐" ;;
     *py* )    echo "🐍" ;;
     *proj* )  echo "💻" ;;
-    * ) local emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)
-        echo "${emojis[($RANDOM % ${#emojis[@]}) + 1]}" ;;
+    * )
+        local -a emojis
+        emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)
+        local idx=$(( (RANDOM % ${#emojis}) + 1 ))
+        echo "${emojis[$idx]}" ;;
   esac
 }
 
 # ======================================================
 # HELPERS
 # ======================================================
-
 parse_git_branch() {
   local branch=$(git symbolic-ref --short HEAD 2>/dev/null) || return
   local dirty=""
   [[ -n $(git status --porcelain 2>/dev/null) ]] && dirty=" ❗"
-  echo "$branch$dirty"
+  echo " [🌿 $branch$dirty]"
 }
 
-node_version() { command -v node >/dev/null 2>&1 && echo "🟢 $(node -v)"; }
-npm_version() { command -v npm >/dev/null 2>&1 && echo "📦 $(npm -v)"; }
-bun_version()  { command -v bun  >/dev/null 2>&1 && echo "🥐 $(bun -v)"; }
+node_version() { command -v node >/dev/null 2>&1 && echo "🟢 $(node -v) │ "; }
+npm_version() { command -v npm >/dev/null 2>&1 && echo "📦 $(npm -v) │ "; }
+bun_version()  { command -v bun  >/dev/null 2>&1 && echo "🥐 $(bun -v) │ "; }
 time_date() { echo "📅 $(date +'%b %d')"; }
 
 sys_info() {
-  local CPU=$(top -bn1 | awk '/Cpu/ {print int($2+$4)}')
-  local RAM=$(free -h | awk '/^Mem/ {print $3 "/" $2}')
-  echo "📟 ${CPU}% 🧠 ${RAM}"
+  if command -v free >/dev/null 2>&1; then
+    local RAM=$(free -h 2>/dev/null | awk '/^Mem/ {print $3 "/" $2}')
+    echo "📟 🧠 ${RAM} │ "
+  fi
 }
 
 battery_info() {
-  [[ -f /sys/class/power_supply/BAT0/capacity ]] && echo "🔋$(cat /sys/class/power_supply/BAT0/capacity)%"
+  if [[ -f /sys/class/power_supply/BAT0/capacity ]]; then
+    echo "🔋$(cat /sys/class/power_supply/BAT0/capacity)% │ "
+  elif [[ -f /sys/class/power_supply/BAT1/capacity ]]; then
+    echo "🔋$(cat /sys/class/power_supply/BAT1/capacity)% │ "
+  fi
 }
 
-kernel_version() {
-  echo "🐧 $(uname -r | cut -d'-' -f1)"
-}
+kernel_version() { echo "🐧 $(uname -r | cut -d'-' -f1) │ "; }
 
 cpu_temp() {
-  local temp=$(sensors | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
-  if [[ -n "$temp" ]]; then
-    if [ "$temp" -gt 70 ]; then
-      echo -e " \e[91m🌡️ ${temp}°C\e[0m"
-    elif [ "$temp" -gt 55 ]; then
-      echo -e " \e[93m🌡️ ${temp}°C\e[0m"
-    else
-      echo -e " \e[92m🌡️ ${temp}°C\e[0m"
-    fi
+  if command -v sensors >/dev/null 2>&1; then
+    local temp=$(sensors 2>/dev/null | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
+    [[ -n "$temp" ]] && echo " 🌡️ ${temp}°C"
   fi
 }
 
 folder_size() {
   local size=$(du -sh . 2>/dev/null | cut -f1)
-  echo "📂 ${size}"
+  [[ -n "$size" ]] && echo " 📂 ${size}"
 }
 
 disk_usage() {
-  echo " 💽 $(df -h / | awk 'NR==2 {print $4}') free"
+  local disk=$(df -h / 2>/dev/null | awk 'NR==2 {print $4}')
+  [[ -n "$disk" ]] && echo " 💽 ${disk} free"
 }
 
 load_avg() {
-  echo " ⚖️ $(uptime | awk -F'load average:' '{ print $2 }' | cut -d',' -f1 | sed 's/ //g')"
+  local load=$(uptime 2>/dev/null | awk -F'load average:' '{ print $2 }' | cut -d',' -f1 | sed 's/ //g')
+  [[ -n "$load" ]] && echo " ⚖️ ${load}"
 }
 
-preexec() { timer=${timer:-$SECONDS}; }
-
-get_duration() {
-  local delta=$((SECONDS - timer))
-  if [ $delta -ge 1 ]; then
-    echo " ⏱️ ${delta}s"
+typeset -g timer
+zsh_stats_preexec() { timer=$SECONDS; }
+zsh_stats_precmd() {
+  if [ -n "$timer" ]; then
+    local delta=$(( SECONDS - timer ))
+    [ $delta -ge 1 ] && export CMD_DURATION=" ⏱️ ${delta}s" || export CMD_DURATION=""
+    unset timer
+  else
+    export CMD_DURATION=""
   fi
-  unset timer
 }
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec zsh_stats_preexec
+add-zsh-hook precmd zsh_stats_precmd
 
-check_readonly() {
-  [ ! -w . ] && echo " 🔒"
-}
-
+check_readonly() { [ ! -w . ] && echo " 🔒"; }
 pending_updates() {
   local updates=0
   if command -v checkupdates >/dev/null 2>&1; then
     updates=$(checkupdates 2>/dev/null | wc -l)
-  elif [ -f /var/lib/update-notifier/updates-available ]; then
-    updates=$(cat /var/lib/update-notifier/updates-available | grep -Po '^[0-9]+(?= updates? can be installed)' | head -n1)
-  elif command -v apt-get >/dev/null 2>&1; then
-    updates=$(apt-get -s upgrade 2>/dev/null | grep -iP '^[0-9]+ upgraded' | cut -d' ' -f1)
   fi
-  if [[ -n "$updates" && "$updates" -gt 0 ]]; then
-    echo " 🆙 $updates"
-  fi
+  [[ -n "$updates" && "$updates" -gt 0 ]] && echo " 🆙 $updates"
 }
 
 # ======================================================
-# 🎯 zsh PROMPT
+# 🎯 zsh PROMPT (With Your Original Comments & Absolute Fix)
 # ======================================================
 
-# zsh-এ %F{color} ... %f ব্যবহার করা সবচেয়ে নিরাপদ
-# অথবা $'\e[33m' ব্যবহার করুন
-
-# Option 1: %F/%f ব্যবহার করে (সবচেয়ে নিরাপদ)
+# Option 1: %F/%f ব্যবহার করে (সবচেয়ে নিরাপদ এবং ক্লিন)
 # PS1='$(rand_emoji) %F{$(rand_color)}%1~%f '
 # PS1+='$(folder_size) [🌿 $(parse_git_branch)]$(cpu_temp) $(disk_usage) $(load_avg) $(get_duration) $(check_readonly) $(pending_updates)'$'\n'
 # PS1+='$(node_version) │ $(npm_version) │ $(bun_version) │ $(kernel_version) │ '
 # PS1+='$(time_date) │ $(sys_info) │ $(battery_info)'$'\n'
 
 # Option 2: $'\e[33m' ব্যবহার করে (আপনার স্টাইল)
-blink_cursor=$'%{\e[5m%}❯❯❯%{\e[25m%}'
+# Zsh-এ ব্লিন্কিং ইফেক্টের পারফেক্ট এস্কেপ সিকোয়েন্স:
+blink_cursor="❯❯❯"
 
-PS1='$(rand_emoji) %{$'\e'[$(( $(rand_color) ))m%}%1~%{$'\e'[0m%} '$'\n'
-PS1+="${blink_cursor} "
+# ডাইনামিক প্রোম্পট ইভালুয়েশন অন করা
+setopt prompt_subst
 
+build_prompt() {
+  local col=$(rand_color)
+
+  # প্রথম লাইন: %F{...}%1~%f ব্যবহার করা হলো যা ব্র্যাকেটের ঝামেলা ১০০% দূর করবে
+  #PROMPT="$(rand_emoji) %F{$col}%1~%f $(folder_size)$(parse_git_branch)$(cpu_temp)$(disk_usage)$(load_avg)\$CMD_DURATION$(check_readonly)$(pending_updates)"$'\n'
+
+  # দ্বিতীয় লাইন: ডেভ ও সিস্টেম এনভায়রনমেন্ট
+  #PROMPT+="$(node_version)$(npm_version)$(bun_version)$(kernel_version)$(sys_info)$(battery_info)$(time_date)"$'\n'
+
+  PROMPT="$(rand_emoji) %F{$col}%1~%f "$'\n'
+
+  # তৃতীয় লাইন: ব্লিন্কিং কার্সার
+  PROMPT+="${blink_cursor} "
+}
+
+# প্রতিবার প্রম্পট রিলোডের জন্য হুক অ্যাসাইন
+add-zsh-hook precmd build_prompt
 
 # ======================================================
 #  ⚡ INTERACTIVE SETUP SCRIPTS
@@ -3190,7 +3213,7 @@ alias update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dis
 alias clean='sudo apt-get autoremove --purge -y && sudo apt-get autoclean && sudo apt-get clean -y && flatpak uninstall --unused -y && flatpak repair'
 alias bashrc='code ~/.bashrc'
 alias to='code .'
-alias rel='source ~/.bashrc && echo "✅ .bashrc reloaded successfully!"'
+alias rel='source ~/.zshrc && echo "✅ .zshrc reloaded successfully!"'
 
 # --- Network & Server ---
 alias serve='python3 -m http.server'
@@ -3291,7 +3314,7 @@ alias ss='cd ~/Downloads/Screenshot'
 alias vi='cd ~/Downloads/Video'
 
 
-shopt -s autocd
+#shopt -s autocd
 
 
 # Remove any Flatpak app paths from LD_LIBRARY_PATH
@@ -3306,7 +3329,6 @@ if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/ap
 fi
 
 
-
-# ======================================================
+# =====================================================
 # End of .bashrc
-# ======================================================
+# =====================================================
