@@ -3767,6 +3767,89 @@ setopt append_history
 setopt appendhistory
 setopt sharehistory
 
+# 1. Auto-LS and FZF Summary Preview when changing directory
+# Clear out traditional chpwd to avoid any duplicates from old code
+if functions chpwd >/dev/null; then unfunction chpwd; fi
+
+# Accurate and Modern Auto-LS Function
+accurate_auto_ls() {
+    emulate -L zsh
+
+    # Zsh array parsing flags:
+    # (N) empty dir handle, (.) shudhu regular files, (I) ignore traditional exclusions
+    local -a total_files=( *(-.N) )
+    local -a hidden_files=( .*(.-N) )
+
+    # Safely removing '.' and '..' manually from hidden array
+    hidden_files=(${hidden_files:#.(|.)})
+
+    local file_count=${#total_files}
+    local hidden_count=${#hidden_files}
+
+    # Clean UI rendering
+    echo -e "\n\e[1;35m📂 Directory: ${PWD:t}\e[0m (\e[32m$file_count files\e[0m | \e[33m$hidden_count hidden\e[0m)"
+    echo -e "\e[2m───────────────────────────────────────\e[0m"
+
+    # Display using explicit native columns
+    ls -FA --color=auto
+}
+
+# Standard Zsh hook array registration (Safest approach to avoid duplicates)
+typeset -gU chpwd_functions
+chpwd_functions=(accurate_auto_ls)
+
+# 2. Advanced FZF Quick CD Function (Optional but highly recommended)
+# Terminal-e shudhu 'cf' likhle fzf open hobe pipeline preview shoho
+
+cf() {
+    local dir
+    local search_cmd
+
+    # 1. Faster search utilizing fd (respects .gitignore natively)
+    if command -v fd &> /dev/null; then
+        search_cmd="fd --type d --hidden --exclude .git --exclude node_modules . ${1:-.}"
+    else
+        search_cmd="find ${1:-.} -path '*/.*' -prune -o -type d -print 2>/dev/null"
+    fi
+
+    # 2. Fully Immersive Multi-Action Workflow (Fixed Pipeline bindings)
+    dir=$(eval "$search_cmd" | fzf \
+        --height 90% \
+        --layout=reverse \
+        --border=rounded \
+        --prompt="⚡ Dev Walk: " \
+        --pointer="❯" \
+        --marker="✔" \
+        --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path | [CTRL-H] Parent Dir" \
+        --header-first \
+        --bind "ctrl-y:execute-silent(echo -n {} | xclip -selection clipboard || echo -n {} | pbcopy)+change-prompt(📋 Copied! > )" \
+        --bind "ctrl-o:execute(code {} || cursor {} || nvim {})+abort" \
+        --bind "ctrl-h:reload(fd --type d --hidden --exclude .git --exclude node_modules . {1:h} || find {1:h} -type d)+change-prompt(⚡ Parent: )" \
+        --preview '
+            # Folder base details
+            echo -e "\e[1;34m📁 Contents of: {} \e[0m"
+            echo -e "\e[2m──────────────────────────────────────────\e[0m"
+            ls -FA --color=always {} | head -20
+            echo -e "\e[2m──────────────────────────────────────────\e[0m"
+
+            # Smart Git Tracking Injection inside Preview
+            if [ -d "{}/.git" ]; then
+                echo -e "\e[1;32m🌿 Git Repo Detect:\e[0m Branch -> \e[1;36m\$(git -C {} branch --show-current 2>/dev/null)\e[0m"
+                echo -e "\e[1;33m📝 Uncommitted Changes:\e[0m"
+                git -C {} status -s 2>/dev/null | head -10 || echo "Clean"
+                echo -e "\e[2m──────────────────────────────────────────\e[0m"
+            fi
+
+            echo -e "\e[1;33m📊 Total Folder Size:\e[0m \$(du -sh {} 2>/dev/null | cut -f1)"
+        ' \
+        --preview-window=right:50%:wrap)
+
+    if [ -n "$dir" ]; then
+        cd "$dir"
+    fi
+}
+
+
 # --- Auto Completion ---
 autoload -Uz compinit
 compinit

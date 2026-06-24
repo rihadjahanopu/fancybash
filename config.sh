@@ -3319,6 +3319,114 @@ if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/ap
 fi
 
 
+# ==============================================================================
+# 1. Auto-LS and FZF Summary Preview when changing directory (Bash Version)
+# ==============================================================================
+
+# accurate_auto_ls() {
+#     # Shudhu jokhon directory change hobe (kew cd korbe) tokhon e run hobe
+#     if [ "$PWD" = "$LAST_PWD" ]; then
+#         return
+#     fi
+#     LAST_PWD="$PWD"
+
+#     # Bash-er native alternative array parse logic
+#     # (Dotglob on kore hidden file accurately count korar jonne)
+#     shopt -s dotglob
+#     local -a total_items=( * )
+#     shopt -u dotglob
+
+#     local file_count=0
+#     local hidden_count=0
+
+#     for item in "${total_items[@]}"; do
+#         # Shudhu regular files count hobe
+#         if [ -f "$item" ] && [ ! -L "$item" ]; then
+#             ((file_count++))
+#             # Jodi name '.' diye shuru hoy
+#             if [[ "$item" == .* ]]; then
+#                 ((hidden_count++))
+#             fi
+#         fi
+#     done
+
+#     # ${PWD:t} er Bash equivalent hocche $(basename "$PWD")
+#     local dir_name
+#     dir_name=$(basename "$PWD")
+
+#     # Clean UI rendering
+#     echo -e "\n\e[1;35m📂 Directory: $dir_name\e[0m (\e[32m$file_count files\e[0m | \e[33m$hidden_count hidden\e[0m)"
+#     echo -e "\e[2m───────────────────────────────────────\e[0m"
+
+#     # Display using explicit native columns
+#     ls -FA --color=auto
+# }
+
+# # Bash-er chpwd hook alternative: PROMPT_COMMAND array pipeline registration
+# if [[ ! " ${PROMPT_COMMAND[*]} " == *"accurate_auto_ls"* ]]; then
+#     if [ -n "$PROMPT_COMMAND" ]; then
+#         PROMPT_COMMAND="accurate_auto_ls;$PROMPT_COMMAND"
+#     else
+#         PROMPT_COMMAND="accurate_auto_ls"
+#     fi
+# fi
+
+
+# ==============================================================================
+# 2. Advanced FZF Quick CD Function
+# ==============================================================================
+# Terminal-e shudhu 'cf' likhle fzf open hobe pipeline preview shoho
+
+cf() {
+    local dir
+    local search_cmd
+    local target_dir="${1:-.}"
+
+    # 1. Faster search utilizing fd (respects .gitignore natively)
+    if command -v fd &> /dev/null; then
+        search_cmd="fd --type d --hidden --exclude .git --exclude node_modules . \"$target_dir\""
+    else
+        search_cmd="find \"$target_dir\" -path '*/.*' -prune -o -type d -print 2>/dev/null"
+    fi
+
+    # 2. Fully Immersive Multi-Action Workflow (Bash Safe Pipeline bindings)
+    # Bash-e {1:h} (Zsh parent shortcut) er bodole dirname use kora hoyeche
+    dir=$(eval "$search_cmd" | fzf \
+        --height 90% \
+        --layout=reverse \
+        --border=rounded \
+        --prompt="⚡ Dev Walk: " \
+        --pointer="❯" \
+        --marker="✔" \
+        --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path | [CTRL-H] Parent Dir" \
+        --header-first \
+        --bind "ctrl-y:execute-silent(echo -n {} | xclip -selection clipboard || echo -n {} | pbcopy)+change-prompt(📋 Copied! > )" \
+        --bind "ctrl-o:execute(code {} || cursor {} || nvim {})+abort" \
+        --bind "ctrl-h:reload(fd --type d --hidden --exclude .git --exclude node_modules . \$(dirname {}) || find \$(dirname {}) -type d)+change-prompt(⚡ Parent: )" \
+        --preview '
+            # Folder base details
+            echo -e "\e[1;34m📁 Contents of: {} \e[0m"
+            echo -e "\e[2m──────────────────────────────────────────\e[0m"
+            ls -FA --color=always {} | head -20
+            echo -e "\e[2m──────────────────────────────────────────\e[0m"
+
+            # Smart Git Tracking Injection inside Preview
+            if [ -d "{}/.git" ]; then
+                echo -e "\e[1;32m🌿 Git Repo Detect:\e[0m Branch -> \e[1;36m\$(git -C {} branch --show-current 2>/dev/null)\e[0m"
+                echo -e "\e[1;33m📝 Uncommitted Changes:\e[0m"
+                git -C {} status -s 2>/dev/null | head -10 || echo "Clean"
+                echo -e "\e[2m──────────────────────────────────────────\e[0m"
+            fi
+
+            echo -e "\e[1;33m📊 Total Folder Size:\e[0m \$(du -sh {} 2>/dev/null | cut -f1)"
+        ' \
+        --preview-window=right:50%:wrap)
+
+    if [ -n "$dir" ]; then
+        cd "$dir" || return
+    fi
+}
+
 
 # ======================================================
 # End of .bashrc
