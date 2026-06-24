@@ -3448,6 +3448,170 @@ cf() {
 }
 
 
+# ====================================================================
+#              🐳 THE ULTIMATE DOCKER SWISS ARMY KNIFE 🐳
+# ====================================================================
+
+# --------------------------------------------------------------------
+# ১. স্ট্যাটাস, লিস্ট এবং সাইজ মনিটরিং (Status & Monitoring)
+# --------------------------------------------------------------------
+# চলমান কন্টেইনারের সুন্দর ক্লিন লিস্ট দেখতে
+alias dps="docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'"
+# সব কন্টেইনারের লিস্ট দেখতে (স্টপ হওয়াগুলোসহ)
+alias dpsa="docker ps -a"
+# পিসিতে ডাউনলোড করা সব ইমেজের লিস্ট
+alias di="docker images"
+# সব ভলিউম (Storage) এর লিস্ট
+alias dvl="docker volume ls"
+# সব ডকার নেটওয়ার্কের লিস্ট
+alias dnl="docker network ls"
+# ডকার টোটাল কতটুকু ডিস্ক স্পেস বা সাইজ খাচ্ছে তা দেখা
+alias dsize="docker system df"
+# লাইভ রিসোর্স মনিটরিং (কোন কন্টেইনার কত RAM/CPU খাচ্ছে তা দেখতে)
+alias dtop="docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'"
+
+# --------------------------------------------------------------------
+# ২. কন্টেইনার লাইফসাইকেল (Container Lifecycle & Control)
+# --------------------------------------------------------------------
+alias dstop="docker stop"
+alias drm="docker rm"
+alias drmi="docker rmi"
+alias drestart="docker restart"
+# এক কমান্ডে চলমান কন্টেইনার ফোর্স স্টপ ও ডিলিট করা
+alias dkill="docker rm -f"
+# রানিং সব কন্টেইনার একসাথে স্টপ করতে
+alias dstopall="docker stop \$(docker ps -q)"
+# স্টপ হওয়া সব কন্টেইনার একসাথে ডিলিট করতে
+alias drmall="docker rm \$(docker ps -a -q)"
+
+# --------------------------------------------------------------------
+# ৩. ডিবাগিং, লগ এবং ইমেজ বিল্ড (Debugging & Building)
+# --------------------------------------------------------------------
+# কন্টেইনারের ভেতরে ঢুকে টার্মিনাল চালাতে
+alias dsh="docker exec -it"
+# কন্টেইনারের লাইভ লগ দেখতে ফলো মোডসহ
+alias dlogs="docker logs -f"
+# ডকার ইমেজ বিল্ড করার শর্টকাট
+alias dbuild="docker build -t"
+# একদম স্ক্র্যাচ থেকে নতুন বিল্ড করা (ক্যাশ ইমেজ বাদ দিয়ে)
+alias dbuild-nocache="docker build --no-cache -t"
+# ইমেজের লেয়ার এবং হিস্ট্রি দেখা
+alias dhist="docker history"
+# কন্টেইনারের ওপেন পোর্টগুলো দ্রুত চেক করা
+alias dports="docker port"
+
+# --------------------------------------------------------------------
+# ৪. ডকার কম্পোজ শর্টকাট (Docker Compose)
+# --------------------------------------------------------------------
+alias dcup="docker compose up -d"
+alias dcdn="docker compose down"
+alias dclogs="docker compose logs -f"
+alias dcupb="docker compose up -d --build"
+
+# --------------------------------------------------------------------
+# ৫. কুইক টেস্ট স্যান্ডবক্স (Temporary Test Containers)
+# --------------------------------------------------------------------
+# এই কন্টেইনারগুলো এক্সিট করার সাথে সাথে পিসি থেকে অটো ডিলিট হয়ে যাবে
+alias dtest-ubuntu="docker run --rm -it ubuntu:latest bash"
+alias dtest-node="docker run --rm -it node:alpine sh"
+alias dtest-alpine="docker run --rm -it alpine:latest sh"
+
+# --------------------------------------------------------------------
+# ৬. স্মার্ট এবং অ্যাডভান্সড ফাংশন (Advanced Functions)
+# --------------------------------------------------------------------
+
+# ইমেজ বা কন্টেইনারের নাম দিয়ে সার্চ করা
+dfind() {
+    echo -e "\e[1;34m--> Running Containers:\e[0m"
+    docker ps | grep -i "$1"
+    echo -e "\n\e[1;32m--> Downloaded Images:\e[0m"
+    docker images | grep -i "$1"
+}
+
+# কন্টেইনারের ভেতর সরাসরি Root ইউজার হিসেবে ঢোকা (পারমিশন এরর এড়াতে)
+droot() {
+    docker exec -it -u root "$1" bash 2>/dev/null || docker exec -it -u root "$1" sh
+}
+
+# নির্দিষ্ট কন্টেইনারের শুধু লোকাল IP এড্রেসটি দেখতে
+dip() {
+    docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$1"
+}
+
+# কন্টেইনারের রিয়েল-টাইম ফাইল সিস্টেম পরিবর্তন লাইভ ট্র্যাকিং করা
+dwatch() {
+    if [ -z "$1" ]; then echo "Usage: dwatch <container-name>"; return 1; fi
+    echo -e "\e[1;35mWatching file changes in '$1' (Press Ctrl+C to stop)...\e[0m"
+    watch -n 1 "docker diff $1"
+}
+
+# কন্টেইনারের ট্রাফিক এবং লাইভ পোর্ট বাইন্ডিং ডিবাগ করা
+dnetstat() {
+    if [ -z "$1" ]; then echo "Usage: dnetstat <container-name>"; return 1; fi
+    echo -e "\e[1;36mActive connections inside '$1':\e[0m"
+    docker exec -it "$1" netstat -tulan 2>/dev/null || docker exec -it "$1" ss -tulan 2>/dev/null || echo "Error: Neither netstat nor ss is installed in this container."
+}
+
+# কন্টেইনারের ভেতরের প্রসেস ট্রি (Process Tree) দেখা
+dtop-proc() {
+    if [ -z "$1" ]; then echo "Usage: dtop-proc <container-name>"; return 1; fi
+    docker top "$1" aux
+}
+
+# কোনো ডকার কন্টেইনারের ভলিউম ডিরেক্টলি ব্যাকআপ নেওয়া (Tar ফাইল হিসেবে)
+dbackup() {
+    docker run --rm -v "$1":/volume -v "$(pwd)":/backup alpine tar cvf /backup/"$2" -C /volume .
+}
+
+# ইন্টারেক্টিভ সব চলমান কন্টেইনার ফোর্স কিল করা (কনফার্মেশনসহ)
+dkill-force() {
+    echo -e "\e[1;31m⚠️  WARNING: You are about to stop and remove ALL running containers!\e[0m"
+    read -p "Are you sure? (y/N): " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        docker stop $(docker ps -q) 2>/dev/null
+        docker rm $(docker ps -a -q) 2>/dev/null
+        echo -e "\e[1;32mDone. All containers cleared.\e[0m"
+    else
+        echo "Operation cancelled."
+    fi
+}
+
+# আলটিমেট সিস্টেম ক্লিনআপ (অব্যবহৃত ক্যাশ, কন্টেইনার, ভলিউম ও ইমেজ ডিলিট করে জিবি জিবি জায়গা খালি করা)
+dclean() {
+    echo -e "\e[1;31m🧹 Performing deep clean of all unused Docker resources...\e[0m"
+    docker system prune -a --volumes -f
+    echo -e "\e[1;32m✨ System optimization complete!\e[0m"
+}
+
+# --------------------------------------------------------------------
+# ৭. স্মার্ট ট্যাব কমপ্লিশন এবং নোটিফায়ার (Tab Completion & Notifier)
+# --------------------------------------------------------------------
+
+# শর্টকাট কমান্ডগুলোর জন্য কন্টেইনারের নাম অটো-কম্প্লিট (Tab) করা
+_docker_containers_completion() {
+    local curr_arg=${COMP_WORDS[COMP_CWORD]}
+    local actions=$(docker ps -a --format "{{.Names}}")
+    COMPREPLY=( $(compgen -W "$actions" -- "$curr_arg") )
+}
+complete -F _docker_containers_completion dsh dlogs dstop dkill drestart dports dwatch dnetstat dtop-proc
+
+# শর্টকাট কমান্ডগুলোর জন্য ইমেজের নাম অটো-কম্প্লিট করা
+_docker_images_completion() {
+    local curr_arg=${COMP_WORDS[COMP_CWORD]}
+    local images=$(docker images --format "{{.Repository}}")
+    COMPREPLY=( $(compgen -W "$images" -- "$curr_arg") )
+}
+complete -F _docker_images_completion drmi dhist
+
+# টার্মিনাল ওপেন করলেই ব্যাকগ্রাউন্ডে কয়টি কন্টেইনার চলছে তা মনে করিয়ে দেওয়া
+if command -v docker &> /dev/null && systemctl is-active --quiet docker; then
+    running_count=$(docker ps -q | wc -l)
+    if [ "$running_count" -gt 0 ]; then
+        echo -e "\e[1;36m🐳 Docker is active. Running containers: $running_count\e[0m"
+    fi
+fi
+
+
 # ======================================================
 # End of .bashrc
 # ======================================================

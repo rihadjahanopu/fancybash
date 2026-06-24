@@ -3889,6 +3889,153 @@ if [ -f ~/.bash_aliases ]; then
     source ~/.bash_aliases
 fi
 
+
+# ====================================================================
+#              🐳 THE ULTIMATE DOCKER SWISS ARMY KNIFE (ZSH) 🐳
+# ====================================================================
+
+# --------------------------------------------------------------------
+# ১. স্ট্যাটাস, লিস্ট এবং সাইজ মনিটরিং (Status & Monitoring)
+# --------------------------------------------------------------------
+alias dps="docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'"
+alias dpsa="docker ps -a"
+alias di="docker images"
+alias dvl="docker volume ls"
+alias dnl="docker network ls"
+alias dsize="docker system df"
+alias dtop="docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'"
+
+# --------------------------------------------------------------------
+# ২. কন্টেইনার লাইফসাইকেল (Container Lifecycle & Control)
+# --------------------------------------------------------------------
+alias dstop="docker stop"
+alias drm="docker rm"
+alias drmi="docker rmi"
+alias drestart="docker restart"
+alias dkill="docker rm -f"
+alias dstopall='docker stop $(docker ps -q)'
+alias drmall='docker rm $(docker ps -a -q)'
+
+# --------------------------------------------------------------------
+# ৩. ডিবাগিং, লগ এবং ইমেজ বিল্ড (Debugging & Building)
+# --------------------------------------------------------------------
+alias dsh="docker exec -it"
+alias dlogs="docker logs -f"
+alias dbuild="docker build -t"
+alias dbuild-nocache="docker build --no-cache -t"
+alias dhist="docker history"
+alias dports="docker port"
+
+# --------------------------------------------------------------------
+# ৪. ডকার কম্পোজ শর্টকাট (Docker Compose)
+# --------------------------------------------------------------------
+alias dcup="docker compose up -d"
+alias dcdn="docker compose down"
+alias dclogs="docker compose logs -f"
+alias dcupb="docker compose up -d --build"
+
+# --------------------------------------------------------------------
+# ৫. কুইক টেস্ট স্যান্ডবক্স (Temporary Test Containers)
+# --------------------------------------------------------------------
+alias dtest-ubuntu="docker run --rm -it ubuntu:latest bash"
+alias dtest-node="docker run --rm -it node:alpine sh"
+alias dtest-alpine="docker run --rm -it alpine:latest sh"
+
+# --------------------------------------------------------------------
+# ৬. স্মার্ট এবং অ্যাডভান্সড ফাংশন (Advanced Functions)
+# --------------------------------------------------------------------
+
+dfind() {
+    echo -e "\e[1;34m--> Running Containers:\e[0m"
+    docker ps | grep -i "$1"
+    echo -e "\n\e[1;32m--> Downloaded Images:\e[0m"
+    docker images | grep -i "$1"
+}
+
+droot() {
+    docker exec -it -u root "$1" bash 2>/dev/null || docker exec -it -u root "$1" sh
+}
+
+dip() {
+    docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$1"
+}
+
+dwatch() {
+    if [ -z "$1" ]; then echo "Usage: dwatch <container-name>"; return 1; fi
+    echo -e "\e[1;35mWatching file changes in '$1' (Press Ctrl+C to stop)...\e[0m"
+    watch -n 1 "docker diff $1"
+}
+
+dnetstat() {
+    if [ -z "$1" ]; then echo "Usage: dnetstat <container-name>"; return 1; fi
+    echo -e "\e[1;36mActive connections inside '$1':\e[0m"
+    docker exec -it "$1" netstat -tulan 2>/dev/null || docker exec -it "$1" ss -tulan 2>/dev/null || echo "Error: Neither netstat nor ss is installed in this container."
+}
+
+dtop-proc() {
+    if [ -z "$1" ]; then echo "Usage: dtop-proc <container-name>"; return 1; fi
+    docker top "$1" aux
+}
+
+dbackup() {
+    docker run --rm -v "$1":/volume -v "$(pwd)":/backup alpine tar cvf /backup/"$2" -C /volume .
+}
+
+dkill-force() {
+    echo -e "\e[1;31m⚠️  WARNING: You are about to stop and remove ALL running containers!\e[0m"
+    read "confirm?Are you sure? (y/N): "
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        docker stop $(docker ps -q) 2>/dev/null
+        docker rm $(docker ps -a -q) 2>/dev/null
+        echo -e "\e[1;32mDone. All containers cleared.\e[0m"
+    else
+        echo "Operation cancelled."
+    fi
+}
+
+dclean() {
+    echo -e "\e[1;31m🧹 Performing deep clean of all unused Docker resources...\e[0m"
+    docker system prune -a --volumes -f
+    echo -e "\e[1;32m✨ System optimization complete!\e[0m"
+}
+
+# --------------------------------------------------------------------
+# ৭. ZSH ইন্টেলিজেন্ট ট্যাব কমপ্লিশন (Zsh Smart Tab Completion)
+# --------------------------------------------------------------------
+
+# Zsh-এর ডিফল্ট কমপ্লিশন সিস্টেম লোড করা (যদি অলরেডি লোড করা না থাকে)
+autoload -Uz compinit && compinit -i
+
+# কন্টেইনারের নামের জন্য কমপ্লিশন ফাংশন
+_zsh_docker_containers() {
+    local -a containers
+    containers=(${(f)"$(docker ps -a --format '{{.Names}}')"})
+    _describe 'containers' containers
+}
+
+# ইমেজের নামের জন্য কমপ্লিশন ফাংশন
+_zsh_docker_images() {
+    local -a images
+    images=(${(f)"$(docker images --format '{{.Repository}}' | grep -v '<none>')"})
+    _describe 'images' images
+}
+
+# নির্দিষ্ট শর্টকাট কমান্ডগুলোর সাথে কমপ্লিশন লিঙ্ক করা
+compdef _zsh_docker_containers dsh dlogs dstop dkill drestart dports dwatch dnetstat dtop-proc
+compdef _zsh_docker_images drmi dhist
+
+# --------------------------------------------------------------------
+# ৮. স্টার্টআপ নোটিফায়ার (Startup Notifier)
+# --------------------------------------------------------------------
+if command -v docker &> /dev/null && systemctl is-active --quiet docker 2>/dev/null; then
+    running_count=$(docker ps -q | wc -l)
+    if [ "$running_count" -gt 0 ]; then
+        echo -e "\e[1;36m🐳 Docker is active. Running containers: $running_count\e[0m"
+    fi
+fi
+
+
+
 # =====================================================
 # End of .bashrc
 # =====================================================
