@@ -1136,6 +1136,42 @@ keep() {
     print_cmd "v" "Interactive video player for directory" "" "$PINK"
     print_cmd "pg" "Generate package.json for current project" "" "$PURPLE"
 
+    # ==================== DOCKER & CONTAINERS ====================
+    print_category "$ICON_BUN" "DOCKER & CONTAINERS" "$YELLOW"
+    print_cmd "dps" "List running containers" "" "$GREEN"
+    print_cmd "dpsa" "List all containers" "" "$YELLOW"
+    print_cmd "di" "Show Docker images" "" "$CYAN"
+    print_cmd "dvl" "List Docker volumes" "" "$CYAN"
+    print_cmd "dnl" "List Docker networks" "" "$CYAN"
+    print_cmd "dsize" "Inspect Docker disk usage" "" "$BLUE"
+    print_cmd "dtop" "Show container resource usage" "" "$BLUE"
+    print_cmd "dstop <name>" "Stop container" "dstop myapp" "$RED"
+    print_cmd "drm <name>" "Remove container" "drm myapp" "$RED"
+    print_cmd "drmi <name>" "Remove image" "drmi myimage" "$RED"
+    print_cmd "drestart <name>" "Restart container" "drestart myapp" "$ORANGE"
+    print_cmd "dkill <name>" "Force remove container" "dkill myapp" "$ORANGE"
+    print_cmd "dstopall" "Stop all running containers" "" "$ORANGE"
+    print_cmd "drmall" "Remove all containers" "" "$ORANGE"
+    print_cmd "dbuild <tag>" "Build Docker image" "dbuild myapp ." "$GREEN"
+    print_cmd "dbuild-nocache <tag>" "Build without cache" "dbuild-nocache myapp ." "$GREEN"
+    print_cmd "dhist <image>" "Show image history" "dhist myimage" "$CYAN"
+    print_cmd "dports <name>" "Inspect container ports" "dports myapp" "$CYAN"
+    print_cmd "dsh <name>" "Shell into container" "dsh myapp bash" "$BLUE"
+    print_cmd "dlogs <name>" "Follow logs" "dlogs myapp" "$CYAN"
+    print_cmd "dcup / dcdn" "Compose up/down" "dcup / dcdn" "$PURPLE"
+    print_cmd "dclogs" "Follow compose logs" "dclogs" "$PURPLE"
+    print_cmd "dcupb" "Compose up with build" "dcupb" "$PURPLE"
+    print_cmd "dtest-ubuntu / dtest-node / dtest-alpine" "Launch test containers" "dtest-node" "$GREEN"
+    print_cmd "dfind <term>" "Search containers/images" "dfind nginx" "$YELLOW"
+    print_cmd "droot <name>" "Enter container as root" "droot myapp" "$YELLOW"
+    print_cmd "dip <name>" "Show container IP" "dip myapp" "$BLUE"
+    print_cmd "dwatch <name>" "Watch container changes" "dwatch myapp" "$CYAN"
+    print_cmd "dnetstat <name>" "Inspect container network" "dnetstat myapp" "$CYAN"
+    print_cmd "dtop-proc <name>" "Show process tree" "dtop-proc myapp" "$PURPLE"
+    print_cmd "dbackup <name> <archive>" "Backup volume to tar" "dbackup data data.tar" "$GREEN"
+    print_cmd "dkill-force" "Force remove all containers" "dkill-force" "$RED"
+    print_cmd "dclean" "Clean unused Docker resources" "dclean" "$RED"
+
     # ==================== ADVANCED INTERACTIVE TOOLS ====================
     print_category "$ICON_LIGHTNING" "ADVANCED INTERACTIVE TOOLS" "$PURPLE"
     print_cmd "cf" "Fuzzy find & navigate directories" "" "$CYAN"
@@ -3469,6 +3505,17 @@ alias dnl="docker network ls"
 alias dsize="docker system df"
 # লাইভ রিসোর্স মনিটরিং (কোন কন্টেইনার কত RAM/CPU খাচ্ছে তা দেখতে)
 alias dtop="docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'"
+
+# --------------------------------------------------------------------
+# ১বি. SUDO ডকার শর্টকাট (Sudo Docker Shortcuts)
+# --------------------------------------------------------------------
+alias sdps="sudo docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'"
+alias sdpsa="sudo docker ps -a"
+alias sdi="sudo docker images"
+alias sdvl="sudo docker volume ls"
+alias sdnl="sudo docker network ls"
+alias sdsize="sudo docker system df"
+alias sdtop="sudo docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'"
 
 # --------------------------------------------------------------------
 # ২. কন্টেইনার লাইফসাইকেল (Container Lifecycle & Control)
