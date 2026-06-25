@@ -3376,6 +3376,9 @@ ut() {
     # ===== ⬇️ INSTALL & CONFIG ENGINE =====
     sudo -v || { echo -e "${RED}❌ Sudo required${NC}"; return 1; }
 
+    # Disable job monitor so zsh doesn't print "[N] + terminated ..." when the
+    # keepalive process ends. disown alone is not enough in zsh.
+    set +m
     (
         while true; do
             sudo -n true 2>/dev/null || exit
@@ -3385,6 +3388,7 @@ ut() {
     ) &>/dev/null &
     local SUDO_KEEPALIVE=$!
     disown $SUDO_KEEPALIVE 2>/dev/null || true
+    set -m
 
     echo -e "${CYAN}🔧 Processing ${#selected_tools[@]} tools on ${DISTRO_ID}...${NC}"
 
@@ -3518,8 +3522,10 @@ ut() {
         esac
     done
 
+    set +m
     kill $SUDO_KEEPALIVE 2>/dev/null || true
     wait $SUDO_KEEPALIVE 2>/dev/null || true
+    set -m
 
     # ===== 🔗 SHELL INTEGRATION =====
     if [[ " ${installed_pkgs[*]} " =~ " fzf " ]]; then
