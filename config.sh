@@ -3292,9 +3292,9 @@ rmf() {
 }
 
 # Auto 'ls' after cd (Lists files automatically when you switch folders)
-cd() {
-    builtin cd "$@" && ls --color=auto -F
-}
+# cd() {
+#     builtin cd "$@" && ls --color=auto -F
+# }
 
 
 # ======================================================
@@ -3379,53 +3379,53 @@ fi
 # 1. Auto-LS and FZF Summary Preview when changing directory (Bash Version)
 # ==============================================================================
 
-# accurate_auto_ls() {
-#     # Shudhu jokhon directory change hobe (kew cd korbe) tokhon e run hobe
-#     if [ "$PWD" = "$LAST_PWD" ]; then
-#         return
-#     fi
-#     LAST_PWD="$PWD"
+accurate_auto_ls() {
+    # Shudhu jokhon directory change hobe (kew cd korbe) tokhon e run hobe
+    if [ "$PWD" = "$LAST_PWD" ]; then
+        return
+    fi
+    LAST_PWD="$PWD"
 
-#     # Bash-er native alternative array parse logic
-#     # (Dotglob on kore hidden file accurately count korar jonne)
-#     shopt -s dotglob
-#     local -a total_items=( * )
-#     shopt -u dotglob
+    # Bash-er native alternative array parse logic
+    # (Dotglob on kore hidden file accurately count korar jonne)
+    shopt -s dotglob
+    local -a total_items=( * )
+    shopt -u dotglob
 
-#     local file_count=0
-#     local hidden_count=0
+    local file_count=0
+    local hidden_count=0
 
-#     for item in "${total_items[@]}"; do
-#         # Shudhu regular files count hobe
-#         if [ -f "$item" ] && [ ! -L "$item" ]; then
-#             ((file_count++))
-#             # Jodi name '.' diye shuru hoy
-#             if [[ "$item" == .* ]]; then
-#                 ((hidden_count++))
-#             fi
-#         fi
-#     done
+    for item in "${total_items[@]}"; do
+        # Shudhu regular files count hobe
+        if [ -f "$item" ] && [ ! -L "$item" ]; then
+            ((file_count++))
+            # Jodi name '.' diye shuru hoy
+            if [[ "$item" == .* ]]; then
+                ((hidden_count++))
+            fi
+        fi
+    done
 
-#     # ${PWD:t} er Bash equivalent hocche $(basename "$PWD")
-#     local dir_name
-#     dir_name=$(basename "$PWD")
+    # ${PWD:t} er Bash equivalent hocche $(basename "$PWD")
+    local dir_name
+    dir_name=$(basename "$PWD")
 
-#     # Clean UI rendering
-#     echo -e "\n\e[1;35m📂 Directory: $dir_name\e[0m (\e[32m$file_count files\e[0m | \e[33m$hidden_count hidden\e[0m)"
-#     echo -e "\e[2m───────────────────────────────────────\e[0m"
+    # Clean UI rendering
+    echo -e "\n\e[1;35m📂 Directory: $dir_name\e[0m (\e[32m$file_count files\e[0m | \e[33m$hidden_count hidden\e[0m)"
+    echo -e "\e[2m───────────────────────────────────────\e[0m"
 
-#     # Display using explicit native columns
-#     ls -FA --color=auto
-# }
+    # Display using explicit native columns
+    ls -FA --color=auto
+}
 
-# # Bash-er chpwd hook alternative: PROMPT_COMMAND array pipeline registration
-# if [[ ! " ${PROMPT_COMMAND[*]} " == *"accurate_auto_ls"* ]]; then
-#     if [ -n "$PROMPT_COMMAND" ]; then
-#         PROMPT_COMMAND="accurate_auto_ls;$PROMPT_COMMAND"
-#     else
-#         PROMPT_COMMAND="accurate_auto_ls"
-#     fi
-# fi
+# Bash-er chpwd hook alternative: PROMPT_COMMAND array pipeline registration
+if [[ ! " ${PROMPT_COMMAND[*]} " == *"accurate_auto_ls"* ]]; then
+    if [ -n "$PROMPT_COMMAND" ]; then
+        PROMPT_COMMAND="accurate_auto_ls;$PROMPT_COMMAND"
+    else
+        PROMPT_COMMAND="accurate_auto_ls"
+    fi
+fi
 
 
 # ==============================================================================
