@@ -3774,9 +3774,9 @@ rmf() {
 }
 
 # Auto 'ls' after cd (Lists files automatically when you switch folders)
-cd() {
-    builtin cd "$@" && ls --color=auto -F
-}
+# cd() {
+#     builtin cd "$@" && ls --color=auto -F
+# }
 
 
 # ======================================================
