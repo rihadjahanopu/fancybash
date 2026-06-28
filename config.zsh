@@ -3969,13 +3969,13 @@ cf() {
 
             # Smart Git Tracking Injection inside Preview
             if [ -d "{}/.git" ]; then
-                echo -e "\e[1;32m🌿 Git Repo Detect:\e[0m Branch -> \e[1;36m\$(git -C {} branch --show-current 2>/dev/null)\e[0m"
+                echo -e "\e[1;32m🌿 Git Repo Detect:\e[0m Branch -> \e[1;36m$(git -C {} branch --show-current 2>/dev/null)\e[0m"
                 echo -e "\e[1;33m📝 Uncommitted Changes:\e[0m"
                 git -C {} status -s 2>/dev/null | head -10 || echo "Clean"
                 echo -e "\e[2m──────────────────────────────────────────\e[0m"
             fi
 
-            echo -e "\e[1;33m📊 Total Folder Size:\e[0m \$(du -sh {} 2>/dev/null | cut -f1)"
+            echo -e "\e[1;33m📊 Total Folder Size:\e[0m $(du -sh {} 2>/dev/null | cut -f1)"
         ' \
         --preview-window=right:50%:wrap)
 
