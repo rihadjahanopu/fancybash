@@ -55,6 +55,7 @@ _Beautiful • Fast • Smart • Zero Bloat_
   - [🔨 Utilities](#-utility-tools)
 - [🏗️ Project Structure](#️-project-structure)
 - [🖥️ Zed IDE Settings](#️-zed-ide-settings)
+- [🐧 Linux App Ecosystem](#-linux-app-ecosystem)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -486,7 +487,11 @@ fancybash/
 ├── web/
 │   ├── index.html      # Landing page (fancybash.netlify.app)
 │   ├── style.css       # Design system & responsive styles
-│   └── main.js         # Interactive tabs, animations, copy buttons
+│   ├── main.js         # Interactive tabs, animations, copy buttons
+│   ├── linux-setup.html# Linux App Ecosystem page
+│   ├── linux-setup.css # Linux App Ecosystem styles
+│   ├── linux-setup.js  # Linux App Ecosystem logic
+│   └── linux-setup-README.md
 ├── zed/
 │   └── install-settings.sh  # Zed IDE settings installer (Flatpak + native)
 ├── README.md           # You are here
@@ -546,6 +551,81 @@ The script will:
 | Minimap            | `auto`                                                     |
 | Prettier           | Allowed                                                    |
 | Git Inline Blame   | With commit summary                                        |
+
+---
+
+## 🐧 Linux App Ecosystem
+
+A curated list of essential applications for a Linux development and creative environment.
+
+This project provides a clean, searchable, and filterable web interface to discover and browse recommended Linux applications. It includes categories for Creative Applications, IDEs, Browsers, System Tools, and Dev Tools. 
+
+**Features:**
+- **Searchable Interface:** Instantly search for applications by name, category, or format.
+- **Dynamic Filters:** Filter applications by categories like Creative, Development IDE, Browser, Dev Tools, and Tools.
+- **Package Formats:** Displays the recommended package format (Flatpak, DEB, etc.) for each application with color-coded badges.
+
+This page has been integrated into the main `fancybash` website and can be accessed via the **Linux Apps** link in the navigation menu.
+
+<details>
+<summary><b>View the full list of recommended apps</b></summary>
+
+### 🎨 Creative Applications
+| Application | Format | Description |
+|---|---|---|
+| **Flatseal** | Flatpak | Flatpak App Managed Software |
+| **ytDownloader** | Flatpak | Video Downloader Software |
+| **Packet** | Flatpak | Quick share for Linux |
+| **Inkscape** | Flatpak | Vector Image Editor |
+| **VLC** | Flatpak | Video Player Software |
+| **Upscayl** | Flatpak | Image Upscaling Software |
+| **Pinta** | Flatpak | General Image Editor |
+| **Discord** | Flatpak | Social Media & Voice Chat |
+| **Pods** | Flatpak | Containers Manager |
+| **HandBrake** | Flatpak | Video Compressor |
+| **OBS Studio** | Flatpak | Video Recorder & Streamer |
+| **Valot** | Flatpak | Note & Task tracking with alarm |
+| **Collector** | Flatpak | Drag and drop everything in one place |
+| **Gitte** | Flatpak | Git Client Desktop Software |
+| **Kdenlive** | Flatpak | Video Editor Software |
+| **Bazaar** | Flatpak | App store for Flatpak Applications |
+| **Akizip** | Flatpak | Archive Manager (7z, ZIP, TAR) |
+| **BudsLink** | Flatpak | Air buds Control for Linux |
+| **Emojify** | Flatpak | Emoji finder |
+| **Xournal++** | Flatpak | Digital notebook / PDF Annotator |
+| **Drawy** | Flatpak | Draw notebook |
+| **Gradia** | Flatpak | Screenshot Utility |
+| **Scribus** | Flatpak | Vector Image Print / Desktop Publishing |
+
+### 💻 Development IDEs
+| Application | Format | Description |
+|---|---|---|
+| **VS Code** | DEB | Powerful code editor by Microsoft |
+| **Qoder** | DEB | Code Editor |
+| **Antigravity** | DEV | Advanced Agentic Coding Environment |
+| **Zed** | Flatpak | High-performance multiplayer code editor |
+| **VSCodium** | Flatpak | Telemetry-free VS Code build |
+
+### 🌐 Browsers
+| Application | Format | Description |
+|---|---|---|
+| **Chrome** | DEB | Google Web Browser |
+| **Brave** | Flatpak | Privacy-focused Web Browser |
+
+### 🛠️ System Tools & Utilities
+| Application | Format | Category |
+|---|---|---|
+| **rEFInd** | DEB | Dual boot Manager |
+| **Zram** | DEB | Memory compression in RAM |
+| **Fzf** | DEB | Command-line fuzzy finder |
+| **ls-sensor**| DEB | Hardware sensor monitoring |
+| **Git** | DEB | Version Control System |
+| **Node.js** | DEB | JavaScript Runtime |
+| **Bun** | DEB | Fast JavaScript Runtime |
+| **curl** | DEB | Network Data Transfer |
+| **wget** | DEB | Network File Retrieval |
+
+</details>
 
 ---
 

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Dev & Creative Setup</title>
+    <meta name="description" content="A curated list of essential applications for a Linux development and creative environment.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="linux-setup.css">
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <h1 class="gradient-text">Linux App Ecosystem</h1>
+            <p class="subtitle">Your ultimate curated list for Development, Creativity, and Utilities.</p>
+            <div style="margin-bottom: 2rem;">
+                <a href="index.html" style="color: var(--accent-primary); text-decoration: none;">&larr; Back to fancybash</a>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search applications, categories, formats..." autocomplete="off">
+                <div class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+            </div>
+            
+            <div class="filters" id="categoryFilters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="Creative Application">Creative</button>
+                <button class="filter-btn" data-filter="Development IDE">IDEs</button>
+                <button class="filter-btn" data-filter="Browser">Browsers</button>
+                <button class="filter-btn" data-filter="Dev Tools">Dev Tools</button>
+                <button class="filter-btn" data-filter="Tools">System Tools</button>
+            </div>
+        </header>
+
+        <div class="app-grid" id="appGrid">
+            <!-- Cards will be dynamically injected here via JS -->
+        </div>
+    </main>
+
+    <script src="linux-setup.js"></script>
+</body>
+</html>
