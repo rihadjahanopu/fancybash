@@ -221,10 +221,10 @@ fancybash uses color emoji and Fira Code ligatures in the prompt. Follow these s
 sudo apt install fonts-noto-color-emoji
 ```
 
-### 2 — Install Fira Code (Programming Font)
+### 2 — Install Fonts (Programming Fonts)
 
 ```bash
-sudo apt install fonts-firacode
+sudo apt update && sudo apt install -y fonts-firacode fonts-cascadia-code
 ```
 
 ### 3 — Set Font Priority
