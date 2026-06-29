@@ -1354,6 +1354,11 @@ keep() {
     print_cmd "dbackup <name> <archive>" "Backup volume to tar" "dbackup data data.tar" "$GREEN"
     print_cmd "dkill-force" "Force remove all containers" "dkill-force" "$RED"
     print_cmd "dclean" "Clean unused Docker resources" "dclean" "$RED"
+    print_cmd "dstart" "Start Docker service" "" "$GREEN"
+    print_cmd "doff" "Stop Docker service" "" "$RED"
+    print_cmd "dstatus" "Check Docker service status" "" "$BLUE"
+    print_cmd "denable" "Enable Docker auto-start on boot" "" "$GREEN"
+    print_cmd "ddisable" "Disable Docker auto-start on boot" "" "$ORANGE"
 
     # ==================== ADVANCED INTERACTIVE TOOLS ====================
     print_category "$ICON_LIGHTNING" "ADVANCED INTERACTIVE TOOLS" "$PURPLE"
@@ -3735,6 +3740,20 @@ alias sdvl="sudo docker volume ls"
 alias sdnl="sudo docker network ls"
 alias sdsize="sudo docker system df"
 alias sdtop="sudo docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'"
+
+# --------------------------------------------------------------------
+# ১গ. ডকার সার্ভিস কন্ট্রোল (Docker Service Control via systemctl)
+# --------------------------------------------------------------------
+# ডকার সার্ভিস চালু করতে
+alias dstart="sudo systemctl start docker"
+# ডকার সার্ভিস বন্ধ করতে
+alias doff="sudo systemctl stop docker"
+# ডকার সার্ভিস চালু নাকি বন্ধ তা দেখতে
+alias dstatus="sudo systemctl status docker"
+# পিসি অন হলে ডকার অটো-স্টার্ট চালু করতে (docker + docker.socket উভয়)
+alias denable="sudo systemctl enable docker && sudo systemctl enable docker.socket"
+# পিসি অন হলে ডকার অটো-স্টার্ট বন্ধ করতে (docker + docker.socket উভয়)
+alias ddisable="sudo systemctl disable docker && sudo systemctl disable docker.socket"
 
 # --------------------------------------------------------------------
 # ২. কন্টেইনার লাইফসাইকেল (Container Lifecycle & Control)
