@@ -191,51 +191,234 @@ next() {
   esac
 }
 
-# --- Setup Vite schancn ui ---
+# --- Setup Vite shadcn ui ---
+
+# Auto-patch tsconfig/jsconfig with baseUrl and @/* paths
+# Priority: tsconfig.app.json (Vite TS) -> tsconfig.json (Next.js TS) -> jsconfig.json (JS)
+_ui_patch_tsconfig() {
+  local tsconfig
+
+  if [[ -f "tsconfig.app.json" ]]; then
+    tsconfig="tsconfig.app.json"
+    echo "  info: Vite (TS) detected -> patching tsconfig.app.json"
+
+  elif [[ -f "tsconfig.json" ]]; then
+    tsconfig="tsconfig.json"
+    echo "  info: TypeScript project -> patching tsconfig.json"
+
+  elif [[ -f "jsconfig.json" ]]; then
+    tsconfig="jsconfig.json"
+    echo "  info: JavaScript project -> patching jsconfig.json"
+
+  else
+    # No config file found — check if JS project and create jsconfig.json
+    if [[ -f "package.json" ]] && ! grep -q '"typescript"' package.json 2>/dev/null; then
+      echo "  note: JavaScript project detected — creating jsconfig.json with @/* alias..."
+      node -e "
+        const fs = require('fs');
+        const jsconfig = {
+          compilerOptions: {
+            baseUrl: '.',
+            paths: { '@/*': ['./src/*'] }
+          }
+        };
+        fs.writeFileSync('jsconfig.json', JSON.stringify(jsconfig, null, 2));
+        console.log('  -> jsconfig.json created with @/* alias');
+      "
+      return
+    else
+      echo "warning: No tsconfig/jsconfig found, skipping..."
+      return
+    fi
+  fi
+
+  # Check if paths already set
+  if grep -q '"@/\*"' "$tsconfig"; then
+    echo "  ok: $tsconfig paths already configured."
+    return
+  fi
+
+  echo "patching: $tsconfig with baseUrl & @/* paths..."
+
+  # Use node to safely patch JSON
+  node -e "
+    const fs = require('fs');
+    const raw = fs.readFileSync('$tsconfig', 'utf8');
+    const json = JSON.parse(raw);
+    if (!json.compilerOptions) json.compilerOptions = {};
+    json.compilerOptions.baseUrl = '.';
+    json.compilerOptions.paths = { '@/*': ['./src/*'] };
+    fs.writeFileSync('$tsconfig', JSON.stringify(json, null, 2));
+    console.log('  -> baseUrl & paths written to ' + '$tsconfig');
+  "
+}
+
+# Auto-patch vite.config.ts with path alias and tailwind import
+_ui_patch_viteconfig() {
+  local viteconfig
+  viteconfig=$(ls vite.config.ts vite.config.js 2>/dev/null | head -n1)
+
+  if [[ -z "$viteconfig" ]]; then
+    echo "warning: vite.config.ts/js not found, skipping..."
+    return
+  fi
+
+  echo "patching: $viteconfig with path alias & tailwind..."
+
+  local content
+  content=$(cat "$viteconfig")
+
+  # Add: import path from "path"
+  if ! echo "$content" | grep -q 'import path from'; then
+    sed -i '1s|^|import path from "path"
+|' "$viteconfig"
+    echo "  -> Added: import path from path"
+  else
+    echo "  ok: path import already exists."
+  fi
+
+  # Add: import tailwindcss from "@tailwindcss/vite"
+  if ! grep -q '@tailwindcss/vite' "$viteconfig"; then
+    sed -i '1s|^|import tailwindcss from "@tailwindcss/vite"
+|' "$viteconfig"
+    echo "  -> Added: import tailwindcss from @tailwindcss/vite"
+  else
+    echo "  ok: tailwindcss import already exists."
+  fi
+
+  # Add tailwindcss() to plugins array if missing
+  if ! grep -q 'tailwindcss()' "$viteconfig"; then
+    sed -i 's/plugins: \[/plugins: [tailwindcss(), /' "$viteconfig"
+    echo "  -> Added: tailwindcss() to plugins"
+  else
+    echo "  ok: tailwindcss() plugin already exists."
+  fi
+
+  # Add resolve.alias if missing (no leading comma)
+  if ! grep -q '"@"' "$viteconfig" && ! grep -q "@:" "$viteconfig"; then
+    sed -i '/^})/i\  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  }' "$viteconfig"
+    echo "  -> Added: resolve.alias @/* -> ./src"
+  else
+    echo "  ok: resolve.alias already exists."
+  fi
+}
 
 ui() {
-  echo "🎨 Setup Shadcn UI with:"
+  echo "Setup Shadcn UI"
+  echo ""
+
+  # Auto-detect project type
+  local project_type
+  if [[ -f "tsconfig.app.json" ]]; then
+    project_type="vite"
+    echo "  Detected: Vite project"
+  elif [[ -f "next.config.js" || -f "next.config.ts" || -f "next.config.mjs" ]]; then
+    project_type="nextjs"
+    echo "  Detected: Next.js project"
+  elif grep -q '"next"' package.json 2>/dev/null; then
+    project_type="nextjs"
+    echo "  Detected: Next.js project (via package.json)"
+  else
+    echo "  Could not auto-detect project type."
+    echo "  1) Vite (React)"
+    echo "  2) Next.js"
+    read -p "Choose manually: " pt
+    case "$pt" in
+      1) project_type="vite" ;;
+      2) project_type="nextjs" ;;
+      *) echo "Invalid choice"; return ;;
+    esac
+  fi
+
+  echo ""
+  echo "Package manager:"
   echo "1) Bun"
   echo "2) NPM"
-  read -p "Choice: " c
+  read -p "Choice: " pm
 
   read -p "Add specific components? (e.g. button card input): " components
 
-  case "$c" in
-    1)
-      echo "🧱 Initializing Shadcn UI with Bun..."
-      bunx --bun shadcn@latest init -t vite
+  # STEP 1: Patch tsconfig FIRST — shadcn init requires @/* path alias
+  echo ""
+  echo "Pre-configuring path aliases before shadcn init..."
+  _ui_patch_tsconfig
 
-      if [[ -n "$components" ]]; then
-        echo "🔘 Adding components: $components..."
-        bunx --bun shadcn@latest add $components
-      else
-        echo "🔘 Adding default Button component..."
-        bunx --bun shadcn@latest add button
-      fi
-      ;;
+  if [[ "$project_type" == "vite" ]]; then
+    case "$pm" in
+      1)
+        echo ""
+        echo "Initializing Shadcn UI with Bun (Vite)..."
+        bunx --bun shadcn@latest init -t vite
+        if [[ -n "$components" ]]; then
+          echo "Adding components: $components..."
+          bunx --bun shadcn@latest add $components
+        else
+          echo "Adding default Button component..."
+          bunx --bun shadcn@latest add button
+        fi
+        ;;
+      2)
+        echo ""
+        echo "Initializing Shadcn UI with NPM (Vite)..."
+        npx shadcn@latest init -t vite
+        if [[ -n "$components" ]]; then
+          echo "Adding components: $components..."
+          npx shadcn@latest add $components
+        else
+          echo "Adding default Button component..."
+          npx shadcn@latest add button
+        fi
+        ;;
+      *) echo "Invalid package manager choice"; return ;;
+    esac
 
-    2)
-      echo "🧱 Initializing Shadcn UI with NPM..."
-      npx shadcn@latest init -t vite
+    # STEP 2: Patch vite.config only for Vite projects
+    echo ""
+    echo "Patching vite.config with alias & tailwind..."
+    _ui_patch_viteconfig
 
-      if [[ -n "$components" ]]; then
-        echo "🔘 Adding components: $components..."
-        npx shadcn@latest add $components
-      else
-        echo "🔘 Adding default Button component..."
-        npx shadcn@latest add button
-      fi
-      ;;
+  elif [[ "$project_type" == "nextjs" ]]; then
+    case "$pm" in
+      1)
+        echo ""
+        echo "Initializing Shadcn UI with Bun (Next.js)..."
+        bunx --bun shadcn@latest init
+        if [[ -n "$components" ]]; then
+          echo "Adding components: $components..."
+          bunx --bun shadcn@latest add $components
+        else
+          echo "Adding default Button component..."
+          bunx --bun shadcn@latest add button
+        fi
+        ;;
+      2)
+        echo ""
+        echo "Initializing Shadcn UI with NPM (Next.js)..."
+        npx shadcn@latest init
+        if [[ -n "$components" ]]; then
+          echo "Adding components: $components..."
+          npx shadcn@latest add $components
+        else
+          echo "Adding default Button component..."
+          npx shadcn@latest add button
+        fi
+        ;;
+      *) echo "Invalid package manager choice"; return ;;
+    esac
+    echo "  Next.js detected — vite.config patch skipped."
+  fi
 
-    *) echo "Invalid choice"; return ;;
-  esac
-
+  echo ""
   echo "---------------------------------------------------"
-  echo "✅ Shadcn UI setup complete!"
-  echo "🚀 Happy coding with Shadcn!"
+  echo "Shadcn UI setup complete!"
+  echo "Happy coding with Shadcn!"
   echo "---------------------------------------------------"
 }
+
 
 # --- Setup Vite (React/Vue) Project ---
 vite() {
