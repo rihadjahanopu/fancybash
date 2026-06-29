@@ -361,15 +361,90 @@ function next() {
   esac
 }
 
-# --- Setup Vite schancn ui ---
+# --- Setup Vite shadcn ui ---
+
+# Auto-patch tsconfig.json with baseUrl and @/* paths
+_ui_patch_tsconfig() {
+  local tsconfig="tsconfig.json"
+  [[ ! -f "$tsconfig" ]] && echo "⚠️  tsconfig.json not found, skipping..." && return
+
+  # Check if paths already set
+  if grep -q '"@/\*"' "$tsconfig"; then
+    echo "✅ tsconfig.json paths already configured."
+    return
+  fi
+
+  echo "🔧 Patching tsconfig.json with baseUrl & @/* paths..."
+
+  # Use node to safely patch JSON
+  node -e "
+    const fs = require('fs');
+    const raw = fs.readFileSync('$tsconfig', 'utf8');
+    const json = JSON.parse(raw);
+    if (!json.compilerOptions) json.compilerOptions = {};
+    json.compilerOptions.baseUrl = '.';
+    json.compilerOptions.paths = { '@/*': ['./src/*'] };
+    fs.writeFileSync('$tsconfig', JSON.stringify(json, null, 2));
+    console.log('  → baseUrl & paths written to tsconfig.json');
+  "
+}
+
+# Auto-patch vite.config.ts with path alias and tailwind import
+_ui_patch_viteconfig() {
+  local viteconfig
+  viteconfig=$(ls vite.config.ts vite.config.js 2>/dev/null | head -n1)
+
+  if [[ -z "$viteconfig" ]]; then
+    echo "⚠️  vite.config.ts/js not found, skipping..."
+    return
+  fi
+
+  echo "🔧 Patching $viteconfig with path alias & tailwind..."
+
+  local content
+  content=$(cat "$viteconfig")
+
+  # Add: import path from "path"
+  if ! echo "$content" | grep -q 'import path from'; then
+    sed -i '1s|^|import path from "path"\n|' "$viteconfig"
+    echo "  → Added: import path from \"path\""
+  else
+    echo "  ✅ path import already exists."
+  fi
+
+  # Add: import tailwindcss from "@tailwindcss/vite"
+  if ! grep -q '@tailwindcss/vite' "$viteconfig"; then
+    sed -i '1s|^|import tailwindcss from "@tailwindcss/vite"\n|' "$viteconfig"
+    echo "  → Added: import tailwindcss from \"@tailwindcss/vite\""
+  else
+    echo "  ✅ tailwindcss import already exists."
+  fi
+
+  # Add tailwindcss() to plugins array if missing
+  if ! grep -q 'tailwindcss()' "$viteconfig"; then
+    sed -i 's/plugins: \[/plugins: [tailwindcss(), /' "$viteconfig"
+    echo "  → Added: tailwindcss() to plugins"
+  else
+    echo "  ✅ tailwindcss() plugin already exists."
+  fi
+
+  # Add resolve.alias if missing
+  if ! grep -q '"@"' "$viteconfig" && ! grep -q "@:" "$viteconfig"; then
+    # Insert resolve block before closing }) of defineConfig
+    sed -i '/^})/i\  ,resolve: {\n    alias: {\n      "@": path.resolve(__dirname, "./src"),\n    },\n  }' "$viteconfig"
+    echo "  → Added: resolve.alias @/* → ./src"
+  else
+    echo "  ✅ resolve.alias already exists."
+  fi
+}
 
 ui() {
   echo "🎨 Setup Shadcn UI with:"
   echo "1) Bun"
   echo "2) NPM"
-  read -p "Choice: " c
+  read "c?Choice: "
 
-  read -p "Add specific components? (e.g. button card input): " components
+  read "components?Add specific components? (e.g. button card input): "
 
   case "$c" in
     1)
@@ -401,6 +476,12 @@ ui() {
     *) echo "Invalid choice"; return ;;
   esac
 
+  echo ""
+  echo "⚙️  Auto-patching project configs..."
+  _ui_patch_tsconfig
+  _ui_patch_viteconfig
+
+  echo ""
   echo "---------------------------------------------------"
   echo "✅ Shadcn UI setup complete!"
   echo "🚀 Happy coding with Shadcn!"
