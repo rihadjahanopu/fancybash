@@ -57,7 +57,8 @@ const tabBtns = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
 
 tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', (e) => {
+    if (btn.dataset.disabled === "true") return;
     const targetTab = btn.dataset.tab;
 
     tabBtns.forEach(b => {
@@ -85,7 +86,8 @@ const utabBtns = document.querySelectorAll('.utab-btn');
 const utabPanels = document.querySelectorAll('.utab-panel');
 
 utabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', (e) => {
+    if (btn.dataset.disabled === "true") return;
     const targetTab = btn.dataset.utab;
 
     utabBtns.forEach(b => {
@@ -113,7 +115,8 @@ const setupTabBtns = document.querySelectorAll('.setup-tab-btn');
 const setupTabPanels = document.querySelectorAll('.setup-tab-panel');
 
 setupTabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', (e) => {
+    if (btn.dataset.disabled === "true") return;
     const targetTab = btn.dataset.setupTab;
 
     setupTabBtns.forEach(b => {
@@ -306,5 +309,33 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       e.preventDefault();
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  });
+});
+
+// ─── Disabled button tooltips ─────────────────────────────
+document.querySelectorAll('[data-disabled="true"]').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if tooltip already exists
+    let tooltip = btn.querySelector('.custom-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'custom-tooltip';
+      tooltip.textContent = 'Coming soon';
+      btn.appendChild(tooltip);
+    }
+    
+    // Show tooltip
+    // Use requestAnimationFrame to ensure the display transition happens
+    requestAnimationFrame(() => {
+      tooltip.classList.add('show');
+    });
+    
+    // Hide tooltip after 2 seconds
+    setTimeout(() => {
+      tooltip.classList.remove('show');
+    }, 2000);
   });
 });

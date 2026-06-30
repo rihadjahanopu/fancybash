@@ -108,11 +108,13 @@ bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ec
 zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/install.zsh)
 ```
 
-**For PowerShell (`$PROFILE`):**
+**For PowerShell (`$PROFILE`):** (Coming Soon)
 
+<!--
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://gist.githubusercontent.com/rihadjahanopu/54b3d3bf8aac456b1aa19a62ac76a993/raw/install.ps1)
 ```
+-->
 
 The installer will:
 
@@ -135,8 +137,8 @@ source ~/.bashrc
 cat config.zsh >> ~/.zshrc
 source ~/.zshrc
 
-# For PowerShell:
-.\install.ps1
+# For PowerShell: (Coming Soon)
+# .\install.ps1
 ```
 
 ---
@@ -157,11 +159,13 @@ sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source 
 sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
 ```
 
-**For PowerShell:**
+**For PowerShell:** (Coming Soon)
 
+<!--
 ```powershell
 $p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# >>> fancy-powershell >>>.*?# <<< fancy-powershell <<<\s*', '' | Set-Content $p
 ```
+-->
 
 > 💡 Your original config remains untouched — only the `fancybash` block wrapped in `>>> / <<<` markers is removed.
 
