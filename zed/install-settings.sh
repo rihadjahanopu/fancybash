@@ -194,6 +194,10 @@ install_settings() {
     local backup="${target}.bak.$(date +%Y%m%d_%H%M%S)"
     cp "$target" "$backup"
     echo "  ↩  Backup saved → $backup"
+    
+    # Clear the existing file contents
+    > "$target"
+    echo "  🧹  Existing settings cleared"
   fi
 
   # Write via curl (file:// protocol — no network needed)
