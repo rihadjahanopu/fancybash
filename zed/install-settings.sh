@@ -26,7 +26,11 @@ read -r -d '' SETTINGS <<'JSON' || true
   "which_key": {
     "enabled": false
   },
-  "icon_theme": "Material Icon Theme",
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Material Icon Theme",
+    "dark": "Material Icon Theme"
+  },
   "base_keymap": "VSCode",
   "selection_highlight": true,
   "cursor_blink": true,
@@ -56,8 +60,8 @@ read -r -d '' SETTINGS <<'JSON' || true
     "bold_folder_labels": true
   },
   "preview_tabs": {
-    "enabled": true,
-    "enable_preview_from_file_finder": true,
+    "enabled": false,
+    "enable_preview_from_file_finder": false,
     "enable_preview_multibuffer_from_code_navigation": true
   },
   "status_bar": {
@@ -69,7 +73,7 @@ read -r -d '' SETTINGS <<'JSON' || true
     "enabled": false
   },
   "minimap": {
-    "show": "auto"
+    "show": "always"
   },
   "scrollbar": {
     "axes": {
@@ -77,12 +81,16 @@ read -r -d '' SETTINGS <<'JSON' || true
     }
   },
   "file_types": {
-    "html": ["*html", "*njk", "*.ejs"]
+    "html": [
+      "*html",
+      "*njk",
+      "*.ejs"
+    ]
   },
   "theme": {
     "mode": "dark",
     "light": "Everforest Light Hard (blur)",
-    "dark": "BlackFox"
+    "dark": "One Dark"
   },
   "terminal": {
     "copy_on_select": true,
@@ -91,8 +99,11 @@ read -r -d '' SETTINGS <<'JSON' || true
     "line_height": {
       "custom": 1.3
     },
-    "font_fallbacks": ["FiraCode Nerd Font"],
-    "font_family": "JetBrains Mono",
+    "font_fallbacks": [
+      "JetBrains Mono",
+      "FiraCode Nerd Font"
+    ],
+    "font_family": "Cascadia Code",
     "font_size": 22.0,
     "env": {
       "LD_LIBRARY_PATH": ""
