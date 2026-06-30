@@ -3898,5 +3898,97 @@ fi
 
 
 # ======================================================
+# Advance C/C++ boilerplate generator
+# ======================================================
+makecpp() {
+    if [ -z "$1" ]; then
+        echo "❌ Error: Please provide a project name! (e.g., makecpp my_project)"
+        return 1
+    fi
+
+    local lang_choice="$2"
+    if [ -z "$lang_choice" ]; then
+        if command -v fzf >/dev/null 2>&1; then
+            echo "🤔 Which language project do you want to create?"
+            lang_choice=$(printf "cpp\nc\n" | fzf --prompt="Select Language > " --height=10 --layout=reverse)
+            [ -z "$lang_choice" ] && lang_choice="cpp"
+        else
+            printf "🤔 Which language project do you want to create? (c/cpp) [default: cpp]: "
+            read lang_choice
+        fi
+    fi
+
+    local type="cpp"
+    local compiler="g++"
+    local file_ext="cpp"
+    local flags="-std=c++17 -Wall -Wextra -O2"
+
+    if [ "$lang_choice" = "c" ] || [ "$lang_choice" = "C" ]; then
+        type="c"
+        compiler="gcc"
+        file_ext="c"
+        flags="-Wall -Wextra -O2"
+    fi
+
+    echo "🚀 Creating Advance $type project: $1..."
+    mkdir -p "$1" && cd "$1" || return
+
+    # 1. Generate general boilerplate code
+    if [ "$type" = "c" ]; then
+        cat <<EOF > main.c
+#include <stdio.h>
+
+int main() {
+    printf("Hello, World! Welcome to C project: %s\n", "$1");
+    return 0;
+}
+EOF
+    else
+        cat <<EOF > main.cpp
+#include <iostream>
+
+int main() {
+    std::cout << "Hello, World! Welcome to C++ project: " << "$1" << std::endl;
+    return 0;
+}
+EOF
+    fi
+
+    # 2. Create a smart Makefile
+    cat <<EOF > Makefile
+CC = $compiler
+CFLAGS = $flags
+TARGET = main
+
+all: \$(TARGET)
+
+\$(TARGET): main.$file_ext
+	\$(CC) \$(CFLAGS) main.$file_ext -o \$(TARGET)
+
+run: \$(TARGET)
+	./\$(TARGET)
+
+clean:
+	rm -f \$(TARGET)
+EOF
+
+    # 3. Auto-initialize Git and create .gitignore
+    if command -v git >/dev/null 2>&1; then
+        git init -q
+        echo -e "main\n*.o\n*.out\n.vscode/" > .gitignore
+        echo "✅ Git repository initialized with .gitignore"
+    fi
+
+    echo "🎉 Project setup complete!"
+    echo "📂 Current directory: $(pwd)"
+
+    # 4. Open in VS Code automatically if available
+    if command -v code >/dev/null 2>&1; then
+        echo "💻 Opening in VS Code..."
+        code .
+    fi
+}
+
+# ======================================================
 # End of .bashrc
 # ======================================================
