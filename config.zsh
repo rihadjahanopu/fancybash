@@ -2,7 +2,7 @@
 # ==============================================================================
 #   ULTRA-THIN COMPACT PRO Zsh ENVIRONMENT
 #   Author: [Rihad Jahan Opu]
-#   Version: 1.0.0 Complete Multi-Distro Edition
+#   Version: 1.0.1 Complete Multi-Distro Edition
 #   Purpose: A fast, beautiful, and productive terminal for Web Development
 #   Supports: Ubuntu/Debian, Fedora/RHEL/CentOS, Arch, macOS, Alpine, openSUSE
 #   Verified: 2026 - Cross-platform compatibility
