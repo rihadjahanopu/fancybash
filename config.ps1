@@ -874,7 +874,51 @@ function dcps       { docker compose ps @args }
 function dcpull     { docker compose pull }
 function dcexec     { docker compose exec @args }
 
+function cf {
+    param([string]$target_dir = ".")
 
+    $search_cmd = "Get-ChildItem -Path '$target_dir' -Directory -Recurse -ErrorAction SilentlyContinue | Where-Object { `$_.FullName -notmatch '\\.git\\' -and `$_.FullName -notmatch '\\node_modules\\' } | Select-Object -ExpandProperty FullName"
+    
+    if (Get-Command fd -ErrorAction SilentlyContinue) {
+        $search_cmd = "fd --type d --hidden --exclude .git --exclude node_modules . '$target_dir'"
+    }
+
+    $previewCmd = "pwsh -NoProfile -Command `" " +
+        "`$p='{}'; " +
+        "Write-Host -ForegroundColor Cyan '📁 Contents of: `$p'; " +
+        "Write-Host '──────────────────────────────────────────'; " +
+        "Get-ChildItem -Path `$p -Force -ErrorAction SilentlyContinue | Select-Object -First 20 Name; " +
+        "Write-Host '──────────────────────────────────────────'; " +
+        "if (Test-Path (`$p + '/.git')) { " +
+            "Write-Host -ForegroundColor Green '🌿 Git Repo Detect:'; " +
+            "`$b=git -C `$p branch --show-current 2> `$null; Write-Host `'Branch -> `$b`'; " +
+            "Write-Host -ForegroundColor Yellow '📝 Uncommitted Changes:'; " +
+            "git -C `$p status -s 2> `$null | Select-Object -First 10; " +
+            "Write-Host '──────────────────────────────────────────'; " +
+        "} " +
+        "`$size=(Get-ChildItem -Path `$p -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum; " +
+        "if (`$size) { `$mb=[math]::Round(`$size/1MB, 2); Write-Host -ForegroundColor Yellow ('📊 Total Size: ' + `$mb + ' MB') } " +
+    "`""
+
+    $selected = Invoke-Expression $search_cmd | fzf `
+        --height 90% `
+        --layout=reverse `
+        --border=rounded `
+        --prompt="⚡ Dev Walk: " `
+        --pointer="❯" `
+        --marker="✔" `
+        --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path | [CTRL-H] Parent Dir" `
+        --header-first `
+        --bind "ctrl-y:execute-silent(pwsh -NoProfile -Command `"Set-Clipboard -Value '{}'`")+change-prompt(📋 Copied! > )" `
+        --bind "ctrl-o:execute(code {} || nvim {})+abort" `
+        --bind "ctrl-h:reload(fd --type d --hidden --exclude .git --exclude node_modules . `$`(dirname '{}'`) 2>/dev/null || find `$`(dirname '{}'`) -type d 2>/dev/null)+change-prompt(⚡ Parent: )" `
+        --preview $previewCmd `
+        --preview-window=right:50%:wrap
+
+    if (-not [string]::IsNullOrWhiteSpace($selected)) {
+        Set-Location $selected
+    }
+}
 
 # ======================================================
 # End of .bashrc
