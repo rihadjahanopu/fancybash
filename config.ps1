@@ -259,6 +259,18 @@ function keep {
     PrintCmd "gwip" "Quick WIP commit + push" "" "Magenta"
     Write-Host ""
 
+    
+    # DOCKER
+    PrintCategory "🐳" "DOCKER COMMANDS" "Blue"
+    PrintCmd "d" "docker command" "" "Blue"
+    PrintCmd "dps" "docker ps" "" "Cyan"
+    PrintCmd "di" "docker images" "" "Yellow"
+    PrintCmd "drun" "docker run" "" "Green"
+    PrintCmd "dlog" "docker logs -f" "" "Magenta"
+    PrintCmd "dcu" "docker compose up" "" "Green"
+    PrintCmd "dcd" "docker compose down" "" "Red"
+    Write-Host ""
+
     # PROJECT SETUP
     PrintCategory "⚡" "PROJECT INITIALIZATION" "DarkYellow"
     PrintCmd "init" "Initialize project (Bun/NPM)" "" "Green"
