@@ -829,6 +829,40 @@ function gsta { git stash apply }
 function gpop { git stash pop }
 function gfp { git fetch --prune }
 
+# --- Docker Shortcuts ---
+function d          { docker @args }
+function dps        { docker ps @args }
+function dpsa       { docker ps -a @args }
+function di         { docker images @args }
+function dpu        { docker pull @args }
+function drun       { docker run @args }
+function dex        { docker exec -it @args }
+function dstop      { docker stop @args }
+function drm        { docker rm @args }
+function drmi       { docker rmi @args }
+function dlog       { docker logs -f @args }
+function dbuild     { docker build @args }
+function dprune     { docker system prune -f }
+function dvol       { docker volume ls }
+function dnet       { docker network ls }
+function dstopall   { docker stop $(docker ps -q) }
+function drmall     { docker rm $(docker ps -aq) }
+function drmiall    { docker rmi $(docker images -q) }
+
+# --- Docker Compose Shortcuts ---
+function dc         { docker compose @args }
+function dcu        { docker compose up @args }
+function dcud       { docker compose up -d @args }
+function dcd        { docker compose down @args }
+function dcb        { docker compose build @args }
+function dcr        { docker compose restart @args }
+function dcl        { docker compose logs -f @args }
+function dcs        { docker compose stop @args }
+function dcps       { docker compose ps @args }
+function dcpull     { docker compose pull }
+function dcexec     { docker compose exec @args }
+
+
 
 # ======================================================
 # End of .bashrc
