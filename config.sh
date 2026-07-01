@@ -3649,6 +3649,7 @@ accurate_auto_ls() {
 }
 
 # Bash-er chpwd hook alternative: PROMPT_COMMAND array pipeline registration
+LAST_PWD="$PWD"
 if [[ ! " ${PROMPT_COMMAND[*]} " == *"accurate_auto_ls"* ]]; then
     if [ -n "$PROMPT_COMMAND" ]; then
         PROMPT_COMMAND="accurate_auto_ls;$PROMPT_COMMAND"
