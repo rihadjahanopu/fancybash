@@ -464,6 +464,7 @@ uu
 | Command        | Description                                      | Example             |
 | -------------- | ------------------------------------------------ | ------------------- |
 | `mkd <name>`   | Create directory and `cd` into it                | `mkd my-app`        |
+| `t <file>`     | Create a file with feedback                      | `t index.js`        |
 | `rmd <name>`   | Force remove directory recursively               | `rmd old-build`     |
 | `rmf <file>`   | Safely remove a file                             | `rmf config.bak`    |
 | `bak <file>`   | Create a `.bak` backup copy                      | `bak .env`          |

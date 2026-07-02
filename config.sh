@@ -1244,6 +1244,7 @@ keep() {
     # ==================== FILE OPERATIONS ====================
     print_category "$ICON_FILE" "FILE & FOLDER MANAGEMENT" "$PINK"
     print_cmd "mkd <name>" "Create & enter directory" "mkd new-project" "$YELLOW"
+    print_cmd "t <file>" "Create file with feedback" "t index.html" "$YELLOW"
     print_cmd "rmd <name>" "Force remove directory" "rmd old-folder" "$RED"
     print_cmd "rmf <file>" "Remove file (safe)" "rmf file.txt" "$RED"
     print_cmd "bak <file>" "Create backup copy" "bak .env" "$BLUE"
@@ -3994,6 +3995,10 @@ EOF
         echo "💻 Opening in VS Code..."
         code .
     fi
+}
+
+t() {
+    touch "$1" && echo "✅ Created a File: $1"
 }
 
 # ======================================================

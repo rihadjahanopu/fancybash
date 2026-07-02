@@ -291,6 +291,7 @@ function keep {
     # FILE MANAGEMENT
     PrintCategory "📁" "FILE MANAGEMENT" "Blue"
     PrintCmd "mkd <name>" "Create & enter directory" "mkd my-project" "Green"
+    PrintCmd "t <file>" "Create file with feedback" "t index.html" "Green"
     PrintCmd "rmd <name>" "Force remove directory" "rmd old-folder" "Red"
     PrintCmd "rmf <file>" "Safe remove single file" "rmf file.txt" "DarkYellow"
     PrintCmd "bak <file>" "Create backup of file" "bak config.js" "Blue"
@@ -916,6 +917,14 @@ function cf {
 
     if (-not [string]::IsNullOrWhiteSpace($selected)) {
         Set-Location $selected
+    }
+}
+
+function t {
+    param([string]$file)
+    if ($file) {
+        New-Item -Path $file -ItemType File -Force | Out-Null
+        Write-Host "✅ Created a File: $file"
     }
 }
 
