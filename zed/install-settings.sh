@@ -14,6 +14,8 @@ NATIVE_DIR="$HOME/.config/zed"
 # ── Settings payload ──────────────────────────────────────────
 read -r -d '' SETTINGS <<'JSON' || true
 {
+  "colorize_brackets": true,
+  "code_lens": "on",
   "agent_servers": {
     "opencode": {
       "type": "registry",
@@ -54,8 +56,8 @@ read -r -d '' SETTINGS <<'JSON' || true
   "tab_size": 2,
   "always_treat_brackets_as_autoclosed": true,
   "hover_popover_delay": 0,
-  "ui_font_family": "JetBrains Mono",
-  "ui_font_size": 20,
+  "ui_font_family": "Cascadia Code",
+  "ui_font_size": 22.0,
   "buffer_font_size": 22.0,
   "buffer_font_family": "Cascadia Code",
   "buffer_font_fallbacks": ["JetBrains Mono", "Fira Code"],
@@ -88,7 +90,7 @@ read -r -d '' SETTINGS <<'JSON' || true
   },
   "scrollbar": {
     "axes": {
-      "horizontal": false,
+      "horizontal": true,
     },
   },
   "file_types": {
@@ -97,7 +99,7 @@ read -r -d '' SETTINGS <<'JSON' || true
   "theme": {
     "mode": "dark",
     "light": "Everforest Light Hard (blur)",
-    "dark": "Colorizer Pro",
+    "dark": "Tokyo Night Storm",
   },
   "terminal": {
     "copy_on_select": true,
@@ -155,7 +157,6 @@ read -r -d '' SETTINGS <<'JSON' || true
     "code_actions": true,
   },
 
-
   "format_on_save": "on",
   "formatter": "prettier",
   "languages": {
@@ -180,6 +181,7 @@ read -r -d '' SETTINGS <<'JSON' || true
   },
 }
 
+
 JSON
 
 # ── Helper ────────────────────────────────────────────────────
@@ -194,7 +196,7 @@ install_settings() {
     local backup="${target}.bak.$(date +%Y%m%d_%H%M%S)"
     cp "$target" "$backup"
     echo "  ↩  Backup saved → $backup"
-    
+
     # Clear the existing file contents
     > "$target"
     echo "  🧹  Existing settings cleared"
