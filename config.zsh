@@ -4459,7 +4459,14 @@ EOF
 }
 
 t() {
-    touch "$1" && echo "✅ Created a File: $1"
+    if [ $# -eq 0 ]; then
+        echo "❌ Provide at least one filename."
+        return 1
+    fi
+    touch "$@"
+    for file in "$@"; do
+        echo "✅ Created File: $file"
+    done
 }
 
 # =====================================================

@@ -921,10 +921,15 @@ function cf {
 }
 
 function t {
-    param([string]$file)
-    if ($file) {
-        New-Item -Path $file -ItemType File -Force | Out-Null
-        Write-Host "✅ Created a File: $file"
+    if ($args.Count -eq 0) {
+        Write-Host "❌ Provide at least one filename."
+        return
+    }
+    foreach ($file in $args) {
+        if (-not [string]::IsNullOrWhiteSpace($file)) {
+            New-Item -Path $file -ItemType File -Force | Out-Null
+            Write-Host "✅ Created File: $file"
+        }
     }
 }
 
