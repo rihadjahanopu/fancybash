@@ -1679,7 +1679,7 @@ keep() {
 
     # ==================== PROJECT SETUP ====================
     print_category "$ICON_LIGHTNING" "PROJECT INITIALIZATION" "$ORANGE"
-    print_cmd "init" "Initialize project (Bun/NPM choice)" "" "$GREEN"
+    print_cmd "in" "Initialize project (Bun/NPM choice)" "" "$GREEN"
     print_cmd "next" "Setup Next.js project" "" "$CYAN"
     print_cmd "ui" "Setup Shadcn UI with components" "ui + select button,card" "$BLUE"
     print_cmd "vite" "Setup Vite project with Tailwind" "" "$PURPLE"

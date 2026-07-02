@@ -158,7 +158,7 @@ PS1+="${blink_cursor} "
 # ======================================================
 
 # --- Initialize a Project (Bun or NPM) ---
-init() {
+in() {
   echo "🚀 Select Package Manager:"
   echo "1) 🥐 Bun (Fast)"
   echo "2) 📦 NPM (Standard)"
@@ -1284,7 +1284,7 @@ keep() {
 
     # ==================== PROJECT SETUP ====================
     print_category "$ICON_LIGHTNING" "PROJECT INITIALIZATION" "$ORANGE"
-    print_cmd "init" "Initialize project (Bun/NPM choice)" "" "$GREEN"
+    print_cmd "in" "Initialize project (Bun/NPM choice)" "" "$GREEN"
     print_cmd "next" "Setup Next.js project" "" "$CYAN"
     print_cmd "ui" "Setup Shadcn UI with components" "ui + select button,card" "$BLUE"
     print_cmd "vite" "Setup Vite project with Tailwind" "" "$PURPLE"

@@ -75,7 +75,7 @@ function gwip {
 # 🔧 PROJECT SETUP
 # ------------------------------------------------------------------------------
 
-function init {
+function in {
     Write-Host "🚀 Select Package Manager:`n1) 🥐 Bun`n2) 📦 NPM"
     $choice = Read-Host "Choice [1/2]"
     if ($choice -eq '1') { bun init -y }
@@ -272,7 +272,7 @@ function keep {
 
     # PROJECT SETUP
     PrintCategory "⚡" "PROJECT INITIALIZATION" "DarkYellow"
-    PrintCmd "init" "Initialize project (Bun/NPM)" "" "Green"
+    PrintCmd "in" "Initialize project (Bun/NPM)" "" "Green"
     PrintCmd "next" "Setup Next.js project" "" "Cyan"
     PrintCmd "ui" "Setup Shadcn UI with components" "ui + select button,card" "Blue"
     PrintCmd "vite" "Setup Vite with Tailwind" "" "Magenta"
@@ -877,7 +877,7 @@ function cf {
     param([string]$target_dir = ".")
 
     $search_cmd = "Get-ChildItem -Path '$target_dir' -Directory -Recurse -ErrorAction SilentlyContinue | Where-Object { `$_.FullName -notmatch '\\.git\\' -and `$_.FullName -notmatch '\\node_modules\\' } | Select-Object -ExpandProperty FullName"
-    
+
     if (Get-Command fd -ErrorAction SilentlyContinue) {
         $search_cmd = "fd --type d --hidden --exclude .git --exclude node_modules . '$target_dir'"
     }
