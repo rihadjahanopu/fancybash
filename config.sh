@@ -1491,17 +1491,17 @@ run() {
         # Determine command based on mode
         case "$mode" in
             2)
-                cmd="bun --hot"
+                bun_action="--hot"
                 mode_label="HOT RELOAD"
                 mode_color="${RED}"
                 ;;
             3)
-                cmd="bun --watch"
+                bun_action="--watch"
                 mode_label="WATCH MODE"
                 mode_color="${YELLOW}"
                 ;;
             *)
-                cmd="bun run"
+                bun_action="run"
                 mode_label="RUN"
                 mode_color="${GREEN}"
                 ;;
@@ -1510,7 +1510,7 @@ run() {
         echo -e "\n${mode_color}⚙ $mode_label:${NC} ${BOLD}$selected_file${NC}\n"
 
         # Execute
-        $cmd "$selected_file"
+        bun $bun_action "$selected_file"
     else
         echo -e "\n${RED}✘ Error: Invalid selection!${NC}"
     fi
