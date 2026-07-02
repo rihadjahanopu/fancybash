@@ -387,18 +387,18 @@ gwip "add auth middleware"   # Custom message
 
 ### 🔧 Project Initialization
 
-| Command | Description                                                                      |
-| ------- | -------------------------------------------------------------------------------- |
-| `init`  | Interactive project init — choose Bun or NPM, auto-creates `.gitignore`          |
-| `next`  | Scaffold Next.js app (`create-next-app`) via Bun or NPM                          |
-| `vite`  | Scaffold Vite project with optional Tailwind CSS v4 setup                        |
-| `ui`    | Install & init Shadcn/UI with optional component selection                       |
-| `css`   | Auto-detect package manager and install Tailwind CSS + `clsx` + `tailwind-merge` |
-| `run`   | Interactive JS/TS file runner via Bun                                            |
-| `pg`    | Generate `package.json` for current project                                      |
-| `makecpp`| Advance C/C++ boilerplate generator (auto cd, makefile, git, vscode)             |
-| `make run`| Compile and run the generated C/C++ project                                      |
-| `make clean`| Remove compiled binary file                                                      |
+| Command      | Description                                                                      |
+| ------------ | -------------------------------------------------------------------------------- |
+| `ii`         | Interactive project init — choose Bun or NPM, auto-creates `.gitignore`          |
+| `next`       | Scaffold Next.js app (`create-next-app`) via Bun or NPM                          |
+| `vite`       | Scaffold Vite project with optional Tailwind CSS v4 setup                        |
+| `ui`         | Install & init Shadcn/UI with optional component selection                       |
+| `css`        | Auto-detect package manager and install Tailwind CSS + `clsx` + `tailwind-merge` |
+| `run`        | Interactive JS/TS file runner via Bun                                            |
+| `pg`         | Generate `package.json` for current project                                      |
+| `makecpp`    | Advance C/C++ boilerplate generator (auto cd, makefile, git, vscode)             |
+| `make run`   | Compile and run the generated C/C++ project                                      |
+| `make clean` | Remove compiled binary file                                                      |
 
 #### `vite` example flow:
 
@@ -587,9 +587,10 @@ The script will:
 
 A curated list of essential applications for a Linux development and creative environment.
 
-This project provides a clean, searchable, and filterable web interface to discover and browse recommended Linux applications. It includes categories for Creative Applications, IDEs, Browsers, System Tools, and Dev Tools. 
+This project provides a clean, searchable, and filterable web interface to discover and browse recommended Linux applications. It includes categories for Creative Applications, IDEs, Browsers, System Tools, and Dev Tools.
 
 **Features:**
+
 - **Searchable Interface:** Instantly search for applications by name, category, or format.
 - **Dynamic Filters:** Filter applications by categories like Creative, Development IDE, Browser, Dev Tools, and Tools.
 - **Package Formats:** Displays the recommended package format (Flatpak, DEB, etc.) for each application with color-coded badges.
@@ -600,59 +601,63 @@ This page has been integrated into the main `fancybash` website and can be acces
 <summary><b>View the full list of recommended apps</b></summary>
 
 ### 🎨 Creative Applications
-| Application | Format | Description |
-|---|---|---|
-| **Flatseal** | Flatpak | Flatpak App Managed Software |
-| **ytDownloader** | Flatpak | Video Downloader Software |
-| **Packet** | Flatpak | Quick share for Linux |
-| **Inkscape** | Flatpak | Vector Image Editor |
-| **VLC** | Flatpak | Video Player Software |
-| **Upscayl** | Flatpak | Image Upscaling Software |
-| **Pinta** | Flatpak | General Image Editor |
-| **Discord** | Flatpak | Social Media & Voice Chat |
-| **Pods** | Flatpak | Containers Manager |
-| **HandBrake** | Flatpak | Video Compressor |
-| **OBS Studio** | Flatpak | Video Recorder & Streamer |
-| **Valot** | Flatpak | Note & Task tracking with alarm |
-| **Collector** | Flatpak | Drag and drop everything in one place |
-| **Gitte** | Flatpak | Git Client Desktop Software |
-| **Kdenlive** | Flatpak | Video Editor Software |
-| **Bazaar** | Flatpak | App store for Flatpak Applications |
-| **Akizip** | Flatpak | Archive Manager (7z, ZIP, TAR) |
-| **BudsLink** | Flatpak | Air buds Control for Linux |
-| **Emojify** | Flatpak | Emoji finder |
-| **Xournal++** | Flatpak | Digital notebook / PDF Annotator |
-| **Drawy** | Flatpak | Draw notebook |
-| **Gradia** | Flatpak | Screenshot Utility |
-| **Scribus** | Flatpak | Vector Image Print / Desktop Publishing |
+
+| Application      | Format  | Description                             |
+| ---------------- | ------- | --------------------------------------- |
+| **Flatseal**     | Flatpak | Flatpak App Managed Software            |
+| **ytDownloader** | Flatpak | Video Downloader Software               |
+| **Packet**       | Flatpak | Quick share for Linux                   |
+| **Inkscape**     | Flatpak | Vector Image Editor                     |
+| **VLC**          | Flatpak | Video Player Software                   |
+| **Upscayl**      | Flatpak | Image Upscaling Software                |
+| **Pinta**        | Flatpak | General Image Editor                    |
+| **Discord**      | Flatpak | Social Media & Voice Chat               |
+| **Pods**         | Flatpak | Containers Manager                      |
+| **HandBrake**    | Flatpak | Video Compressor                        |
+| **OBS Studio**   | Flatpak | Video Recorder & Streamer               |
+| **Valot**        | Flatpak | Note & Task tracking with alarm         |
+| **Collector**    | Flatpak | Drag and drop everything in one place   |
+| **Gitte**        | Flatpak | Git Client Desktop Software             |
+| **Kdenlive**     | Flatpak | Video Editor Software                   |
+| **Bazaar**       | Flatpak | App store for Flatpak Applications      |
+| **Akizip**       | Flatpak | Archive Manager (7z, ZIP, TAR)          |
+| **BudsLink**     | Flatpak | Air buds Control for Linux              |
+| **Emojify**      | Flatpak | Emoji finder                            |
+| **Xournal++**    | Flatpak | Digital notebook / PDF Annotator        |
+| **Drawy**        | Flatpak | Draw notebook                           |
+| **Gradia**       | Flatpak | Screenshot Utility                      |
+| **Scribus**      | Flatpak | Vector Image Print / Desktop Publishing |
 
 ### 💻 Development IDEs
-| Application | Format | Description |
-|---|---|---|
-| **VS Code** | DEB | Powerful code editor by Microsoft |
-| **Qoder** | DEB | Code Editor |
-| **Antigravity** | DEV | Advanced Agentic Coding Environment |
-| **Zed** | Flatpak | High-performance multiplayer code editor |
-| **VSCodium** | Flatpak | Telemetry-free VS Code build |
+
+| Application     | Format  | Description                              |
+| --------------- | ------- | ---------------------------------------- |
+| **VS Code**     | DEB     | Powerful code editor by Microsoft        |
+| **Qoder**       | DEB     | Code Editor                              |
+| **Antigravity** | DEV     | Advanced Agentic Coding Environment      |
+| **Zed**         | Flatpak | High-performance multiplayer code editor |
+| **VSCodium**    | Flatpak | Telemetry-free VS Code build             |
 
 ### 🌐 Browsers
-| Application | Format | Description |
-|---|---|---|
-| **Chrome** | DEB | Google Web Browser |
-| **Brave** | Flatpak | Privacy-focused Web Browser |
+
+| Application | Format  | Description                 |
+| ----------- | ------- | --------------------------- |
+| **Chrome**  | DEB     | Google Web Browser          |
+| **Brave**   | Flatpak | Privacy-focused Web Browser |
 
 ### 🛠️ System Tools & Utilities
-| Application | Format | Category |
-|---|---|---|
-| **rEFInd** | DEB | Dual boot Manager |
-| **Zram** | DEB | Memory compression in RAM |
-| **Fzf** | DEB | Command-line fuzzy finder |
-| **ls-sensor**| DEB | Hardware sensor monitoring |
-| **Git** | DEB | Version Control System |
-| **Node.js** | DEB | JavaScript Runtime |
-| **Bun** | DEB | Fast JavaScript Runtime |
-| **curl** | DEB | Network Data Transfer |
-| **wget** | DEB | Network File Retrieval |
+
+| Application   | Format | Category                   |
+| ------------- | ------ | -------------------------- |
+| **rEFInd**    | DEB    | Dual boot Manager          |
+| **Zram**      | DEB    | Memory compression in RAM  |
+| **Fzf**       | DEB    | Command-line fuzzy finder  |
+| **ls-sensor** | DEB    | Hardware sensor monitoring |
+| **Git**       | DEB    | Version Control System     |
+| **Node.js**   | DEB    | JavaScript Runtime         |
+| **Bun**       | DEB    | Fast JavaScript Runtime    |
+| **curl**      | DEB    | Network Data Transfer      |
+| **wget**      | DEB    | Network File Retrieval     |
 
 </details>
 
@@ -664,74 +669,74 @@ This page has been integrated into the main `fancybash` website and can be acces
 
 ### 📊 Status & Monitoring
 
-| Command | Description |
-| ------- | ----------- |
-| `dps` | List running containers (clean table format) |
-| `dpsa` | List **all** containers including stopped ones |
-| `di` | List all downloaded Docker images |
-| `dvl` | List all Docker volumes |
-| `dnl` | List all Docker networks |
-| `dsize` | Inspect total Docker disk usage |
-| `dtop` | Live resource monitor — CPU, RAM, Net & Block I/O |
+| Command | Description                                       |
+| ------- | ------------------------------------------------- |
+| `dps`   | List running containers (clean table format)      |
+| `dpsa`  | List **all** containers including stopped ones    |
+| `di`    | List all downloaded Docker images                 |
+| `dvl`   | List all Docker volumes                           |
+| `dnl`   | List all Docker networks                          |
+| `dsize` | Inspect total Docker disk usage                   |
+| `dtop`  | Live resource monitor — CPU, RAM, Net & Block I/O |
 
 #### Sudo variants (for rootless-mode setups)
 
-| Command | Description |
-| ------- | ----------- |
-| `sdps` / `sdpsa` | `sudo` versions of `dps` / `dpsa` |
-| `sdi` | `sudo docker images` |
-| `sdvl` / `sdnl` | `sudo` volume / network list |
-| `sdsize` / `sdtop` | `sudo` disk usage / live stats |
+| Command            | Description                       |
+| ------------------ | --------------------------------- |
+| `sdps` / `sdpsa`   | `sudo` versions of `dps` / `dpsa` |
+| `sdi`              | `sudo docker images`              |
+| `sdvl` / `sdnl`    | `sudo` volume / network list      |
+| `sdsize` / `sdtop` | `sudo` disk usage / live stats    |
 
 ---
 
 ### ⚡ Service Control
 
-| Command | Description |
-| --------- | ----------- |
-| `dstart` | Start the Docker service |
-| `doff` | Stop the Docker service |
-| `dstatus` | Check Docker service status |
-| `denable` | Enable Docker auto-start on boot (docker + docker.socket) |
-| `ddisable` | Disable Docker auto-start on boot |
+| Command    | Description                                               |
+| ---------- | --------------------------------------------------------- |
+| `dstart`   | Start the Docker service                                  |
+| `doff`     | Stop the Docker service                                   |
+| `dstatus`  | Check Docker service status                               |
+| `denable`  | Enable Docker auto-start on boot (docker + docker.socket) |
+| `ddisable` | Disable Docker auto-start on boot                         |
 
 ---
 
 ### 🔄 Container Lifecycle
 
-| Command | Description |
-| ----------- | ----------- |
-| `dstop <name>` | Stop a container |
-| `drm <name>` | Remove a container |
-| `drmi <image>` | Remove an image |
-| `drestart <name>` | Restart a container |
-| `dkill <name>` | Force stop + delete a container in one command |
-| `dstopall` | Stop **all** running containers at once |
-| `drmall` | Remove **all** stopped containers at once |
+| Command           | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `dstop <name>`    | Stop a container                               |
+| `drm <name>`      | Remove a container                             |
+| `drmi <image>`    | Remove an image                                |
+| `drestart <name>` | Restart a container                            |
+| `dkill <name>`    | Force stop + delete a container in one command |
+| `dstopall`        | Stop **all** running containers at once        |
+| `drmall`          | Remove **all** stopped containers at once      |
 
 ---
 
 ### 🐛 Debugging & Building
 
-| Command | Description | Example |
-| ------- | ----------- | ------- |
-| `dsh <name>` | Open an interactive shell inside a container | `dsh myapp` |
-| `dlogs <name>` | Follow live logs of a container | `dlogs myapp` |
-| `dbuild <tag>` | Build a Docker image with a tag | `dbuild myapp .` |
-| `dbuild-nocache <tag>` | Build image from scratch (no cache) | `dbuild-nocache myapp .` |
-| `dhist <image>` | View image layer history | `dhist myapp` |
-| `dports <name>` | Check open port bindings of a container | `dports myapp` |
+| Command                | Description                                  | Example                  |
+| ---------------------- | -------------------------------------------- | ------------------------ |
+| `dsh <name>`           | Open an interactive shell inside a container | `dsh myapp`              |
+| `dlogs <name>`         | Follow live logs of a container              | `dlogs myapp`            |
+| `dbuild <tag>`         | Build a Docker image with a tag              | `dbuild myapp .`         |
+| `dbuild-nocache <tag>` | Build image from scratch (no cache)          | `dbuild-nocache myapp .` |
+| `dhist <image>`        | View image layer history                     | `dhist myapp`            |
+| `dports <name>`        | Check open port bindings of a container      | `dports myapp`           |
 
 ---
 
 ### 🧩 Docker Compose
 
-| Command | Description |
-| ------- | ----------- |
-| `dcup` | Start services in detached mode (`docker compose up -d`) |
-| `dcdn` | Stop and remove services (`docker compose down`) |
-| `dclogs` | Follow compose service logs |
-| `dcupb` | Rebuild images and start services (`up -d --build`) |
+| Command  | Description                                              |
+| -------- | -------------------------------------------------------- |
+| `dcup`   | Start services in detached mode (`docker compose up -d`) |
+| `dcdn`   | Stop and remove services (`docker compose down`)         |
+| `dclogs` | Follow compose service logs                              |
+| `dcupb`  | Rebuild images and start services (`up -d --build`)      |
 
 ---
 
@@ -739,27 +744,27 @@ This page has been integrated into the main `fancybash` website and can be acces
 
 Spin up a temporary container that **auto-deletes on exit**:
 
-| Command | Launches |
-| -------------- | -------- |
+| Command        | Launches                  |
+| -------------- | ------------------------- |
 | `dtest-ubuntu` | `ubuntu:latest` with bash |
-| `dtest-node` | `node:alpine` with sh |
-| `dtest-alpine` | `alpine:latest` with sh |
+| `dtest-node`   | `node:alpine` with sh     |
+| `dtest-alpine` | `alpine:latest` with sh   |
 
 ---
 
 ### 🧠 Advanced Functions
 
-| Function | Usage | Description |
-| -------- | ----- | ----------- |
-| `dfind <term>` | `dfind nginx` | Search containers and images by name |
-| `droot <name>` | `droot myapp` | Enter container as **root** user |
-| `dip <name>` | `dip myapp` | Show container's local IP address |
-| `dwatch <name>` | `dwatch myapp` | Live-track filesystem changes inside container |
-| `dnetstat <name>` | `dnetstat myapp` | Show active network connections inside container |
-| `dtop-proc <name>` | `dtop-proc myapp` | Show process tree inside container |
-| `dbackup <vol> <file>` | `dbackup mydata backup.tar` | Backup a Docker volume as a `.tar` file |
-| `dkill-force` | `dkill-force` | Interactively force-kill **all** running containers |
-| `dclean` | `dclean` | Deep clean — removes all unused containers, images, volumes & networks |
+| Function               | Usage                       | Description                                                            |
+| ---------------------- | --------------------------- | ---------------------------------------------------------------------- |
+| `dfind <term>`         | `dfind nginx`               | Search containers and images by name                                   |
+| `droot <name>`         | `droot myapp`               | Enter container as **root** user                                       |
+| `dip <name>`           | `dip myapp`                 | Show container's local IP address                                      |
+| `dwatch <name>`        | `dwatch myapp`              | Live-track filesystem changes inside container                         |
+| `dnetstat <name>`      | `dnetstat myapp`            | Show active network connections inside container                       |
+| `dtop-proc <name>`     | `dtop-proc myapp`           | Show process tree inside container                                     |
+| `dbackup <vol> <file>` | `dbackup mydata backup.tar` | Backup a Docker volume as a `.tar` file                                |
+| `dkill-force`          | `dkill-force`               | Interactively force-kill **all** running containers                    |
+| `dclean`               | `dclean`                    | Deep clean — removes all unused containers, images, volumes & networks |
 
 #### `dclean` — Deep Clean
 
