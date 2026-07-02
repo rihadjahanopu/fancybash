@@ -75,7 +75,7 @@ function gwip {
 # 🔧 PROJECT SETUP
 # ------------------------------------------------------------------------------
 
-function in {
+function ii {
     Write-Host "🚀 Select Package Manager:`n1) 🥐 Bun`n2) 📦 NPM"
     $choice = Read-Host "Choice [1/2]"
     if ($choice -eq '1') { bun init -y }
@@ -272,7 +272,7 @@ function keep {
 
     # PROJECT SETUP
     PrintCategory "⚡" "PROJECT INITIALIZATION" "DarkYellow"
-    PrintCmd "in" "Initialize project (Bun/NPM)" "" "Green"
+    PrintCmd "ii" "Initialize project (Bun/NPM)" "" "Green"
     PrintCmd "next" "Setup Next.js project" "" "Cyan"
     PrintCmd "ui" "Setup Shadcn UI with components" "ui + select button,card" "Blue"
     PrintCmd "vite" "Setup Vite with Tailwind" "" "Magenta"

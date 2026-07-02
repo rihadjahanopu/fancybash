@@ -159,7 +159,7 @@ add-zsh-hook precmd build_prompt
 # ======================================================
 
 # --- Initialize a Project (Bun or NPM) ---
-in() {
+ii() {
   local has_bun=0 has_npm=0
   command -v bun >/dev/null 2>&1 && has_bun=1
   command -v npm >/dev/null 2>&1 && has_npm=1
@@ -1679,7 +1679,7 @@ keep() {
 
     # ==================== PROJECT SETUP ====================
     print_category "$ICON_LIGHTNING" "PROJECT INITIALIZATION" "$ORANGE"
-    print_cmd "in" "Initialize project (Bun/NPM choice)" "" "$GREEN"
+    print_cmd "ii" "Initialize project (Bun/NPM choice)" "" "$GREEN"
     print_cmd "next" "Setup Next.js project" "" "$CYAN"
     print_cmd "ui" "Setup Shadcn UI with components" "ui + select button,card" "$BLUE"
     print_cmd "vite" "Setup Vite project with Tailwind" "" "$PURPLE"
