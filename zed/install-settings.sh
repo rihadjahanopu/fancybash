@@ -13,9 +13,15 @@ NATIVE_DIR="$HOME/.config/zed"
 
 # ── Settings payload ──────────────────────────────────────────
 read -r -d '' SETTINGS <<'JSON' || true
+
 {
-  "colorize_brackets": true,
   "code_lens": "on",
+  "bottom_dock_layout": "contained",
+  "colorize_brackets": true,
+
+  "indent_guides": {
+    "background_coloring": "disabled",
+  },
   "agent_servers": {
     "opencode": {
       "type": "registry",
@@ -56,8 +62,8 @@ read -r -d '' SETTINGS <<'JSON' || true
   "tab_size": 2,
   "always_treat_brackets_as_autoclosed": true,
   "hover_popover_delay": 0,
-  "ui_font_family": "Cascadia Code",
-  "ui_font_size": 22.0,
+  "ui_font_family": "JetBrains Mono",
+  "ui_font_size": 20,
   "buffer_font_size": 22.0,
   "buffer_font_family": "Cascadia Code",
   "buffer_font_fallbacks": ["JetBrains Mono", "Fira Code"],
@@ -73,8 +79,8 @@ read -r -d '' SETTINGS <<'JSON' || true
     "bold_folder_labels": true,
   },
   "preview_tabs": {
-    "enabled": false,
-    "enable_preview_from_file_finder": false,
+    "enabled": true,
+    "enable_preview_from_file_finder": true,
     "enable_preview_multibuffer_from_code_navigation": true,
   },
   "status_bar": {
@@ -99,7 +105,7 @@ read -r -d '' SETTINGS <<'JSON' || true
   "theme": {
     "mode": "dark",
     "light": "Everforest Light Hard (blur)",
-    "dark": "Tokyo Night Storm",
+    "dark": "Zedokai (Filter Spectrum)",
   },
   "terminal": {
     "copy_on_select": true,
@@ -138,12 +144,14 @@ read -r -d '' SETTINGS <<'JSON' || true
     "git_status": true,
   },
   "title_bar": {
+    "button_layout": "platform_default",
     "show_menus": false,
     "show_branch_status_icon": true,
   },
   "diagnostics": {
     "inline": {
       "enabled": true,
+      "max_severity": "all",
     },
   },
   "prettier": {
@@ -168,17 +176,67 @@ read -r -d '' SETTINGS <<'JSON' || true
     "TypeScript": {
       "code_actions_on_format": {
         "source.organizeImports": true,
+        "source.fixAll.eslint": true,
       },
     },
     "TSX": {
       "code_actions_on_format": {
         "source.organizeImports": true,
+        "source.fixAll.eslint": true,
       },
     },
     "HTML": {
       "formatter": "prettier",
     },
   },
+
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "implementationsCodeLens": {
+            "enabled": true,
+            "showOnAllClassMethods": true,
+          },
+          "referencesCodeLens": {
+            "enabled": true,
+            "showOnAllFunctions": true,
+          },
+        },
+      },
+    },
+    "tailwindcss-language-server": {
+      "settings": {
+        "experimental": {
+          "classRegex": [
+            "\\.className\\s*[+]?=\\s*['\"]([^'\"]*)['\"]",
+            "\\.setAttributeNS\\(.*,\\s*['\"]class['\"],\\s*['\"]([^'\"]*)['\"]",
+            "\\.setAttribute\\(['\"]class['\"],\\s*['\"]([^'\"]*)['\"]",
+            "\\.classList\\.add\\(['\"]([^'\"]*)['\"]",
+            "\\.classList\\.remove\\(['\"]([^'\"]*)['\"]",
+            "\\.classList\\.toggle\\(['\"]([^'\"]*)['\"]",
+            "\\.classList\\.contains\\(['\"]([^'\"]*)['\"]",
+            "\\.classList\\.replace\\(\\s*['\"]([^'\"]*)['\"]",
+            "\\.classList\\.replace\\([^,)]+,\\s*['\"]([^'\"]*)['\"]",
+          ],
+        },
+      },
+    },
+
+    "eslint": {
+      "settings": {
+        "rulesCustomizations": [
+          // set all eslint errors/warnings to show as warnings
+          { "rule": "*", "severity": "warn" },
+        ],
+        "problems": {
+          "shortenToSingleLine": true,
+        },
+      },
+    },
+  },
+
+  "show_edit_predictions": true,
 }
 
 
