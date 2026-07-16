@@ -15,9 +15,10 @@ NATIVE_DIR="$HOME/.config/zed"
 read -r -d '' SETTINGS <<'JSON' || true
 
 {
-
+  "disable_ai": true,
   "cli_default_open_behavior": "existing_window",
   "code_lens": "on",
+
   "bottom_dock_layout": "contained",
   "colorize_brackets": true,
 
@@ -63,9 +64,9 @@ read -r -d '' SETTINGS <<'JSON' || true
   "soft_wrap": "editor_width",
   "tab_size": 2,
   "always_treat_brackets_as_autoclosed": true,
-  "hover_popover_delay": 0,
+  "hover_popover_delay": 300,
   "ui_font_family": "Cascadia Code",
-  "ui_font_size": 20,
+  "ui_font_size": 22.0,
   "buffer_font_size": 22.0,
   "buffer_font_family": "Cascadia Code",
   "buffer_font_fallbacks": ["JetBrains Mono", "Fira Code"],
@@ -241,6 +242,7 @@ read -r -d '' SETTINGS <<'JSON' || true
 
   "show_edit_predictions": true,
 }
+
 
 
 
