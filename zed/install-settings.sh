@@ -15,6 +15,8 @@ NATIVE_DIR="$HOME/.config/zed"
 read -r -d '' SETTINGS <<'JSON' || true
 
 {
+  "enable_language_server": true,
+  "hide_mouse": "never",
   "disable_ai": true,
   "cli_default_open_behavior": "existing_window",
   "code_lens": "on",
@@ -42,7 +44,7 @@ read -r -d '' SETTINGS <<'JSON' || true
   },
   "proxy": "",
   "focus_follows_mouse": {
-    "enabled": true,
+    "enabled": false,
   },
   "which_key": {
     "enabled": false,
@@ -107,8 +109,8 @@ read -r -d '' SETTINGS <<'JSON' || true
   },
   "theme": {
     "mode": "dark",
-    "light": "Everforest Light Hard (blur)",
-    "dark": "Zedokai (Filter Spectrum)",
+    "light": "Ayu Light",
+    "dark": "Tokyo Night Storm",
   },
   "terminal": {
     "font_weight": 400.0,
@@ -134,12 +136,9 @@ read -r -d '' SETTINGS <<'JSON' || true
       "show_commit_summary": true,
     },
   },
-  "notification_panel": {
-    "show_count_badge": true,
-  },
+
   "git_panel": {
     "tree_view": true,
-    "sort_by_path": true,
     "show_count_badge": true,
     "file_icons": true,
   },
@@ -159,11 +158,12 @@ read -r -d '' SETTINGS <<'JSON' || true
     },
   },
   "prettier": {
+    "parser": "",
     "allowed": true,
   },
   "inlay_hints": {
     "show_background": true,
-    "enabled": true,
+    "enabled": false,
   },
   "toolbar": {
     "code_actions": true,
@@ -242,8 +242,6 @@ read -r -d '' SETTINGS <<'JSON' || true
 
   "show_edit_predictions": true,
 }
-
-
 
 
 JSON
