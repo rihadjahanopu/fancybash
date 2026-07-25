@@ -20,10 +20,8 @@ read -r -d '' SETTINGS <<'JSON' || true
   "disable_ai": true,
   "cli_default_open_behavior": "existing_window",
   "code_lens": "on",
-
   "bottom_dock_layout": "contained",
   "colorize_brackets": true,
-
   "indent_guides": {
     "background_coloring": "disabled",
   },
@@ -136,7 +134,6 @@ read -r -d '' SETTINGS <<'JSON' || true
       "show_commit_summary": true,
     },
   },
-
   "git_panel": {
     "tree_view": true,
     "show_count_badge": true,
@@ -168,44 +165,35 @@ read -r -d '' SETTINGS <<'JSON' || true
   "toolbar": {
     "code_actions": true,
   },
-
   "format_on_save": "on",
   "formatter": "prettier",
   "languages": {
     "JavaScript": {
+      "formatter": "prettier",
       "code_actions_on_format": {
         "source.organizeImports": true,
       },
     },
     "TypeScript": {
+      "formatter": "prettier",
       "code_actions_on_format": {
         "source.organizeImports": true,
         "source.fixAll.eslint": true,
       },
-      "language_servers": [
-        "typescript-ls",
-        "!vtsls",
-        "!typescript-language-server",
-        "...",
-      ],
+      "language_servers": ["vtsls", "..."],
     },
     "TSX": {
+      "formatter": "prettier",
       "code_actions_on_format": {
         "source.organizeImports": true,
         "source.fixAll.eslint": true,
       },
-      "language_servers": [
-        "typescript-ls",
-        "!vtsls",
-        "!typescript-language-server",
-        "...",
-      ],
+      "language_servers": ["vtsls", "..."],
     },
     "HTML": {
       "formatter": "prettier",
     },
   },
-
   "lsp": {
     "vtsls": {
       "settings": {
@@ -217,18 +205,6 @@ read -r -d '' SETTINGS <<'JSON' || true
           "referencesCodeLens": {
             "enabled": true,
             "showOnAllFunctions": true,
-          },
-        },
-      },
-    },
-    "typescript-ls": {
-      "settings": {
-        "typescript": {
-          "implementationsCodeLens": {
-            "enabled": false,
-          },
-          "referencesCodeLens": {
-            "enabled": false,
           },
         },
       },
@@ -250,23 +226,38 @@ read -r -d '' SETTINGS <<'JSON' || true
         },
       },
     },
-
     "eslint": {
       "settings": {
-        "rulesCustomizations": [
-          // set all eslint errors/warnings to show as warnings
-          { "rule": "*", "severity": "warn" },
-        ],
+        "rulesCustomizations": [{ "rule": "*", "severity": "warn" }],
         "problems": {
           "shortenToSingleLine": true,
         },
       },
     },
   },
-
   "show_edit_predictions": true,
-}
+  // 1. Emmet & JSX Completion (VS Code Style Tag Auto-complete)
+  "show_completion_documentation": true,
 
+  "buffer_font_weight": 400,
+  "buffer_line_height": { "custom": 1.5 },
+  "relative_line_numbers": "disabled",
+  "remove_trailing_whitespace_on_save": true,
+  "ensure_final_newline_on_save": true,
+
+  "outline_panel": {
+    "dock": "right",
+  },
+
+  "seed_search_query_from_cursor": "always",
+  "use_smartcase_search": true,
+  "multi_cursor_modifier": "alt",
+  "vim_mode": false,
+
+  "show_wrap_guides": false,
+  "wrap_guides": [80, 120],
+  "preferred_line_length": 80,
+}
 
 JSON
 
