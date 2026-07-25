@@ -84,7 +84,7 @@ read -r -d '' SETTINGS <<'JSON' || true
     "bold_folder_labels": true,
   },
   "preview_tabs": {
-    "enabled": true,
+    "enabled": false,
     "enable_preview_from_file_finder": true,
     "enable_preview_multibuffer_from_code_navigation": true,
   },
@@ -182,12 +182,24 @@ read -r -d '' SETTINGS <<'JSON' || true
         "source.organizeImports": true,
         "source.fixAll.eslint": true,
       },
+      "language_servers": [
+        "typescript-ls",
+        "!vtsls",
+        "!typescript-language-server",
+        "...",
+      ],
     },
     "TSX": {
       "code_actions_on_format": {
         "source.organizeImports": true,
         "source.fixAll.eslint": true,
       },
+      "language_servers": [
+        "typescript-ls",
+        "!vtsls",
+        "!typescript-language-server",
+        "...",
+      ],
     },
     "HTML": {
       "formatter": "prettier",
@@ -205,6 +217,18 @@ read -r -d '' SETTINGS <<'JSON' || true
           "referencesCodeLens": {
             "enabled": true,
             "showOnAllFunctions": true,
+          },
+        },
+      },
+    },
+    "typescript-ls": {
+      "settings": {
+        "typescript": {
+          "implementationsCodeLens": {
+            "enabled": false,
+          },
+          "referencesCodeLens": {
+            "enabled": false,
           },
         },
       },
