@@ -14,6 +14,7 @@ NATIVE_DIR="$HOME/.config/zed"
 # ── Settings payload ──────────────────────────────────────────
 read -r -d '' SETTINGS <<'JSON' || true
 
+
 {
   "enable_language_server": true,
   "hide_mouse": "never",
@@ -198,6 +199,9 @@ read -r -d '' SETTINGS <<'JSON' || true
     "vtsls": {
       "settings": {
         "typescript": {
+          "suggest": {
+            "autoImports": true,
+          },
           "implementationsCodeLens": {
             "enabled": true,
             "showOnAllClassMethods": true,
@@ -206,6 +210,43 @@ read -r -d '' SETTINGS <<'JSON' || true
             "enabled": true,
             "showOnAllFunctions": true,
           },
+        },
+        "javascript": {
+          "suggest": {
+            "autoImports": true,
+          },
+          "implementationsCodeLens": {
+            "enabled": true,
+            "showOnAllClassMethods": true,
+          },
+          "referencesCodeLens": {
+            "enabled": true,
+            "showOnAllFunctions": true,
+          },
+        },
+      },
+      "initialization_options": {
+        "typescript": {
+          "suggest": {
+            "autoImports": true,
+            "completeFunctionCalls": true,
+          },
+          "javascript": {
+            "suggest": {
+              "autoImports": true,
+              "completeFunctionCalls": true,
+            },
+          },
+          "preferences": {
+            "includeCompletionsWithInsertText": true,
+          },
+        },
+      },
+    },
+    "typescript-language-server": {
+      "initialization_options": {
+        "preferences": {
+          "includeCompletionsWithInsertText": true,
         },
       },
     },
@@ -258,6 +299,7 @@ read -r -d '' SETTINGS <<'JSON' || true
   "wrap_guides": [80, 120],
   "preferred_line_length": 80,
 }
+
 
 JSON
 
