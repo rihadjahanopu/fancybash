@@ -1762,6 +1762,26 @@ keep() {
     print_cmd "denable" "Enable Docker auto-start on boot" "" "$GREEN"
     print_cmd "ddisable" "Disable Docker auto-start on boot" "" "$ORANGE"
 
+    # ==================== POSTGRESQL ====================
+    print_category "$ICON_GEAR" "POSTGRESQL DATABASE" "$BLUE"
+    print_cmd "pgstart / pgstop" "Start / Stop PostgreSQL service" "" "$GREEN"
+    print_cmd "pgrestart" "Restart PostgreSQL service" "" "$YELLOW"
+    print_cmd "pgstatus" "Check PostgreSQL service status" "" "$CYAN"
+    print_cmd "pgenable / pgdisable" "Enable / Disable auto-start on boot" "" "$ORANGE"
+    print_cmd "pgl" "Login as postgres user (psql)" "" "$BLUE"
+    print_cmd "pgdb <name>" "Connect to a specific database" "pgdb mydb" "$BLUE"
+    print_cmd "pgls" "List all databases" "" "$CYAN"
+    print_cmd "pgtables" "List all tables in current DB" "" "$CYAN"
+    print_cmd "pgusers" "List all users / roles" "" "$PURPLE"
+    print_cmd "pgsize" "Show size of each database" "" "$YELLOW"
+    print_cmd "pgver" "Show PostgreSQL version" "" "$GRAY"
+    print_cmd "pgconn" "Show active connections count" "" "$BLUE"
+    print_cmd "pgcreate <db>" "Create a new database" "pgcreate mydb" "$GREEN"
+    print_cmd "pgdrop <db>" "Drop / delete a database" "pgdrop mydb" "$RED"
+    print_cmd "pgdump <db>" "Dump/Backup a database" "pgdump mydb > b.sql" "$ORANGE"
+    print_cmd "pgrestore <db>" "Restore database from file" "pgrestore mydb < b.sql" "$ORANGE"
+    print_cmd "pglogs" "Follow PostgreSQL log file" "" "$RED"
+
     # ==================== ADVANCED INTERACTIVE TOOLS ====================
     print_category "$ICON_LIGHTNING" "ADVANCED INTERACTIVE TOOLS" "$PURPLE"
     print_cmd "cf" "Fuzzy find & navigate directories" "" "$CYAN"
@@ -3960,6 +3980,28 @@ alias rel='source ~/.zshrc && echo "✅ .zshrc reloaded successfully!"'
 alias serve='python3 -m http.server'
 alias ports='ss -tulpn'
 alias myip='ip a | grep inet'
+
+
+# --- PostgreSQL ---
+alias pgstart='sudo systemctl start postgresql'
+alias pgstop='sudo systemctl stop postgresql'
+alias pgrestart='sudo systemctl restart postgresql'
+alias pgstatus='sudo systemctl status postgresql'
+alias pgenable='sudo systemctl enable postgresql && echo "✅ PostgreSQL auto-start enabled"'
+alias pgdisable='sudo systemctl disable postgresql && echo "🚫 PostgreSQL auto-start disabled"'
+alias pgl='sudo -u postgres psql'                          # postgres user hisebe login
+alias pgdb='psql -U postgres -d'                           # Usage: pgdb mydb
+alias pgls='psql -U postgres -c "\\l"'                      # সব database list
+alias pgtables='psql -U postgres -c "\\dt"'                 # সব table list
+alias pgdump='pg_dump -U postgres'                          # Usage: pgdump mydb > backup.sql
+alias pgrestore='psql -U postgres'                          # Usage: pgrestore mydb < backup.sql
+alias pglogs='sudo tail -f /var/log/postgresql/*.log'      # PostgreSQL logs দেখুন
+alias pgcreate='createdb -U postgres'                      # Usage: pgcreate mydb
+alias pgdrop='dropdb -U postgres'                          # Usage: pgdrop mydb
+alias pgusers='psql -U postgres -c "\\du"'                  # সব users/roles দেখুন
+alias pgsize='psql -U postgres -c "SELECT pg_database.datname, pg_size_pretty(pg_database_size(pg_database.datname)) AS size FROM pg_database ORDER BY pg_database_size(pg_database.datname) DESC;"'  # প্রতিটি DBর সাইজ
+alias pgver='psql -U postgres -c "SELECT version();"'     # PostgreSQL version দেখুন
+alias pgconn='psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"'  # active connections
 
 
 

@@ -1479,6 +1479,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
               class="cmd-cat-btn"
               role="tab"
               aria-selected="false"
+              data-cat="postgres"
+              id="cmd-tab-postgres"
+            >
+              🐘 PostgreSQL
+            </button>
+            <button
+              class="cmd-cat-btn"
+              role="tab"
+              aria-selected="false"
               data-cat="util"
               id="cmd-tab-util"
             >
@@ -1884,6 +1893,103 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                   <tr>
                     <td><code>ddisable</code></td>
                     <td>Disable Docker auto-start on boot (docker + socket)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div
+            class="cmd-panel"
+            data-panel="postgres"
+            role="tabpanel"
+            aria-labelledby="cmd-tab-postgres"
+            hidden
+          >
+            <div class="cmd-table-wrapper">
+              <table class="cmd-table">
+                <thead>
+                  <tr>
+                    <th>Alias</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>pgstart</code></td>
+                    <td>Start the PostgreSQL service</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgstop</code></td>
+                    <td>Stop the PostgreSQL service</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgrestart</code></td>
+                    <td>Restart the PostgreSQL service</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgstatus</code></td>
+                    <td>Check PostgreSQL service status</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgenable</code></td>
+                    <td>Enable PostgreSQL auto-start on boot</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgdisable</code></td>
+                    <td>Disable PostgreSQL auto-start on boot</td>
+                  </tr>
+                  <tr>
+                    <td><code>pglogs</code></td>
+                    <td>Follow the PostgreSQL log file live</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgl</code></td>
+                    <td>Login as <code>postgres</code> user via psql</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgdb &lt;name&gt;</code></td>
+                    <td>Connect to a specific database (<code>pgdb mydb</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgls</code></td>
+                    <td>List all databases (<code>\l</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgtables</code></td>
+                    <td>List all tables in current DB (<code>\dt</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgdump &lt;db&gt;</code></td>
+                    <td>Dump / backup a database (<code>pgdump mydb &gt; backup.sql</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgrestore &lt;db&gt;</code></td>
+                    <td>Restore a database from file (<code>pgrestore mydb &lt; backup.sql</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgusers</code></td>
+                    <td>List all users / roles (<code>\du</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgsize</code></td>
+                    <td>Show size of each database</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgver</code></td>
+                    <td>Show PostgreSQL version</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgconn</code></td>
+                    <td>Show active connections count</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgcreate &lt;db&gt;</code></td>
+                    <td>Create a new database (<code>pgcreate mydb</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>pgdrop &lt;db&gt;</code></td>
+                    <td>Drop / delete a database (<code>pgdrop mydb</code>)</td>
                   </tr>
                 </tbody>
               </table>

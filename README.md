@@ -54,6 +54,7 @@ _Beautiful • Fast • Smart • Zero Bloat_
   - [⚙️ System Tools](#-system--maintenance)
   - [🔨 Utilities](#-utility-tools)
   - [🐳 Docker & Containers](#-docker--containers)
+  - [🐘 PostgreSQL](#-postgresql)
 - [🏗️ Project Structure](#️-project-structure)
 - [🖥️ Zed IDE Settings](#️-zed-ide-settings)
 - [🐧 Linux App Ecosystem](#-linux-app-ecosystem)
@@ -784,6 +785,41 @@ dbackup mydata backup.tar
 ```
 
 > 💡 **Tab Completion** is built-in — press `Tab` after `dsh`, `dlogs`, `dstop`, `dkill`, `drestart`, `dports`, `dwatch`, `dnetstat`, `dtop-proc` to auto-complete container names. Same for `drmi` and `dhist` with image names.
+
+---
+
+## 🐘 PostgreSQL
+
+> fancybash includes a full suite of **PostgreSQL aliases** for managing your database service with minimal typing.
+
+### 🔌 Service Control
+
+| Alias | Description |
+|---|---|
+| `pgstart` | Start the PostgreSQL service |
+| `pgstop` | Stop the PostgreSQL service |
+| `pgrestart` | Restart the PostgreSQL service |
+| `pgstatus` | Check PostgreSQL service status |
+| `pgenable` | Enable PostgreSQL auto-start on boot |
+| `pgdisable` | Disable PostgreSQL auto-start on boot |
+| `pglogs` | Follow the PostgreSQL log file live |
+
+### 🗄️ Database Management
+
+| Alias | Usage | Description |
+|---|---|---|
+| `pgl` | `pgl` | Login as `postgres` user via `psql` |
+| `pgdb <name>` | `pgdb mydb` | Connect to a specific database |
+| `pgls` | `pgls` | List all databases (`\l`) |
+| `pgtables` | `pgtables` | List all tables in current DB (`\dt`) |
+| `pgusers` | `pgusers` | List all users / roles (`\du`) |
+| `pgsize` | `pgsize` | Show size of each database |
+| `pgver` | `pgver` | Show PostgreSQL version |
+| `pgconn` | `pgconn` | Show active connections count |
+| `pgcreate <db>` | `pgcreate mydb` | Create a new database |
+| `pgdrop <db>` | `pgdrop mydb` | Drop / delete a database |
+| `pgdump <db>` | `pgdump mydb > backup.sql` | Dump / backup a database |
+| `pgrestore <db>` | `pgrestore mydb < backup.sql` | Restore a database from file |
 
 ---
 
