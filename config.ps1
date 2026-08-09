@@ -841,6 +841,39 @@ function gsta { git stash apply }
 function gpop { git stash pop }
 function gfp { git fetch --prune }
 
+# --- Node/NPX Prisma ORM (np*) — first letter of each word ---
+function np    { npx prisma $args }
+function npi   { npx prisma init $args }
+function npg   { npx prisma generate $args }
+function nps   { npx prisma studio $args }
+function npmd  { npx prisma migrate dev $args }
+function npmdn { npx prisma migrate dev --name $args }
+function npmr  { npx prisma migrate reset $args }
+function npmdp { npx prisma migrate deploy $args }
+function npms  { npx prisma migrate status $args }
+function npdp  { npx prisma db push $args }
+function npdl  { npx prisma db pull $args }
+function npds  { npx prisma db seed $args }
+function npf   { npx prisma format }
+function npv   { npx prisma version }
+
+# --- Bun Prisma ORM (bp*) — first letter of each word ---
+function bp    { bunx prisma $args }
+function bpi   { bunx prisma init $args }
+function bpg   { bunx prisma generate $args }
+function bps   { bunx prisma studio $args }
+function bpmd  { bunx prisma migrate dev $args }
+function bpmdn { bunx prisma migrate dev --name $args }
+function bpmr  { bunx prisma migrate reset $args }
+function bpmdp { bunx prisma migrate deploy $args }
+function bpms  { bunx prisma migrate status $args }
+function bpdp  { bunx prisma db push $args }
+function bpdl  { bunx prisma db pull $args }
+function bpds  { bunx prisma db seed $args }
+function bpf   { bunx prisma format }
+function bpv   { bunx prisma version }
+
+
 # --- Docker Shortcuts ---
 function d          { docker @args }
 function dps        { docker ps @args }
@@ -873,6 +906,47 @@ function dcs        { docker compose stop @args }
 function dcps       { docker compose ps @args }
 function dcpull     { docker compose pull }
 function dcexec     { docker compose exec @args }
+
+# --- Prisma ORM Shortcuts ---
+function pm { npx prisma $args }
+function pmini { npx prisma init $args }
+function pmg { npx prisma generate $args }
+function pms { npx prisma studio $args }
+function pmd { npx prisma migrate dev $args }
+function pmdn { npx prisma migrate dev --name $args }
+function pmr { npx prisma migrate reset $args }
+function pmdp { npx prisma migrate deploy $args }
+function pmst { npx prisma migrate status $args }
+function pmp { npx prisma db push $args }
+function pml { npx prisma db pull $args }
+function pmsd { npx prisma db seed $args }
+function pmf { npx prisma format $args }
+function pmv { npx prisma version $args }
+
+function prs { npx prisma $args }
+function prsg { npx prisma generate $args }
+function prss { npx prisma studio $args }
+function prsd { npx prisma migrate dev $args }
+function prsp { npx prisma db push $args }
+function prsl { npx prisma db pull $args }
+function prsf { npx prisma format }
+
+# --- Bun Prisma ORM Shortcuts ---
+function bpm { bunx prisma $args }
+function bpmini { bunx prisma init $args }
+function bpmg { bunx prisma generate $args }
+function bpms { bunx prisma studio $args }
+function bpmd { bunx prisma migrate dev $args }
+function bpmdn { bunx prisma migrate dev --name $args }
+function bpmr { bunx prisma migrate reset $args }
+function bpmdp { bunx prisma migrate deploy $args }
+function bpmst { bunx prisma migrate status $args }
+function bpmp { bunx prisma db push $args }
+function bpml { bunx prisma db pull $args }
+function bpmsd { bunx prisma db seed $args }
+function bpmf { bunx prisma format $args }
+function bpmv { bunx prisma version $args }
+
 
 function cf {
     param([string]$target_dir = ".")

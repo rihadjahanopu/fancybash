@@ -1488,6 +1488,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
               class="cmd-cat-btn"
               role="tab"
               aria-selected="false"
+              data-cat="prisma"
+              id="cmd-tab-prisma"
+            >
+              💎 Prisma ORM
+            </button>
+            <button
+              class="cmd-cat-btn"
+              role="tab"
+              aria-selected="false"
               data-cat="util"
               id="cmd-tab-util"
             >
@@ -1992,6 +2001,179 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Drop / delete a database (<code>pgdrop mydb</code>)</td>
                   </tr>
                 </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div
+            class="cmd-panel"
+            data-panel="prisma"
+            role="tabpanel"
+            aria-labelledby="cmd-tab-prisma"
+            hidden
+          >
+            <div class="cmd-table-wrapper">
+              <table class="cmd-table">
+                <thead>
+                  <tr>
+                    <th>Alias</th>
+                    <th>Full Command</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Node / NPX Prisma (np*) -->
+                  <tr class="section-header-row">
+                    <td colspan="3">🟢 Node / NPX Prisma — <code>np*</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>np</code></td>
+                    <td><code>npx prisma</code></td>
+                    <td>Base Prisma CLI command</td>
+                  </tr>
+                  <tr>
+                    <td><code>npi</code></td>
+                    <td><code>npx prisma init</code></td>
+                    <td>Initialize Prisma in project</td>
+                  </tr>
+                  <tr>
+                    <td><code>npg</code></td>
+                    <td><code>npx prisma generate</code></td>
+                    <td>Generate Prisma Client</td>
+                  </tr>
+                  <tr>
+                    <td><code>nps</code></td>
+                    <td><code>npx prisma studio</code></td>
+                    <td>Open Prisma Studio GUI</td>
+                  </tr>
+                  <tr>
+                    <td><code>npmd</code></td>
+                    <td><code>npx prisma migrate dev</code></td>
+                    <td>Run dev migrations</td>
+                  </tr>
+                  <tr>
+                    <td><code>npmdn &lt;name&gt;</code></td>
+                    <td><code>npx prisma migrate dev --name &lt;name&gt;</code></td>
+                    <td>Run named migration (e.g. <code>npmdn add_users</code>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>npmr</code></td>
+                    <td><code>npx prisma migrate reset</code></td>
+                    <td>Reset database &amp; re-run migrations</td>
+                  </tr>
+                  <tr>
+                    <td><code>npmdp</code></td>
+                    <td><code>npx prisma migrate deploy</code></td>
+                    <td>Apply pending migrations in production</td>
+                  </tr>
+                  <tr>
+                    <td><code>npms</code></td>
+                    <td><code>npx prisma migrate status</code></td>
+                    <td>Check migration status</td>
+                  </tr>
+                  <tr>
+                    <td><code>npdp</code></td>
+                    <td><code>npx prisma db push</code></td>
+                    <td>Push schema state directly to DB</td>
+                  </tr>
+                  <tr>
+                    <td><code>npdl</code></td>
+                    <td><code>npx prisma db pull</code></td>
+                    <td>Pull schema from DB (Introspect)</td>
+                  </tr>
+                  <tr>
+                    <td><code>npds</code></td>
+                    <td><code>npx prisma db seed</code></td>
+                    <td>Seed database using seed script</td>
+                  </tr>
+                  <tr>
+                    <td><code>npf</code></td>
+                    <td><code>npx prisma format</code></td>
+                    <td>Format schema.prisma file</td>
+                  </tr>
+                  <tr>
+                    <td><code>npv</code></td>
+                    <td><code>npx prisma version</code></td>
+                    <td>Show Prisma CLI &amp; engine version</td>
+                  </tr>
+                  <!-- Bun Prisma (bp*) -->
+                  <tr class="section-header-row">
+                    <td colspan="3">🥐 Bun Prisma — <code>bp*</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>bp</code></td>
+                    <td><code>bunx prisma</code></td>
+                    <td>Base Prisma CLI via Bun runner</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpi</code></td>
+                    <td><code>bunx prisma init</code></td>
+                    <td>Initialize Prisma via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpg</code></td>
+                    <td><code>bunx prisma generate</code></td>
+                    <td>Generate Prisma Client via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bps</code></td>
+                    <td><code>bunx prisma studio</code></td>
+                    <td>Open Prisma Studio GUI via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpmd</code></td>
+                    <td><code>bunx prisma migrate dev</code></td>
+                    <td>Run dev migrations via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpmdn &lt;name&gt;</code></td>
+                    <td><code>bunx prisma migrate dev --name &lt;name&gt;</code></td>
+                    <td>Run named migration via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpmr</code></td>
+                    <td><code>bunx prisma migrate reset</code></td>
+                    <td>Reset database via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpmdp</code></td>
+                    <td><code>bunx prisma migrate deploy</code></td>
+                    <td>Apply migrations in prod via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpms</code></td>
+                    <td><code>bunx prisma migrate status</code></td>
+                    <td>Check migration status via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpdp</code></td>
+                    <td><code>bunx prisma db push</code></td>
+                    <td>Push schema directly to DB via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpdl</code></td>
+                    <td><code>bunx prisma db pull</code></td>
+                    <td>Pull schema from DB via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpds</code></td>
+                    <td><code>bunx prisma db seed</code></td>
+                    <td>Seed database via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpf</code></td>
+                    <td><code>bunx prisma format</code></td>
+                    <td>Format schema.prisma file via Bun</td>
+                  </tr>
+                  <tr>
+                    <td><code>bpv</code></td>
+                    <td><code>bunx prisma version</code></td>
+                    <td>Check Prisma version via Bun</td>
+                  </tr>
+                </tbody>
+
+
+
               </table>
             </div>
           </div>

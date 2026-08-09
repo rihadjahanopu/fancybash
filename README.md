@@ -55,6 +55,7 @@ _Beautiful • Fast • Smart • Zero Bloat_
   - [🔨 Utilities](#-utility-tools)
   - [🐳 Docker & Containers](#-docker--containers)
   - [🐘 PostgreSQL](#-postgresql)
+  - [💎 Prisma ORM](#-prisma-orm)
 - [🏗️ Project Structure](#️-project-structure)
 - [🖥️ Zed IDE Settings](#️-zed-ide-settings)
 - [🐧 Linux App Ecosystem](#-linux-app-ecosystem)
@@ -822,6 +823,56 @@ dbackup mydata backup.tar
 | `pgrestore <db>` | `pgrestore mydb < backup.sql` | Restore a database from file |
 
 ---
+
+## 💎 Prisma ORM
+
+> fancybash includes a complete suite of **Prisma ORM aliases** using the **first letter of each word** for maximum typing speed.
+>
+> Pattern: `n`(px) + `p`(risma) + sub-command initials → **Node** | `b`(unx) + `p`(risma) + sub-command initials → **Bun**
+
+### 🟢 Node / NPX Prisma — `np*`
+
+| Alias | Full Command | Description |
+|---|---|---|
+| `np` | `npx prisma` | Base Prisma CLI command |
+| `npi` | `npx prisma init` | Initialize Prisma project |
+| `npg` | `npx prisma generate` | Generate Prisma Client |
+| `nps` | `npx prisma studio` | Open Prisma Studio GUI |
+| `npmd` | `npx prisma migrate dev` | Run dev migrations |
+| `npmdn <name>` | `npx prisma migrate dev --name <name>` | Run named migration (e.g. `npmdn add_users`) |
+| `npmr` | `npx prisma migrate reset` | Reset database & re-migrate |
+| `npmdp` | `npx prisma migrate deploy` | Apply migrations in production |
+| `npms` | `npx prisma migrate status` | Check migration status |
+| `npdp` | `npx prisma db push` | Push schema state directly to DB |
+| `npdl` | `npx prisma db pull` | Pull schema from DB / Introspect |
+| `npds` | `npx prisma db seed` | Seed the database |
+| `npf` | `npx prisma format` | Format `schema.prisma` file |
+| `npv` | `npx prisma version` | Show Prisma CLI & engine version |
+
+### 🥐 Bun Runtime Prisma — `bp*`
+
+| Alias | Full Command | Description |
+|---|---|---|
+| `bp` | `bunx prisma` | Base Prisma CLI via Bun runner |
+| `bpi` | `bunx prisma init` | Initialize Prisma project via Bun |
+| `bpg` | `bunx prisma generate` | Generate Prisma Client via Bun |
+| `bps` | `bunx prisma studio` | Open Prisma Studio GUI via Bun |
+| `bpmd` | `bunx prisma migrate dev` | Run dev migrations via Bun |
+| `bpmdn <name>` | `bunx prisma migrate dev --name <name>` | Run named migration via Bun |
+| `bpmr` | `bunx prisma migrate reset` | Reset database via Bun |
+| `bpmdp` | `bunx prisma migrate deploy` | Apply migrations in prod via Bun |
+| `bpms` | `bunx prisma migrate status` | Check migration status via Bun |
+| `bpdp` | `bunx prisma db push` | Push schema directly to DB via Bun |
+| `bpdl` | `bunx prisma db pull` | Pull schema from DB via Bun |
+| `bpds` | `bunx prisma db seed` | Seed database via Bun |
+| `bpf` | `bunx prisma format` | Format `schema.prisma` file via Bun |
+| `bpv` | `bunx prisma version` | Check Prisma version via Bun |
+
+
+
+---
+
+
 
 ## 🤝 Contributing
 

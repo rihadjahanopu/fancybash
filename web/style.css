@@ -1163,6 +1163,22 @@ img {
 
 .cmd-table td code { color: var(--clr-cyan); font-size: 0.82rem; }
 
+.cmd-table .section-header-row td {
+  background: rgba(168, 85, 247, 0.08);
+  color: var(--clr-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.55rem 1.25rem;
+  border-top: 1px solid var(--clr-border);
+}
+
+.cmd-table .section-header-row td code {
+  color: var(--clr-purple, #a855f7);
+  font-size: 0.78rem;
+}
+
 /* =====================
    Prompt Section
    ===================== */

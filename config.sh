@@ -1187,6 +1187,7 @@ keep() {
     ICON_WARNING='⚠️'
     ICON_STAR='✨'
     ICON_SEARCH='🔍'
+    ICON_PRISMA='💎'
 
     # Clear screen for clean look
     clear
@@ -1386,6 +1387,25 @@ keep() {
     print_cmd "pgdump <db>" "Dump/Backup a database" "pgdump mydb > b.sql" "$ORANGE"
     print_cmd "pgrestore <db>" "Restore database from file" "pgrestore mydb < b.sql" "$ORANGE"
     print_cmd "pglogs" "Follow PostgreSQL log file" "" "$RED"
+
+    # ==================== PRISMA ORM ====================
+    print_category "$ICON_PRISMA" "PRISMA ORM" "$CYAN"
+    print_cmd "np / bp" "npx/bunx prisma (base)" "np" "$GREEN"
+    print_cmd "npi / bpi" "prisma init" "npi" "$BLUE"
+    print_cmd "npg / bpg" "prisma generate" "npg" "$YELLOW"
+    print_cmd "nps / bps" "prisma studio" "nps" "$PINK"
+    print_cmd "npmd / bpmd" "prisma migrate dev" "npmd" "$CYAN"
+    print_cmd "npmdn / bpmdn <n>" "prisma migrate dev --name" "npmdn add_users" "$CYAN"
+    print_cmd "npmr / bpmr" "prisma migrate reset" "npmr" "$RED"
+    print_cmd "npmdp / bpmdp" "prisma migrate deploy" "npmdp" "$PURPLE"
+    print_cmd "npms / bpms" "prisma migrate status" "npms" "$GRAY"
+    print_cmd "npdp / bpdp" "prisma db push" "npdp" "$ORANGE"
+    print_cmd "npdl / bpdl" "prisma db pull" "npdl" "$BLUE"
+    print_cmd "npds / bpds" "prisma db seed" "npds" "$GREEN"
+    print_cmd "npf / bpf" "prisma format" "npf" "$YELLOW"
+    print_cmd "npv / bpv" "prisma version" "npv" "$GRAY"
+
+
 
     # ==================== ADVANCED INTERACTIVE TOOLS ====================
     print_category "$ICON_LIGHTNING" "ADVANCED INTERACTIVE TOOLS" "$PURPLE"
@@ -3538,6 +3558,41 @@ alias pgusers='psql -U postgres -c "\\du"'                  # সব users/roles
 alias pgsize='psql -U postgres -c "SELECT pg_database.datname, pg_size_pretty(pg_database_size(pg_database.datname)) AS size FROM pg_database ORDER BY pg_database_size(pg_database.datname) DESC;"'  # প্রতিটি DBর সাইজ
 alias pgver='psql -U postgres -c "SELECT version();"'     # PostgreSQL version দেখুন
 alias pgconn='psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"'  # active connections
+
+# --- Node/NPX Prisma ORM (np*) — first letter of each word ---
+alias np='npx prisma'                                       # npx prisma
+alias npi='npx prisma init'                                 # npx prisma init
+alias npg='npx prisma generate'                             # npx prisma generate
+alias nps='npx prisma studio'                               # npx prisma studio
+alias npmd='npx prisma migrate dev'                         # npx prisma migrate dev
+alias npmdn='npx prisma migrate dev --name'                 # npx prisma migrate dev --name
+alias npmr='npx prisma migrate reset'                       # npx prisma migrate reset
+alias npmdp='npx prisma migrate deploy'                     # npx prisma migrate deploy
+alias npms='npx prisma migrate status'                      # npx prisma migrate status
+alias npdp='npx prisma db push'                             # npx prisma db push
+alias npdl='npx prisma db pull'                             # npx prisma db pull
+alias npds='npx prisma db seed'                             # npx prisma db seed
+alias npf='npx prisma format'                               # npx prisma format
+alias npv='npx prisma version'                              # npx prisma version
+
+# --- Bun Prisma ORM (bp*) — first letter of each word ---
+alias bp='bunx prisma'                                      # bunx prisma
+alias bpi='bunx prisma init'                                # bunx prisma init
+alias bpg='bunx prisma generate'                            # bunx prisma generate
+alias bps='bunx prisma studio'                              # bunx prisma studio
+alias bpmd='bunx prisma migrate dev'                        # bunx prisma migrate dev
+alias bpmdn='bunx prisma migrate dev --name'                # bunx prisma migrate dev --name
+alias bpmr='bunx prisma migrate reset'                      # bunx prisma migrate reset
+alias bpmdp='bunx prisma migrate deploy'                    # bunx prisma migrate deploy
+alias bpms='bunx prisma migrate status'                     # bunx prisma migrate status
+alias bpdp='bunx prisma db push'                            # bunx prisma db push
+alias bpdl='bunx prisma db pull'                            # bunx prisma db pull
+alias bpds='bunx prisma db seed'                            # bunx prisma db seed
+alias bpf='bunx prisma format'                              # bunx prisma format
+alias bpv='bunx prisma version'                             # bunx prisma version
+
+
+
 
 
 
