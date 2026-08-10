@@ -3719,6 +3719,8 @@ alias fr='cd ~/Developer/frontend'
 alias fu='cd ~/Developer/fullstack'
 
 # --- System Maintenance ---
+unalias update 2>/dev/null
+unalias clean 2>/dev/null
 update() {
     echo -e "\033[1;36m🔄 Updating system packages...\033[0m"
     if command -v apt-get &>/dev/null; then
