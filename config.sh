@@ -38,6 +38,47 @@ function rand_emoji {
 # HELPERS
 # ======================================================
 
+# Central Dynamic Dependency Auto-Installer
+_fb_ensure_dep() {
+    local cmd="$1"
+    local apt_pkg="${2:-$cmd}"
+    local pac_pkg="${3:-$cmd}"
+    local dnf_pkg="${4:-$cmd}"
+
+    if command -v "$cmd" &>/dev/null; then
+        return 0
+    fi
+
+    if [ "$cmd" = "fd" ] && command -v fdfind &>/dev/null; then
+        return 0
+    fi
+    if [ "$cmd" = "bat" ] && command -v batcat &>/dev/null; then
+        return 0
+    fi
+    if [ "$cmd" = "exa" ] && command -v eza &>/dev/null; then
+        return 0
+    fi
+
+    echo -e "\033[1;33m⚡ Missing tool '$cmd'. Auto-installing for your Linux distro...\033[0m"
+
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get update -qq && sudo apt-get install -y "$apt_pkg"
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -S --noconfirm --needed "$pac_pkg"
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y "$dnf_pkg"
+    elif command -v zypper &>/dev/null; then
+        sudo zypper install -y "$pac_pkg"
+    elif command -v apk &>/dev/null; then
+        sudo apk add "$pac_pkg"
+    elif command -v brew &>/dev/null; then
+        brew install "$pac_pkg"
+    else
+        echo -e "\033[1;31m❌ Package manager not found. Please install '$cmd' manually.\033[0m"
+        return 1
+    fi
+}
+
 unalias parse_git_branch 2>/dev/null
 function parse_git_branch {
     local branch=$(git branch --show-current 2>/dev/null)
@@ -620,17 +661,16 @@ function ex {
     fi
 }
 
-# Usage: ff filename
+# Usage: ff filename (Dynamic fd auto-installer)
 unalias ff 2>/dev/null
 function ff {
-    if command -v fd >/dev/null 2>&1; then
-        fd -H -E "node_modules" -E ".git" "$1"
-    else
-        find . -type f -iname "*$1*" -not -path "*/node_modules/*" -not -path "*/.git/*"
-    fi
+    _fb_ensure_dep fd fd-find fd fd-find || return 1
+    local fd_cmd="fd"
+    command -v fdfind &>/dev/null && fd_cmd="fdfind"
+    "$fd_cmd" -H -E "node_modules" -E ".git" "$1"
 }
 
-#  Secret Key Generator (Usage: gen 32)
+# Secret Key Generator (Usage: gen 32)
 unalias gen 2>/dev/null
 function gen {
     local len="${1:-24}"
@@ -638,7 +678,7 @@ function gen {
     echo -e "🔑 Hex:    \033[1;36m$(openssl rand -hex "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
 }
 
-#  Backup File (Usage: bak .env)
+# Backup File (Usage: bak .env)
 unalias bak 2>/dev/null
 function bak {
     cp "$1" "$1.bak" && echo "✅ Created: $1.bak"
@@ -651,15 +691,56 @@ alias iploc='curl -s ipinfo.io/json | grep -E "ip|city|region|org"'
 # Usage: h git
 alias h='history | grep'
 
-# FZF History Search (Usage: fh)
+# FZF History Search (Usage: fh - Dynamic fzf auto-installer)
 unalias fh 2>/dev/null
 function fh {
-    if command -v fzf >/dev/null 2>&1; then
-        local cmd=$(history | awk '{$1=""; print $0}' | fzf --reverse +s)
-        [[ -n "$cmd" ]] && eval "$cmd"
+    _fb_ensure_dep fzf fzf fzf fzf || return 1
+    local cmd=$(history | awk '{$1=""; print $0}' | fzf --reverse +s)
+    [[ -n "$cmd" ]] && eval "$cmd"
+}
+
+# Dynamic Auto-installing Wrappers for Modern CLI Tools
+unalias bat 2>/dev/null
+function bat {
+    _fb_ensure_dep bat bat bat bat || return 1
+    if command -v batcat &>/dev/null; then
+        command batcat "$@"
     else
-        history | tail -n 30
+        command bat "$@"
     fi
+}
+
+unalias eza 2>/dev/null
+function eza {
+    _fb_ensure_dep eza eza eza eza || return 1
+    command eza "$@"
+}
+
+unalias z 2>/dev/null
+function z {
+    if ! command -v zoxide &>/dev/null; then
+        _fb_ensure_dep zoxide zoxide zoxide zoxide || return 1
+        eval "$(zoxide init ${SHELL_NAME:-bash})"
+    fi
+    zoxide "$@"
+}
+
+unalias tree 2>/dev/null
+function tree {
+    if ! command -v tree &>/dev/null && ! command -v eza &>/dev/null; then
+        _fb_ensure_dep tree tree tree tree || return 1
+    fi
+    if command -v eza &>/dev/null; then
+        eza --tree "$@"
+    else
+        command tree "$@"
+    fi
+}
+
+unalias tldr 2>/dev/null
+function tldr {
+    _fb_ensure_dep tldr tldr tldr tldr || return 1
+    command tldr "$@"
 }
 
 # Safe Delete - moves to system trash
@@ -4080,19 +4161,64 @@ fi
 
 unalias cf 2>/dev/null
 function cf {
+    # Helper to auto-install missing packages dynamically based on active package manager
+    _cf_install_pkg() {
+        local tool="$1"
+        local apt_pkg="$2"
+        local pac_pkg="$3"
+        local dnf_pkg="$4"
+
+        echo -e "\033[1;33m⚡ 'cf' requires '$tool'. Dynamic auto-installing for your distro...\033[0m"
+
+        if command -v apt-get &>/dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y "$apt_pkg"
+        elif command -v pacman &>/dev/null; then
+            sudo pacman -S --noconfirm --needed "$pac_pkg"
+        elif command -v dnf &>/dev/null; then
+            sudo dnf install -y "$dnf_pkg"
+        elif command -v zypper &>/dev/null; then
+            sudo zypper install -y "$pac_pkg"
+        elif command -v apk &>/dev/null; then
+            sudo apk add "$pac_pkg"
+        elif command -v brew &>/dev/null; then
+            brew install "$pac_pkg"
+        else
+            echo -e "\033[1;31m❌ Package manager not found. Please install '$tool' manually.\033[0m"
+            return 1
+        fi
+    }
+
+    # 1. Dynamic Dependency Check & Auto-Install for fzf
+    if ! command -v fzf &>/dev/null; then
+        _cf_install_pkg "fzf" "fzf" "fzf" "fzf" || return 1
+    fi
+
+    # 2. Dynamic Dependency Check & Auto-Install for fd
+    local fd_cmd=""
+    if command -v fd &>/dev/null; then
+        fd_cmd="fd"
+    elif command -v fdfind &>/dev/null; then
+        fd_cmd="fdfind"
+    else
+        _cf_install_pkg "fd" "fd-find" "fd" "fd-find"
+        if command -v fd &>/dev/null; then
+            fd_cmd="fd"
+        elif command -v fdfind &>/dev/null; then
+            fd_cmd="fdfind"
+        fi
+    fi
+
     local dir
     local search_cmd
     local target_dir="${1:-.}"
 
-    # 1. Faster search utilizing fd (respects .gitignore natively)
-    if command -v fd &>/dev/null; then
-        search_cmd="fd --type d --hidden --exclude .git --exclude node_modules . \"$target_dir\""
+    if [ -n "$fd_cmd" ]; then
+        search_cmd="$fd_cmd --type d --hidden --exclude .git --exclude node_modules . \"$target_dir\""
     else
         search_cmd="find \"$target_dir\" -path '*/.*' -prune -o -type d -print 2>/dev/null"
     fi
 
-    # 2. Fully Immersive Multi-Action Workflow (Bash Safe Pipeline bindings)
-    # Bash-e {1:h} (Zsh parent shortcut) er bodole dirname use kora hoyeche
+    # 3. Optimized Multi-Action Workflow
     dir=$(eval "$search_cmd" | fzf \
         --height 90% \
         --layout=reverse \
@@ -4100,27 +4226,36 @@ function cf {
         --prompt="⚡ Dev Walk: " \
         --pointer="❯" \
         --marker="✔" \
-        --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path | [CTRL-H] Parent Dir" \
+        --header="[ENTER] Cd | [CTRL-O] Editor | [CTRL-E] Explorer | [CTRL-Y] Copy Path | [CTRL-H] Parent" \
         --header-first \
-        --bind "ctrl-y:execute-silent(echo -n {} | (wl-copy 2>/dev/null || xclip -selection clipboard 2>/dev/null || pbcopy 2>/dev/null))+change-prompt(📋 Copied! > )" \
-        --bind "ctrl-o:execute(code {} || cursor {} || nvim {})+abort" \
-        --bind "ctrl-h:reload(fd --type d --hidden --exclude .git --exclude node_modules . \$(dirname {}) || find \$(dirname {}) -type d)+change-prompt(⚡ Parent: )" \
+        --bind "ctrl-y:execute-silent(echo -n {} | (wl-copy 2>/dev/null || xclip -selection clipboard 2>/dev/null || clip.exe 2>/dev/null || pbcopy 2>/dev/null))+change-prompt(📋 Copied! > )" \
+        --bind "ctrl-o:execute(code {} 2>/dev/null || cursor {} 2>/dev/null || nvim {})+abort" \
+        --bind "ctrl-e:execute(nautilus {} 2>/dev/null || dolphin {} 2>/dev/null || explorer.exe {} 2>/dev/null || open {})" \
+        --bind "ctrl-h:reload($([ -n "$fd_cmd" ] && echo "$fd_cmd --type d --hidden --exclude .git --exclude node_modules . \$(dirname {}) 2>/dev/null" || echo "find \$(dirname {}) -type d 2>/dev/null"))+change-prompt(⚡ Parent: )" \
         --preview '
-            # Folder base details
             echo -e "\e[1;34m📁 Contents of: {} \e[0m"
             echo -e "\e[2m──────────────────────────────────────────\e[0m"
-            ls -FA --color=always {} | head -20
+            
+            if command -v eza &>/dev/null; then
+                eza --tree --level=1 --icons --color=always {} 2>/dev/null | head -20
+            elif command -v tree &>/dev/null; then
+                tree -C -L 1 {} 2>/dev/null | head -20
+            else
+                ls -FA --color=always {} 2>/dev/null | head -20
+            fi
+
             echo -e "\e[2m──────────────────────────────────────────\e[0m"
 
-            # Smart Git Tracking Injection inside Preview
-            if [ -d "{}/.git" ]; then
-                echo -e "\e[1;32m🌿 Git Repo Detect:\e[0m Branch -> \e[1;36m$(git -C {} branch --show-current 2>/dev/null)\e[0m"
-                echo -e "\e[1;33m📝 Uncommitted Changes:\e[0m"
-                git -C {} status -s 2>/dev/null | head -10 || echo "Clean"
+            if git -C {} rev-parse --is-inside-work-tree &>/dev/null; then
+                local branch=$(git -C {} branch --show-current 2>/dev/null || git -C {} rev-parse --short HEAD 2>/dev/null)
+                echo -e "\e[1;32m🌿 Git Repo:\e[0m Branch -> \e[1;36m${branch:-main}\e[0m"
+                echo -e "\e[1;33m📝 Uncommitted Status:\e[0m"
+                git -C {} status -s 2>/dev/null | head -8 || echo "Clean"
                 echo -e "\e[2m──────────────────────────────────────────\e[0m"
             fi
 
-            echo -e "\e[1;33m📊 Total Folder Size:\e[0m $(du -sh {} 2>/dev/null | cut -f1)"
+            local sz=$(timeout 0.2s du -sh {} 2>/dev/null | cut -f1)
+            echo -e "\e[1;33m📊 Size:\e[0m ${sz:-Quick Scan}"
         ' \
         --preview-window=right:50%:wrap)
 
