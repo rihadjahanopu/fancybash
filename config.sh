@@ -1770,7 +1770,7 @@ function run {
 
 unalias v 2>/dev/null
 function v {
-    local DIR="${1:-$PWD}"
+    local TARGET="${1:-$PWD}"
     local PLAYER=""
 
     # 🎥 Player check (Flatpak VLC Priority)
@@ -1782,9 +1782,18 @@ function v {
         PLAYER='vlc'
     fi
 
-    # 🔍 Find Videos
+    # Direct file play support if target is a single video file
+    if [ -f "$TARGET" ]; then
+        echo -e "\e[1;35m🎬 Playing video:\e[0m $(basename "$TARGET")"
+        $PLAYER "$TARGET" >/dev/null 2>&1 &
+        disown 2>/dev/null || true
+        return 0
+    fi
+
+    # 🔍 Find Videos inside directory
+    local DIR="$TARGET"
     local RAW_LIST
-    RAW_LIST=$(find "$DIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.webm" -o -iname "*.flv" \) | sort)
+    RAW_LIST=$(find "$DIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.webm" -o -iname "*.flv" -o -iname "*.m4v" \) 2>/dev/null | sort)
 
     [ -z "$RAW_LIST" ] && echo "❌ No videos found" && return 1
 
@@ -4211,14 +4220,17 @@ function cf {
     local dir
     local search_cmd
     local target_dir="${1:-.}"
-
-    if [ -n "$fd_cmd" ]; then
-        search_cmd="$fd_cmd --type d --hidden --exclude .git --exclude node_modules . \"$target_dir\""
-    else
-        search_cmd="find \"$target_dir\" -path '*/.*' -prune -o -type d -print 2>/dev/null"
+    if [ "$target_dir" = "." ] && [ "$PWD" = "/" ]; then
+        target_dir="$HOME"
     fi
 
-    # 3. Optimized Multi-Action Workflow
+    if [ -n "$fd_cmd" ]; then
+        search_cmd="$fd_cmd --hidden --exclude .git --exclude node_modules --exclude .cache --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \"$target_dir\""
+    else
+        search_cmd="find \"$target_dir\" \( -path '*/.*' -o -path '*/node_modules*' -o -path '*/.cache*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"
+    fi
+
+    # 3. Optimized Multi-Action Workflow (Folders, Videos & PDFs Supported)
     dir=$(eval "$search_cmd" | fzf \
         --height 90% \
         --layout=reverse \
@@ -4226,41 +4238,71 @@ function cf {
         --prompt="⚡ Dev Walk: " \
         --pointer="❯" \
         --marker="✔" \
-        --header="[ENTER] Cd | [CTRL-O] Editor | [CTRL-E] Explorer | [CTRL-Y] Copy Path | [CTRL-H] Parent" \
+        --header="[ENTER] Open/Cd | [CTRL-V] Video (v()) | [CTRL-P] PDF (Chrome) | [CTRL-O] Editor | [CTRL-E] Explorer" \
         --header-first \
         --bind "ctrl-y:execute-silent(echo -n {} | (wl-copy 2>/dev/null || xclip -selection clipboard 2>/dev/null || clip.exe 2>/dev/null || pbcopy 2>/dev/null))+change-prompt(📋 Copied! > )" \
+        --bind "ctrl-v:execute(v {} 2>/dev/null &)+change-prompt(🎬 Playing Video > )" \
+        --bind "ctrl-p:execute((google-chrome {} 2>/dev/null || chromium {} 2>/dev/null || brave {} 2>/dev/null || xdg-open {} 2>/dev/null) &)+change-prompt(📄 PDF Opened in Chrome > )" \
         --bind "ctrl-o:execute(code {} 2>/dev/null || cursor {} 2>/dev/null || nvim {})+abort" \
         --bind "ctrl-e:execute(nautilus {} 2>/dev/null || dolphin {} 2>/dev/null || explorer.exe {} 2>/dev/null || open {})" \
-        --bind "ctrl-h:reload($([ -n "$fd_cmd" ] && echo "$fd_cmd --type d --hidden --exclude .git --exclude node_modules . \$(dirname {}) 2>/dev/null" || echo "find \$(dirname {}) -type d 2>/dev/null"))+change-prompt(⚡ Parent: )" \
+        --bind "ctrl-h:reload($([ -n "$fd_cmd" ] && echo "$fd_cmd --hidden --exclude .git --exclude node_modules --exclude .cache --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \$(dirname {}) 2>/dev/null" || echo "find \$(dirname {}) \( -path '*/.*' -o -path '*/node_modules*' -o -path '*/.cache*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"))+change-prompt(⚡ Parent: )" \
         --preview '
-            echo -e "\e[1;34m📁 Contents of: {} \e[0m"
-            echo -e "\e[2m──────────────────────────────────────────\e[0m"
-            
-            if command -v eza &>/dev/null; then
-                eza --tree --level=1 --icons --color=always {} 2>/dev/null | head -20
-            elif command -v tree &>/dev/null; then
-                tree -C -L 1 {} 2>/dev/null | head -20
-            else
-                ls -FA --color=always {} 2>/dev/null | head -20
-            fi
-
-            echo -e "\e[2m──────────────────────────────────────────\e[0m"
-
-            if git -C {} rev-parse --is-inside-work-tree &>/dev/null; then
-                local branch=$(git -C {} branch --show-current 2>/dev/null || git -C {} rev-parse --short HEAD 2>/dev/null)
-                echo -e "\e[1;32m🌿 Git Repo:\e[0m Branch -> \e[1;36m${branch:-main}\e[0m"
-                echo -e "\e[1;33m📝 Uncommitted Status:\e[0m"
-                git -C {} status -s 2>/dev/null | head -8 || echo "Clean"
+            if [ -d {} ]; then
+                echo -e "\e[1;34m📁 Contents of: {} \e[0m"
                 echo -e "\e[2m──────────────────────────────────────────\e[0m"
+                if command -v eza &>/dev/null; then
+                    eza --tree --level=1 --icons --color=always {} 2>/dev/null | head -20
+                elif command -v tree &>/dev/null; then
+                    tree -C -L 1 {} 2>/dev/null | head -20
+                else
+                    ls -FA --color=always {} 2>/dev/null | head -20
+                fi
+                if git -C {} rev-parse --is-inside-work-tree &>/dev/null; then
+                    echo -e "\e[2m──────────────────────────────────────────\e[0m"
+                    local branch=$(git -C {} branch --show-current 2>/dev/null || git -C {} rev-parse --short HEAD 2>/dev/null)
+                    echo -e "\e[1;32m🌿 Git Repo:\e[0m Branch -> \e[1;36m${branch:-main}\e[0m"
+                    git -C {} status -s 2>/dev/null | head -6 || echo "Clean"
+                fi
+            else
+                echo -e "\e[1;36m📄 Previewing File: {} \e[0m"
+                echo -e "\e[2m──────────────────────────────────────────\e[0m"
+                ext=$(echo {} | awk -F. "{print \$NF}" | tr "[:upper:]" "[:lower:]")
+                if [ "$ext" = "mp4" ] || [ "$ext" = "mkv" ] || [ "$ext" = "avi" ] || [ "$ext" = "mov" ] || [ "$ext" = "webm" ] || [ "$ext" = "flv" ] || [ "$ext" = "m4v" ]; then
+                    echo -e "\e[1;35m🎬 Video File Detected:\e[0m $(basename {})"
+                    echo -e "\e[1;33m💡 Press ENTER or CTRL-V to play with v()\e[0m"
+                elif [ "$ext" = "pdf" ]; then
+                    echo -e "\e[1;36m📄 PDF Document Detected:\e[0m $(basename {})"
+                    echo -e "\e[1;33m💡 Press ENTER or CTRL-P to open in Chrome\e[0m"
+                else
+                    head -n 25 {} 2>/dev/null
+                fi
             fi
-
+            echo -e "\e[2m──────────────────────────────────────────\e[0m"
             local sz=$(timeout 0.2s du -sh {} 2>/dev/null | cut -f1)
             echo -e "\e[1;33m📊 Size:\e[0m ${sz:-Quick Scan}"
         ' \
         --preview-window=right:50%:wrap)
 
     if [ -n "$dir" ]; then
-        cd "$dir" || return
+        if [ -d "$dir" ]; then
+            cd "$dir" || return
+        elif [ -f "$dir" ]; then
+            local ext="${dir##*.}"
+            ext="${ext,,}"
+            case "$ext" in
+                mp4|mkv|avi|mov|webm|flv|m4v)
+                    echo -e "\033[1;35m🎬 Opening Video with v()...\033[0m"
+                    v "$dir"
+                    ;;
+                pdf)
+                    echo -e "\033[1;36m📄 Opening PDF in Chrome...\033[0m"
+                    (google-chrome "$dir" 2>/dev/null || google-chrome-stable "$dir" 2>/dev/null || chromium "$dir" 2>/dev/null || chromium-browser "$dir" 2>/dev/null || brave "$dir" 2>/dev/null || xdg-open "$dir" 2>/dev/null) &
+                    ;;
+                *)
+                    code "$dir" 2>/dev/null || cursor "$dir" 2>/dev/null || nvim "$dir"
+                    ;;
+            esac
+        fi
     fi
 }
 
