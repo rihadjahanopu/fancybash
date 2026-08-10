@@ -4224,10 +4224,22 @@ function cf {
         target_dir="$HOME"
     fi
 
+    # Smart hidden filter: allow project hidden folders (.github, .vscode, .env) in projects,
+    # while excluding heavy IDE/app data folders at Home root level (.antigravity-ide, .linglong, etc.)
+    local hidden_flag="--hidden"
+    local exclude_opts="--exclude .git --exclude node_modules --exclude .cache --exclude .antigravity-ide --exclude .linglong --exclude .local --exclude .var --exclude .npm --exclude .nvm --exclude .cargo --exclude .rustup --exclude .electron --exclude .mozilla --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd"
+
+    local abs_target
+    abs_target=$(cd "$target_dir" 2>/dev/null && pwd || echo "$target_dir")
+    if [ "$abs_target" = "$HOME" ] || [ "$PWD" = "$HOME" ]; then
+        hidden_flag=""
+        exclude_opts="--exclude '.*' --exclude node_modules --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd"
+    fi
+
     if [ -n "$fd_cmd" ]; then
-        search_cmd="$fd_cmd --hidden --exclude .git --exclude node_modules --exclude .cache --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \"$target_dir\""
+        search_cmd="$fd_cmd $hidden_flag $exclude_opts . \"$target_dir\""
     else
-        search_cmd="find \"$target_dir\" \( -path '*/.*' -o -path '*/node_modules*' -o -path '*/.cache*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"
+        search_cmd="find \"$target_dir\" \( -path '*/.*' -o -path '*/node_modules*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"
     fi
 
     # 3. Optimized Multi-Action Workflow (Folders, Videos & PDFs Supported)
@@ -4245,7 +4257,7 @@ function cf {
         --bind "ctrl-p:execute((google-chrome {} 2>/dev/null || chromium {} 2>/dev/null || brave {} 2>/dev/null || xdg-open {} 2>/dev/null) &)+change-prompt(📄 PDF Opened in Chrome > )" \
         --bind "ctrl-o:execute(code {} 2>/dev/null || cursor {} 2>/dev/null || nvim {})+abort" \
         --bind "ctrl-e:execute(nautilus {} 2>/dev/null || dolphin {} 2>/dev/null || explorer.exe {} 2>/dev/null || open {})" \
-        --bind "ctrl-h:reload($([ -n "$fd_cmd" ] && echo "$fd_cmd --hidden --exclude .git --exclude node_modules --exclude .cache --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \$(dirname {}) 2>/dev/null" || echo "find \$(dirname {}) \( -path '*/.*' -o -path '*/node_modules*' -o -path '*/.cache*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"))+change-prompt(⚡ Parent: )" \
+        --bind "ctrl-h:reload($([ -n "$fd_cmd" ] && echo "$fd_cmd --exclude '.*' --exclude node_modules --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \$(dirname {}) 2>/dev/null" || echo "find \$(dirname {}) \( -path '*/.*' -o -path '*/node_modules*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"))+change-prompt(⚡ Parent: )" \
         --preview '
             if [ -d {} ]; then
                 echo -e "\e[1;34m📁 Contents of: {} \e[0m"
