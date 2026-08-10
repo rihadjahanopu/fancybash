@@ -1,5 +1,3 @@
-
-
 # ==============================================================================
 #   ULTRA-THIN COMPACT PRO BASH ENVIRONMENT
 #   Author: [Rihad Jahan Opu]
@@ -9,8 +7,6 @@
 #   Verified: 2026 - Cross-platform compatibility
 # ==============================================================================
 
-
-
 # ======================================================
 # 🎨 RAINBOW COLOR & EMOJI SETUP
 # ======================================================
@@ -18,20 +14,22 @@
 rainbow_colors=(31 32 33 34 35 36 91 92 93 94 95 96)
 
 rand_color() {
-  echo "${rainbow_colors[$RANDOM % ${#rainbow_colors[@]}]}"
+    echo "${rainbow_colors[$RANDOM % ${#rainbow_colors[@]}]}"
 }
 
 rand_emoji() {
-  local folder=$(basename "$PWD")
-  case $folder in
-    *web* )   echo "🌐" ;;
-    *node* )  echo "🟢" ;;
-    *bun* )   echo "🥐" ;;
-    *py* )    echo "🐍" ;;
-    *proj* )  echo "💻" ;;
-    * ) local emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)
-        echo "${emojis[$RANDOM % ${#emojis[@]}]}" ;;
-  esac
+    local folder=$(basename "$PWD")
+    case $folder in
+        *web*) echo "🌐" ;;
+        *node*) echo "🟢" ;;
+        *bun*) echo "🥐" ;;
+        *py*) echo "🐍" ;;
+        *proj*) echo "💻" ;;
+        *)
+            local emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)
+            echo "${emojis[$RANDOM % ${#emojis[@]}]}"
+            ;;
+    esac
 }
 
 # ======================================================
@@ -39,97 +37,127 @@ rand_emoji() {
 # ======================================================
 
 parse_git_branch() {
-  local branch=$(git symbolic-ref --short HEAD 2>/dev/null) || return
-  local dirty=""
-  [[ -n $(git status --porcelain 2>/dev/null) ]] && dirty=" ❗"
-  echo "$branch$dirty"
+    local branch=$(git branch --show-current 2>/dev/null)
+    if [[ -z "$branch" ]]; then
+        branch=$(git rev-parse --short HEAD 2>/dev/null)
+        [[ -n "$branch" ]] && branch="➦ $branch"
+    fi
+    [[ -z "$branch" ]] && return
+    local dirty=""
+    [[ -n $(git status --porcelain --untracked-files=no 2>/dev/null) ]] && dirty=" ❗"
+    echo "$branch$dirty"
 }
 
 node_version() { command -v node >/dev/null 2>&1 && echo "🟢 $(node -v)"; }
 npm_version() { command -v npm >/dev/null 2>&1 && echo "📦 $(npm -v)"; }
-bun_version()  { command -v bun  >/dev/null 2>&1 && echo "🥐 $(bun -v)"; }
+bun_version() { command -v bun >/dev/null 2>&1 && echo "🥐 $(bun -v)"; }
 time_date() { echo "📅 $(date +'%b %d')"; }
 
 sys_info() {
-  local CPU=$(top -bn1 | awk '/Cpu/ {print int($2+$4)}')
-  local RAM=$(free -h | awk '/^Mem/ {print $3 "/" $2}')
-  echo "📟 ${CPU}% 🧠 ${RAM}"
+    if [[ -f /proc/meminfo ]]; then
+        local mem_total=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)
+        local mem_avail=$(awk '/MemAvailable/ {print $2}' /proc/meminfo 2>/dev/null)
+        if [[ -n "$mem_total" && -n "$mem_avail" ]]; then
+            local mem_used=$(((mem_total - mem_avail) / 1024))
+            local mem_total_mb=$((mem_total / 1024))
+            echo "🧠 ${mem_used}M/${mem_total_mb}M"
+            return
+        fi
+    fi
+    if command -v free >/dev/null 2>&1; then
+        local RAM=$(free -h 2>/dev/null | awk '/^Mem/ {print $3 "/" $2}')
+        [[ -n "$RAM" ]] && echo "🧠 ${RAM}"
+    fi
 }
 
 battery_info() {
-  [[ -f /sys/class/power_supply/BAT0/capacity ]] && echo "🔋$(cat /sys/class/power_supply/BAT0/capacity)%"
+    [[ -f /sys/class/power_supply/BAT0/capacity ]] && echo "🔋$(cat /sys/class/power_supply/BAT0/capacity)%"
 }
 
 kernel_version() {
-  echo "🐧 $(uname -r | cut -d'-' -f1)"
+    echo "🐧 $(uname -r | cut -d'-' -f1)"
 }
 
 cpu_temp() {
-  local temp=$(sensors | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
-  if [[ -n "$temp" ]]; then
-    if [ "$temp" -gt 70 ]; then
-      echo -e " \e[91m🌡️ ${temp}°C\e[0m" # ৭০ এর উপরে হলে লাল
-    elif [ "$temp" -gt 55 ]; then
-      echo -e " \e[93m🌡️ ${temp}°C\e[0m" # ৫৫ এর উপরে হলে হলুদ
-    else
-      echo -e " \e[92m🌡️ ${temp}°C\e[0m" # স্বাভাবিক হলে সবুজ
+    local temp=""
+    if [[ -f /sys/class/thermal/thermal_zone0/temp ]]; then
+        local raw=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
+        [[ -n "$raw" && "$raw" -gt 0 ]] && temp=$((raw / 1000))
     fi
-  fi
+    if [[ -z "$temp" ]] && command -v sensors >/dev/null 2>&1; then
+        temp=$(sensors 2>/dev/null | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
+    fi
+    if [[ -n "$temp" ]]; then
+        if [ "$temp" -gt 70 ]; then
+            echo -e " \e[91m🌡️ ${temp}°C\e[0m"
+        elif [ "$temp" -gt 55 ]; then
+            echo -e " \e[93m🌡️ ${temp}°C\e[0m"
+        else
+            echo -e " \e[92m🌡️ ${temp}°C\e[0m"
+        fi
+    fi
 }
 
 # 📁 FOLDER SIZE
 folder_size() {
-  local size=$(du -sh . 2>/dev/null | cut -f1)
-  echo "📂 ${size}"
+    local size=""
+    if command -v timeout >/dev/null 2>&1; then
+        size=$(timeout 0.2s du -sh . 2>/dev/null | cut -f1)
+    else
+        size=$(du -sh . 2>/dev/null | cut -f1)
+    fi
+    [[ -n "$size" ]] && echo "📂 ${size}" || echo "📂 ~"
 }
 
 disk_usage() {
-  echo " 💽 $(df -h / | awk 'NR==2 {print $4}') free"
+    echo " 💽 $(df -h / | awk 'NR==2 {print $4}') free"
 }
 
 load_avg() {
-  echo " ⚖️ $(uptime | awk -F'load average:' '{ print $2 }' | cut -d',' -f1 | sed 's/ //g')"
+    echo " ⚖️ $(uptime | awk -F'load average:' '{ print $2 }' | cut -d',' -f1 | sed 's/ //g')"
 }
-
-
 
 # এটি কাজ করার জন্য আপনার .bashrc এর একদম শুরুতে এই ২ লাইন থাকতে হবে:
 function timer_start { timer=${timer:-$SECONDS}; }
 trap 'timer_start' DEBUG
 
 get_duration() {
-  local delta=$((SECONDS - timer))
-  if [ $delta -ge 1 ]; then
-    echo " ⏱️ ${delta}s"
-  fi
-  unset timer
+    local delta=$((SECONDS - timer))
+    if [ $delta -ge 1 ]; then
+        echo " ⏱️ ${delta}s"
+    fi
+    unset timer
 }
 
 check_readonly() {
-  [ ! -w . ] && echo " 🔒"
+    [ ! -w . ] && echo " 🔒"
 }
 
 pending_updates() {
-  local updates=0
+    local updates=0
 
-  # ১. আর্চ লিনাক্স (Arch Linux) এর জন্য চেক
-  if command -v checkupdates >/dev/null 2>&1; then
-    updates=$(checkupdates 2>/dev/null | wc -l)
+    # ১. আর্চ লিনাক্স (Arch Linux) এর জন্য চেক
+    if command -v checkupdates >/dev/null 2>&1; then
+        updates=$(checkupdates 2>/dev/null | wc -l)
 
-  # ২. ডেবিয়ান/উবুন্টু/ডিপিন (Deepin) এর জন্য চেক
-  elif [ -f /var/lib/update-notifier/updates-available ]; then
-    updates=$(cat /var/lib/update-notifier/updates-available | grep -Po '^[0-9]+(?= updates? can be installed)' | head -n1)
+    # ২. ফেডোরা (Fedora / RHEL) এর জন্য চেক
+    elif command -v dnf >/dev/null 2>&1; then
+        updates=$(dnf check-update -q 2>/dev/null | grep -c '^[a-zA-Z0-9]')
 
-  # ৩. অল্টারনেটিভ ডেবিয়ান পদ্ধতি (যদি ফাইল না থাকে)
-  elif command -v apt-get >/dev/null 2>&1; then
-    # এটি কিছুটা স্লো হতে পারে, তাই সাইলেন্টলি চেক করবে
-    updates=$(apt-get -s upgrade 2>/dev/null | grep -iP '^[0-9]+ upgraded' | cut -d' ' -f1)
-  fi
+    # ৩. ডেবিয়ান/উবুন্টু/ডিপিন (Deepin) এর জন্য চেক
+    elif [ -f /var/lib/update-notifier/updates-available ]; then
+        updates=$(cat /var/lib/update-notifier/updates-available | grep -Po '^[0-9]+(?= updates? can be installed)' | head -n1)
 
-  # যদি আপডেট ১ এর বেশি হয় তবেই দেখাবে
-  if [[ -n "$updates" && "$updates" -gt 0 ]]; then
-    echo " 🆙 $updates"
-  fi
+    # ৪. অল্টারনেটিভ ডেবিয়ান পদ্ধতি (যদি ফাইল না থাকে)
+    elif command -v apt-get >/dev/null 2>&1; then
+        # এটি কিছুটা স্লো হতে পারে, তাই সাইলেন্টলি চেক করবে
+        updates=$(apt-get -s upgrade 2>/dev/null | grep -iP '^[0-9]+ upgraded' | cut -d' ' -f1)
+    fi
+
+    # যদি আপডেট ১ এর বেশি হয় তবেই দেখাবে
+    if [[ -n "$updates" && "$updates" -gt 0 ]]; then
+        echo " 🆙 $updates"
+    fi
 }
 
 blink_cursor="\[\e[5m\]❯❯❯\[\e[25m\]"
@@ -150,45 +178,67 @@ PS1="\$(rand_emoji) \[\033[\$(rand_color)m\]\W\[\033[0m\] \n"
 
 PS1+="${blink_cursor} "
 
-
-
-
 # ======================================================
 #  ⚡ INTERACTIVE SETUP SCRIPTS
 # ======================================================
 
 # --- Initialize a Project (Bun or NPM) ---
 ii() {
-  echo "🚀 Select Package Manager:"
-  echo "1) 🥐 Bun (Fast)"
-  echo "2) 📦 NPM (Standard)"
-  read -p "Enter choice [1/2]: " choice
+    local has_bun=0 has_npm=0 has_pnpm=0 has_yarn=0
+    command -v bun >/dev/null 2>&1 && has_bun=1
+    command -v npm >/dev/null 2>&1 && has_npm=1
+    command -v pnpm >/dev/null 2>&1 && has_pnpm=1
+    command -v yarn >/dev/null 2>&1 && has_yarn=1
 
-  case "$choice" in
-    1) command -v bun >/dev/null && bun init -y || echo "❌ Bun not found!" ;;
-    2) npm init -y ;;
-    *) echo "❌ Cancelled."; return 1 ;;
-  esac
+    echo "🚀 Select Package Manager:"
+    [[ $has_bun -eq 1 ]] && echo "1) 🥐 Bun (Fast)" || echo "1) 🥐 Bun (Not installed)"
+    [[ $has_npm -eq 1 ]] && echo "2) 📦 NPM (Standard)" || echo "2) 📦 NPM (Not installed)"
+    [[ $has_pnpm -eq 1 ]] && echo "3) 🟡 PNPM (Strict)" || echo "3) 🟡 PNPM (Not installed)"
+    [[ $has_yarn -eq 1 ]] && echo "4) 🧶 Yarn (Classic)" || echo "4) 🧶 Yarn (Not installed)"
+    read -p "Enter choice [1-4]: " choice
 
-  # Create .gitignore if missing
-  if [ ! -f .gitignore ]; then
-    echo "node_modules/" > .gitignore
-    echo "✅ .gitignore created."
-  fi
-  echo "✅ Project initialized!"
+    case "$choice" in
+        1) [[ $has_bun -eq 1 ]] && bun init -y || {
+            echo "❌ Bun not found!"
+            return 1
+        } ;;
+        2) [[ $has_npm -eq 1 ]] && npm init -y || {
+            echo "❌ NPM not found!"
+            return 1
+        } ;;
+        3) [[ $has_pnpm -eq 1 ]] && pnpm init || {
+            echo "❌ PNPM not found!"
+            return 1
+        } ;;
+        4) [[ $has_yarn -eq 1 ]] && yarn init -y || {
+            echo "❌ Yarn not found!"
+            return 1
+        } ;;
+        *)
+            echo "❌ Cancelled."
+            return 1
+            ;;
+    esac
+
+    # Create .gitignore if missing
+    if [ ! -f .gitignore ]; then
+        echo "node_modules/" >.gitignore
+        echo "✅ .gitignore created."
+    fi
+    echo "✅ Project initialized!"
 }
 
 # --- Setup Next.js Project ---
 next() {
-  echo "⚡ Setup Next.js with:"
-  echo "1) Bun"
-  echo "2) NPM"
-  read -p "Choice: " c
-  case "$c" in
-    1) bunx create-next-app@latest . ;;
-    2) npx  create-next-app@latest . ;;
-    *) echo "Invalid choice" ;;
-  esac
+    echo "⚡ Setup Next.js with:"
+    echo "1) Bun"
+    echo "2) NPM"
+    read -p "Choice: " c
+    case "$c" in
+        1) bunx create-next-app@latest . ;;
+        2) npx create-next-app@latest . ;;
+        *) echo "Invalid choice" ;;
+    esac
 }
 
 # --- Setup Vite shadcn ui ---
@@ -196,25 +246,25 @@ next() {
 # Auto-patch tsconfig/jsconfig with baseUrl and @/* paths
 # Priority: tsconfig.app.json (Vite TS) -> tsconfig.json (Next.js TS) -> jsconfig.json (JS)
 _ui_patch_tsconfig() {
-  local tsconfig
+    local tsconfig
 
-  if [[ -f "tsconfig.app.json" ]]; then
-    tsconfig="tsconfig.app.json"
-    echo "  info: Vite (TS) detected -> patching tsconfig.app.json"
+    if [[ -f "tsconfig.app.json" ]]; then
+        tsconfig="tsconfig.app.json"
+        echo "  info: Vite (TS) detected -> patching tsconfig.app.json"
 
-  elif [[ -f "tsconfig.json" ]]; then
-    tsconfig="tsconfig.json"
-    echo "  info: TypeScript project -> patching tsconfig.json"
+    elif [[ -f "tsconfig.json" ]]; then
+        tsconfig="tsconfig.json"
+        echo "  info: TypeScript project -> patching tsconfig.json"
 
-  elif [[ -f "jsconfig.json" ]]; then
-    tsconfig="jsconfig.json"
-    echo "  info: JavaScript project -> patching jsconfig.json"
+    elif [[ -f "jsconfig.json" ]]; then
+        tsconfig="jsconfig.json"
+        echo "  info: JavaScript project -> patching jsconfig.json"
 
-  else
-    # No config file found — check if JS project and create jsconfig.json
-    if [[ -f "package.json" ]] && ! grep -q '"typescript"' package.json 2>/dev/null; then
-      echo "  note: JavaScript project detected — creating jsconfig.json with @/* alias..."
-      node -e "
+    else
+        # No config file found — check if JS project and create jsconfig.json
+        if [[ -f "package.json" ]] && ! grep -q '"typescript"' package.json 2>/dev/null; then
+            echo "  note: JavaScript project detected — creating jsconfig.json with @/* alias..."
+            node -e "
         const fs = require('fs');
         const jsconfig = {
           compilerOptions: {
@@ -225,23 +275,23 @@ _ui_patch_tsconfig() {
         fs.writeFileSync('jsconfig.json', JSON.stringify(jsconfig, null, 2));
         console.log('  -> jsconfig.json created with @/* alias');
       "
-      return
-    else
-      echo "warning: No tsconfig/jsconfig found, skipping..."
-      return
+            return
+        else
+            echo "warning: No tsconfig/jsconfig found, skipping..."
+            return
+        fi
     fi
-  fi
 
-  # Check if paths already set
-  if grep -q '"@/\*"' "$tsconfig"; then
-    echo "  ok: $tsconfig paths already configured."
-    return
-  fi
+    # Check if paths already set
+    if grep -q '"@/\*"' "$tsconfig"; then
+        echo "  ok: $tsconfig paths already configured."
+        return
+    fi
 
-  echo "patching: $tsconfig with baseUrl & @/* paths..."
+    echo "patching: $tsconfig with baseUrl & @/* paths..."
 
-  # Use node to safely patch JSON
-  node -e "
+    # Use node to safely patch JSON
+    node -e "
     const fs = require('fs');
     const raw = fs.readFileSync('$tsconfig', 'utf8');
     const json = JSON.parse(raw);
@@ -255,327 +305,346 @@ _ui_patch_tsconfig() {
 
 # Auto-patch vite.config.ts with path alias and tailwind import
 _ui_patch_viteconfig() {
-  local viteconfig
-  viteconfig=$(ls vite.config.ts vite.config.js 2>/dev/null | head -n1)
+    local viteconfig
+    viteconfig=$(ls vite.config.ts vite.config.js 2>/dev/null | head -n1)
 
-  if [[ -z "$viteconfig" ]]; then
-    echo "warning: vite.config.ts/js not found, skipping..."
-    return
-  fi
+    if [[ -z "$viteconfig" ]]; then
+        echo "warning: vite.config.ts/js not found, skipping..."
+        return
+    fi
 
-  echo "patching: $viteconfig with path alias & tailwind..."
+    echo "patching: $viteconfig with path alias & tailwind..."
 
-  local content
-  content=$(cat "$viteconfig")
+    local content
+    content=$(cat "$viteconfig")
 
-  # Add: import path from "path"
-  if ! echo "$content" | grep -q 'import path from'; then
-    sed -i '1s|^|import path from "path"
+    # Add: import path from "path"
+    if ! echo "$content" | grep -q 'import path from'; then
+        sed -i '1s|^|import path from "path"
 |' "$viteconfig"
-    echo "  -> Added: import path from path"
-  else
-    echo "  ok: path import already exists."
-  fi
+        echo "  -> Added: import path from path"
+    else
+        echo "  ok: path import already exists."
+    fi
 
-  # Add: import tailwindcss from "@tailwindcss/vite"
-  if ! grep -q '@tailwindcss/vite' "$viteconfig"; then
-    sed -i '1s|^|import tailwindcss from "@tailwindcss/vite"
+    # Add: import tailwindcss from "@tailwindcss/vite"
+    if ! grep -q '@tailwindcss/vite' "$viteconfig"; then
+        sed -i '1s|^|import tailwindcss from "@tailwindcss/vite"
 |' "$viteconfig"
-    echo "  -> Added: import tailwindcss from @tailwindcss/vite"
-  else
-    echo "  ok: tailwindcss import already exists."
-  fi
+        echo "  -> Added: import tailwindcss from @tailwindcss/vite"
+    else
+        echo "  ok: tailwindcss import already exists."
+    fi
 
-  # Add tailwindcss() to plugins array if missing
-  if ! grep -q 'tailwindcss()' "$viteconfig"; then
-    sed -i 's/plugins: \[/plugins: [tailwindcss(), /' "$viteconfig"
-    echo "  -> Added: tailwindcss() to plugins"
-  else
-    echo "  ok: tailwindcss() plugin already exists."
-  fi
+    # Add tailwindcss() to plugins array if missing
+    if ! grep -q 'tailwindcss()' "$viteconfig"; then
+        sed -i 's/plugins: \[/plugins: [tailwindcss(), /' "$viteconfig"
+        echo "  -> Added: tailwindcss() to plugins"
+    else
+        echo "  ok: tailwindcss() plugin already exists."
+    fi
 
-  # Add resolve.alias if missing (no leading comma)
-  if ! grep -q '"@"' "$viteconfig" && ! grep -q "@:" "$viteconfig"; then
-    sed -i '/^})/i\  resolve: {
+    # Add resolve.alias if missing (no leading comma)
+    if ! grep -q '"@"' "$viteconfig" && ! grep -q "@:" "$viteconfig"; then
+        sed -i '/^})/i\  resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   }' "$viteconfig"
-    echo "  -> Added: resolve.alias @/* -> ./src"
-  else
-    echo "  ok: resolve.alias already exists."
-  fi
+        echo "  -> Added: resolve.alias @/* -> ./src"
+    else
+        echo "  ok: resolve.alias already exists."
+    fi
 }
 
 ui() {
-  echo "Setup Shadcn UI"
-  echo ""
-
-  # Auto-detect project type
-  local project_type
-  if [[ -f "tsconfig.app.json" ]]; then
-    project_type="vite"
-    echo "  Detected: Vite project"
-  elif [[ -f "next.config.js" || -f "next.config.ts" || -f "next.config.mjs" ]]; then
-    project_type="nextjs"
-    echo "  Detected: Next.js project"
-  elif grep -q '"next"' package.json 2>/dev/null; then
-    project_type="nextjs"
-    echo "  Detected: Next.js project (via package.json)"
-  else
-    echo "  Could not auto-detect project type."
-    echo "  1) Vite (React)"
-    echo "  2) Next.js"
-    read -p "Choose manually: " pt
-    case "$pt" in
-      1) project_type="vite" ;;
-      2) project_type="nextjs" ;;
-      *) echo "Invalid choice"; return ;;
-    esac
-  fi
-
-  echo ""
-  echo "Package manager:"
-  echo "1) Bun"
-  echo "2) NPM"
-  read -p "Choice: " pm
-
-  read -p "Add specific components? (e.g. button card input): " components
-
-  # STEP 1: Patch tsconfig FIRST — shadcn init requires @/* path alias
-  echo ""
-  echo "Pre-configuring path aliases before shadcn init..."
-  _ui_patch_tsconfig
-
-  if [[ "$project_type" == "vite" ]]; then
-    case "$pm" in
-      1)
-        echo ""
-        echo "Initializing Shadcn UI with Bun (Vite)..."
-        bunx --bun shadcn@latest init -t vite
-        if [[ -n "$components" ]]; then
-          echo "Adding components: $components..."
-          bunx --bun shadcn@latest add $components
-        else
-          echo "Adding default Button component..."
-          bunx --bun shadcn@latest add button
-        fi
-        ;;
-      2)
-        echo ""
-        echo "Initializing Shadcn UI with NPM (Vite)..."
-        npx shadcn@latest init -t vite
-        if [[ -n "$components" ]]; then
-          echo "Adding components: $components..."
-          npx shadcn@latest add $components
-        else
-          echo "Adding default Button component..."
-          npx shadcn@latest add button
-        fi
-        ;;
-      *) echo "Invalid package manager choice"; return ;;
-    esac
-
-    # STEP 2: Patch vite.config only for Vite projects
+    echo "Setup Shadcn UI"
     echo ""
-    echo "Patching vite.config with alias & tailwind..."
-    _ui_patch_viteconfig
 
-  elif [[ "$project_type" == "nextjs" ]]; then
-    case "$pm" in
-      1)
-        echo ""
-        echo "Initializing Shadcn UI with Bun (Next.js)..."
-        bunx --bun shadcn@latest init
-        if [[ -n "$components" ]]; then
-          echo "Adding components: $components..."
-          bunx --bun shadcn@latest add $components
-        else
-          echo "Adding default Button component..."
-          bunx --bun shadcn@latest add button
-        fi
-        ;;
-      2)
-        echo ""
-        echo "Initializing Shadcn UI with NPM (Next.js)..."
-        npx shadcn@latest init
-        if [[ -n "$components" ]]; then
-          echo "Adding components: $components..."
-          npx shadcn@latest add $components
-        else
-          echo "Adding default Button component..."
-          npx shadcn@latest add button
-        fi
-        ;;
-      *) echo "Invalid package manager choice"; return ;;
-    esac
-    echo "  Next.js detected — vite.config patch skipped."
-  fi
+    # Auto-detect project type
+    local project_type
+    if [[ -f "tsconfig.app.json" ]]; then
+        project_type="vite"
+        echo "  Detected: Vite project"
+    elif [[ -f "next.config.js" || -f "next.config.ts" || -f "next.config.mjs" ]]; then
+        project_type="nextjs"
+        echo "  Detected: Next.js project"
+    elif grep -q '"next"' package.json 2>/dev/null; then
+        project_type="nextjs"
+        echo "  Detected: Next.js project (via package.json)"
+    else
+        echo "  Could not auto-detect project type."
+        echo "  1) Vite (React)"
+        echo "  2) Next.js"
+        read -p "Choose manually: " pt
+        case "$pt" in
+            1) project_type="vite" ;;
+            2) project_type="nextjs" ;;
+            *)
+                echo "Invalid choice"
+                return
+                ;;
+        esac
+    fi
 
-  echo ""
-  echo "---------------------------------------------------"
-  echo "Shadcn UI setup complete!"
-  echo "Happy coding with Shadcn!"
-  echo "---------------------------------------------------"
+    echo ""
+    echo "Package manager:"
+    echo "1) Bun"
+    echo "2) NPM"
+    read -p "Choice: " pm
+
+    read -p "Add specific components? (e.g. button card input): " components
+
+    # STEP 1: Patch tsconfig FIRST — shadcn init requires @/* path alias
+    echo ""
+    echo "Pre-configuring path aliases before shadcn init..."
+    _ui_patch_tsconfig
+
+    if [[ "$project_type" == "vite" ]]; then
+        case "$pm" in
+            1)
+                echo ""
+                echo "Initializing Shadcn UI with Bun (Vite)..."
+                bunx --bun shadcn@latest init -t vite
+                if [[ -n "$components" ]]; then
+                    echo "Adding components: $components..."
+                    bunx --bun shadcn@latest add $components
+                else
+                    echo "Adding default Button component..."
+                    bunx --bun shadcn@latest add button
+                fi
+                ;;
+            2)
+                echo ""
+                echo "Initializing Shadcn UI with NPM (Vite)..."
+                npx shadcn@latest init -t vite
+                if [[ -n "$components" ]]; then
+                    echo "Adding components: $components..."
+                    npx shadcn@latest add $components
+                else
+                    echo "Adding default Button component..."
+                    npx shadcn@latest add button
+                fi
+                ;;
+            *)
+                echo "Invalid package manager choice"
+                return
+                ;;
+        esac
+
+        # STEP 2: Patch vite.config only for Vite projects
+        echo ""
+        echo "Patching vite.config with alias & tailwind..."
+        _ui_patch_viteconfig
+
+    elif [[ "$project_type" == "nextjs" ]]; then
+        case "$pm" in
+            1)
+                echo ""
+                echo "Initializing Shadcn UI with Bun (Next.js)..."
+                bunx --bun shadcn@latest init
+                if [[ -n "$components" ]]; then
+                    echo "Adding components: $components..."
+                    bunx --bun shadcn@latest add $components
+                else
+                    echo "Adding default Button component..."
+                    bunx --bun shadcn@latest add button
+                fi
+                ;;
+            2)
+                echo ""
+                echo "Initializing Shadcn UI with NPM (Next.js)..."
+                npx shadcn@latest init
+                if [[ -n "$components" ]]; then
+                    echo "Adding components: $components..."
+                    npx shadcn@latest add $components
+                else
+                    echo "Adding default Button component..."
+                    npx shadcn@latest add button
+                fi
+                ;;
+            *)
+                echo "Invalid package manager choice"
+                return
+                ;;
+        esac
+        echo "  Next.js detected — vite.config patch skipped."
+    fi
+
+    echo ""
+    echo "---------------------------------------------------"
+    echo "Shadcn UI setup complete!"
+    echo "Happy coding with Shadcn!"
+    echo "---------------------------------------------------"
 }
-
 
 # --- Setup Vite (React/Vue) Project ---
 vite() {
-  echo "⚡ Setup Vite with:"
-  echo "1) Bun"
-  echo "2) NPM"
-  read -p "Choice: " c
+    echo "⚡ Setup Vite with:"
+    echo "1) Bun"
+    echo "2) NPM"
+    read -p "Choice: " c
 
-  read -p "Add Tailwind CSS v4? (y/n): " tw
+    read -p "Add Tailwind CSS v4? (y/n): " tw
 
-  case "$c" in
-    1)
-      bunx create-vite@latest .
-      if [[ "$tw" == "y" ]]; then
-        if ! bun add tailwindcss @tailwindcss/vite; then
-          echo "❌ Install failed with Bun."
-          read -p "Try with --force? (y/n): " force
-          [[ "$force" == "y" ]] && bun add tailwindcss @tailwindcss/vite --force
-        fi
-      fi
-      ;;
-    2)
-      npx create-vite@latest .
-      if [[ "$tw" == "y" ]]; then
-        if ! npm install tailwindcss @tailwindcss/vite; then
-          echo "❌ Install failed with NPM (Peer Dependency Conflict likely)."
-          read -p "Try with --legacy-peer-deps? (y/n): " legacy
-          [[ "$legacy" == "y" ]] && npm install tailwindcss @tailwindcss/vite --legacy-peer-deps
-        fi
-      fi
-      ;;
-    *) echo "Invalid choice"; return ;;
-  esac
+    case "$c" in
+        1)
+            bunx create-vite@latest .
+            if [[ "$tw" == "y" ]]; then
+                if ! bun add tailwindcss @tailwindcss/vite; then
+                    echo "❌ Install failed with Bun."
+                    read -p "Try with --force? (y/n): " force
+                    [[ "$force" == "y" ]] && bun add tailwindcss @tailwindcss/vite --force
+                fi
+            fi
+            ;;
+        2)
+            npx create-vite@latest .
+            if [[ "$tw" == "y" ]]; then
+                if ! npm install tailwindcss @tailwindcss/vite; then
+                    echo "❌ Install failed with NPM (Peer Dependency Conflict likely)."
+                    read -p "Try with --legacy-peer-deps? (y/n): " legacy
+                    [[ "$legacy" == "y" ]] && npm install tailwindcss @tailwindcss/vite --legacy-peer-deps
+                fi
+            fi
+            ;;
+        *)
+            echo "Invalid choice"
+            return
+            ;;
+    esac
 
-  if [[ "$tw" == "y" ]]; then
-    # Create src folder and CSS file setup
-    mkdir -p src
-    CSS_FILE="src/index.css"
-    [ -f "src/style.css" ] && CSS_FILE="src/style.css"
+    if [[ "$tw" == "y" ]]; then
+        # Create src folder and CSS file setup
+        mkdir -p src
+        CSS_FILE="src/index.css"
+        [ -f "src/style.css" ] && CSS_FILE="src/style.css"
 
-    # Add the Tailwind v4 import
-    echo '@import "tailwindcss";' > "$CSS_FILE"
+        # Add the Tailwind v4 import
+        echo '@import "tailwindcss";' >"$CSS_FILE"
 
-    echo "---------------------------------------------------"
-    echo "✅ Tailwind CSS v4 packages installed!"
-    echo "✅ Added '@import \"tailwindcss\";' to $CSS_FILE"
-    echo ""
-    echo "⚠️  ACTION REQUIRED: You must update your Vite config manually."
-    echo ""
-    echo "Open your vite.config.ts (or .js) and add these two lines:"
-    echo "  1. import tailwindcss from '@tailwindcss/vite'"
-    echo "  2. Add tailwindcss() to the plugins array."
-    echo "---------------------------------------------------"
-  fi
+        echo "---------------------------------------------------"
+        echo "✅ Tailwind CSS v4 packages installed!"
+        echo "✅ Added '@import \"tailwindcss\";' to $CSS_FILE"
+        echo ""
+        echo "⚠️  ACTION REQUIRED: You must update your Vite config manually."
+        echo ""
+        echo "Open your vite.config.ts (or .js) and add these two lines:"
+        echo "  1. import tailwindcss from '@tailwindcss/vite'"
+        echo "  2. Add tailwindcss() to the plugins array."
+        echo "---------------------------------------------------"
+    fi
 }
-
-
-
-
 
 # ======================================================
 # 🚀 Install Tailwind CSS + Helpers
 # ======================================================
 
-
 css() {
-  if [[ ! -f package.json ]]; then
-    echo "❌ Error: package.json not found!"
-    return 1
-  fi
+    if [[ ! -f package.json ]]; then
+        echo "❌ Error: package.json not found!"
+        return 1
+    fi
 
-  # Auto-detect package manager
-  local pm="npm"
-  [[ -f bun.lockb ]] && pm="bun"
+    # Auto-detect package manager
+    local pm="npm"
+    [[ -f bun.lockb ]] && pm="bun"
 
-  echo "📦 Installing Tailwind via $pm..."
-  if [[ "$pm" == "bun" ]]; then
-      bun add -D tailwindcss clsx tailwind-merge
-      bunx tailwindcss init -p
-  else
-      npm install -D tailwindcss clsx tailwind-merge
-      npx tailwindcss init -p
-  fi
-  echo "✅ Tailwind CSS Ready!"
+    echo "📦 Installing Tailwind via $pm..."
+    if [[ "$pm" == "bun" ]]; then
+        bun add -D tailwindcss clsx tailwind-merge
+        bunx tailwindcss init -p
+    else
+        npm install -D tailwindcss clsx tailwind-merge
+        npx tailwindcss init -p
+    fi
+    echo "✅ Tailwind CSS Ready!"
 }
-
-
-
 
 #  Kill Port (Usage: kp 3000)
 kp() {
-  if [ -z "$1" ]; then echo "❌ Port number required!"; return; fi
-  lsof -ti:$1 | xargs kill -9 > /dev/null 2>&1 && echo "✅ Port $1 killed." || echo "❌ Port $1 not in use."
+    if [ -z "$1" ]; then
+        echo "❌ Port number required!"
+        return
+    fi
+    lsof -ti:$1 | xargs kill -9 >/dev/null 2>&1 && echo "✅ Port $1 killed." || echo "❌ Port $1 not in use."
 }
-
-
 
 # ======================================================
 # 🚀 Universal Extractor (Usage: ex file.zip)
 # ======================================================
 
-
 ex() {
-  if [ -f "$1" ] ; then
-    case "$1" in
-      *.tar.bz2)   tar xjf "$1"   ;;
-      *.tar.gz)    tar xzf "$1"   ;;
-      *.bz2)       bunzip2 "$1"   ;;
-      *.rar)       unrar x "$1"   ;;
-      *.gz)        gunzip "$1"    ;;
-      *.tar)       tar xf "$1"    ;;
-      *.zip)       unzip "$1"     ;;
-      *.7z)        7z x "$1"      ;;
-      *)           echo "❌ Extraction error" ;;
-    esac
-  else
-    echo "❌ '$1' is not a valid file"
-  fi
+    if [ -f "$1" ]; then
+        case "$1" in
+            *.tar.bz2 | *.tbz2) tar xjf "$1" ;;
+            *.tar.gz | *.tgz) tar xzf "$1" ;;
+            *.tar.xz) tar xJf "$1" ;;
+            *.tar.zst | *.zst) unzstd "$1" 2>/dev/null || tar --zstd -xf "$1" ;;
+            *.bz2) bunzip2 "$1" ;;
+            *.rar) unrar x "$1" 2>/dev/null || 7z x "$1" ;;
+            *.gz) gunzip "$1" ;;
+            *.tar) tar xf "$1" ;;
+            *.zip) unzip "$1" ;;
+            *.7z) 7z x "$1" ;;
+            *) echo "❌ Unknown archive format" ;;
+        esac
+    else
+        echo "❌ '$1' is not a valid file"
+    fi
 }
-
 
 # Usage: ff filename
 ff() {
-  find . -type f -iname "*$1*" -not -path "*/node_modules/*" -not -path "*/.git/*"
+    if command -v fd >/dev/null 2>&1; then
+        fd -H -E "node_modules" -E ".git" "$1"
+    else
+        find . -type f -iname "*$1*" -not -path "*/node_modules/*" -not -path "*/.git/*"
+    fi
 }
 
 #  Secret Key Generator (Usage: gen 32)
 gen() {
-  local len="${1:-24}"
-  openssl rand -base64 "$len" | cut -c1-"$len"
-  echo -e "\n✅ Secret generated!"
+    local len="${1:-24}"
+    echo -e "🔑 Base64: \033[1;32m$(openssl rand -base64 "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
+    echo -e "🔑 Hex:    \033[1;36m$(openssl rand -hex "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
 }
 
 #  Backup File (Usage: bak .env)
 bak() {
-  cp "$1" "$1.bak" && echo "✅ Created: $1.bak"
+    cp "$1" "$1.bak" && echo "✅ Created: $1.bak"
 }
-
 
 # Global IP & Location Details
 alias iploc='curl -s ipinfo.io/json | grep -E "ip|city|region|org"'
-
 
 # Search Command History
 # Usage: h git
 alias h='history | grep'
 
-# 10. Trash (Safe Delete - moves to system trash)
-trash() {
-  mv "$@" ~/.local/share/Trash/files/ 2>/dev/null || mv "$@" ~/.Trash/ 2>/dev/null && echo "🗑 Moved to Trash."
+# FZF History Search (Usage: fh)
+fh() {
+    if command -v fzf >/dev/null 2>&1; then
+        local cmd=$(history | awk '{$1=""; print $0}' | fzf --reverse +s)
+        [[ -n "$cmd" ]] && eval "$cmd"
+    else
+        history | tail -n 30
+    fi
 }
 
+# Safe Delete - moves to system trash
+trash() {
+    if command -v gio >/dev/null 2>&1; then
+        gio trash "$@" && echo "🗑 Moved to Trash via GIO."
+    else
+        mkdir -p ~/.local/share/Trash/files/ 2>/dev/null
+        mv "$@" ~/.local/share/Trash/files/ 2>/dev/null || mv "$@" ~/.Trash/ 2>/dev/null && echo "🗑 Moved to Trash."
+    fi
+}
 
 # ======================================================
 # 🚀 INTERACTIVE GIT WIP & PUSH
 # ======================================================
-
 
 gwip() {
     # ১. সব ফাইল স্টেজ করা
@@ -591,9 +660,14 @@ gwip() {
     # ৪. কমিট করা
     git commit -m "🚧 WIP: $final_msg"
 
-    # ৫. অটো পুশ করা (কারেন্ট ব্রাঞ্চে)
+    # ৫. অটো পুশ করা (কারেন্ট ব্রাঞ্চে - অটো আপস্ট্রিম সাপোর্টসহ)
     echo -e "📤 \033[1;33mPushing to remote...\033[0m"
-    git push
+    local cur_branch=$(git branch --show-current 2>/dev/null)
+    if [[ -n "$cur_branch" ]]; then
+        git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch"
+    else
+        git push
+    fi
 
     if [ $? -eq 0 ]; then
         echo -e "✅ \033[0;32mEverything committed and pushed successfully!\033[0m"
@@ -602,12 +676,9 @@ gwip() {
     fi
 }
 
-
-
 # ======================================================
 #  📦 universal remove
 # ======================================================
-
 
 uu() {
     local RED='\033[1;31m' GRN='\033[1;32m' YLW='\033[1;33m' CYN='\033[1;36m' BOLD='\033[1m' NC='\033[0m'
@@ -635,7 +706,10 @@ uu() {
         esac
     fi
 
-    sudo -v || { echo -e "${RED}Sudo authentication failed.${NC}"; return 1; }
+    sudo -v || {
+        echo -e "${RED}Sudo authentication failed.${NC}"
+        return 1
+    }
 
     sync
     local START_KB=$(df -k / | awk 'NR==2 {print $4}')
@@ -645,7 +719,9 @@ uu() {
     echo -e "${CYN}🔍 Harvesting System Assets...${NC}"
 
     shred_animation() {
-        local PID=$1; local pkg=$2; local sp='/-\|'
+        local PID=$1
+        local pkg=$2
+        local sp='/-\|'
         local i=0
         local exit_status=0
         tput civis 2>/dev/null || true
@@ -655,9 +731,9 @@ uu() {
             local empty=$((20 - filled))
             local bar=""
             local j
-            for ((j=0; j<filled; j++)); do bar+="█"; done
+            for ((j = 0; j < filled; j++)); do bar+="█"; done
             local e_bar=""
-            for ((j=0; j<empty; j++)); do e_bar+="▒"; done
+            for ((j = 0; j < empty; j++)); do e_bar+="▒"; done
             printf "\r${CYN}⚡ Processing ${BOLD}%s${NC}: ${RED}[${GRN}%s${RED}%s${RED}]${NC} %s${NC}" "$pkg" "$bar" "$e_bar" "${sp:i%4:1}"
             ((i++))
             sleep 0.1
@@ -718,7 +794,7 @@ uu() {
                 local size_kb=$(dpkg-query -W -f='${Installed-Size}\n' "$pkg" 2>/dev/null)
                 local size="N/A"
                 if [[ -n "$size_kb" && "$size_kb" =~ ^[0-9]+$ ]]; then
-                    if (( size_kb >= 1048576 )); then
+                    if ((size_kb >= 1048576)); then
                         size=$(awk "BEGIN {printf \"%.1fGB\", $size_kb/1048576}")
                     else
                         size=$(awk "BEGIN {printf \"%.1fMB\", $size_kb/1024}")
@@ -748,7 +824,10 @@ uu() {
     esac
 
     APPS_RAW="${APPS_RAW%$'\n'}"
-    [[ -z "$APPS_RAW" ]] && { echo -e "${YLW}No applications found.${NC}"; return; }
+    [[ -z "$APPS_RAW" ]] && {
+        echo -e "${YLW}No applications found.${NC}"
+        return
+    }
 
     local SELECTED
     SELECTED=$(echo "$APPS_RAW" | fzf \
@@ -774,7 +853,10 @@ uu() {
             printf " ${RED} [TAB] Select  [ENTER] Purge ${NC}"
         ')
 
-    [[ -z "$SELECTED" ]] && { echo -e "${YLW}No selection made.${NC}"; return; }
+    [[ -z "$SELECTED" ]] && {
+        echo -e "${YLW}No selection made.${NC}"
+        return
+    }
 
     local count
     count=$(echo "$SELECTED" | wc -l)
@@ -784,8 +866,14 @@ uu() {
     echo -e "${CYN}└──────────────────────────────────────────┘${NC}"
 
     read -r -p "Are you sure you want to proceed? (y/N): " confirm
-    [[ ! "$confirm" =~ ^[Yy]$ ]] && { echo -e "${RED}Aborted.${NC}"; return; }
-    sudo -v || { echo -e "${RED}Sudo authentication failed.${NC}"; return; }
+    [[ ! "$confirm" =~ ^[Yy]$ ]] && {
+        echo -e "${RED}Aborted.${NC}"
+        return
+    }
+    sudo -v || {
+        echo -e "${RED}Sudo authentication failed.${NC}"
+        return
+    }
 
     local OLD_SET="+m"
     [[ $- == *m* ]] && OLD_SET="-m"
@@ -886,7 +974,7 @@ uu() {
             echo -e "${RED}✘ $pkg_display failed to uninstall.${NC}"
             failed_apps+="$pkg_display ($src_type), "
         fi
-    done <<< "$SELECTED"
+    done <<<"$SELECTED"
 
     set "$OLD_SET"
 
@@ -942,23 +1030,21 @@ uu() {
     sync
     sleep 1
     local END_KB=$(df -k / | awk 'NR==2 {print $4}')
-    local SAVED_MB=$(( (START_KB - END_KB) / 1024 ))
+    local SAVED_MB=$(((START_KB - END_KB) / 1024))
 
     echo -e "\n${GRN}✅ Cleanup Successful!${NC}"
-    if (( SAVED_MB > 0 )); then
+    if ((SAVED_MB > 0)); then
         echo -e "${CYN}🚀 Total Space Recovered: ${BOLD}${SAVED_MB} MB${NC}\n"
-    elif (( SAVED_MB == 0 )); then
+    elif ((SAVED_MB == 0)); then
         echo -e "${CYN}📊 No significant space change${NC}\n"
     else
         echo -e "${YLW}⚠️  Space calculation shows negative value (disk activity during cleanup)${NC}\n"
     fi
 }
 
-
 # ======================================================
 #  📦 Universal Update pack
 # ======================================================
-
 
 uup() {
     # --- UI Colors & Styles ---
@@ -969,23 +1055,28 @@ uup() {
     local OS_TYPE=$(uname -s)
     local PKG_MGR=""
     if [ "$OS_TYPE" = "Linux" ]; then
-        if command -v apt &>/dev/null; then PKG_MGR="apt"
-        elif command -v pacman &>/dev/null; then PKG_MGR="pacman"
-        elif command -v dnf &>/dev/null; then PKG_MGR="dnf"
+        if command -v apt &>/dev/null; then
+            PKG_MGR="apt"
+        elif command -v pacman &>/dev/null; then
+            PKG_MGR="pacman"
+        elif command -v dnf &>/dev/null; then
+            PKG_MGR="dnf"
         fi
     elif [ "$OS_TYPE" = "Darwin" ]; then PKG_MGR="brew"; fi
-
 
     # --- Dependency Check (fzf) ---
     if ! command -v fzf &>/dev/null; then
         echo -e "${YLW}🔍 fzf not found. Installing...${NC}"
-        if [ "$OS_TYPE" = "Darwin" ] || command -v brew &>/dev/null; then brew install fzf
-        elif [ "$PKG_MGR" = "apt" ]; then sudo apt update && sudo apt install fzf -y
-        elif [ "$PKG_MGR" = "pacman" ]; then sudo pacman -S fzf --noconfirm
-        elif [ "$PKG_MGR" = "dnf" ]; then sudo dnf install fzf -y
+        if [ "$OS_TYPE" = "Darwin" ] || command -v brew &>/dev/null; then
+            brew install fzf
+        elif [ "$PKG_MGR" = "apt" ]; then
+            sudo apt update && sudo apt install fzf -y
+        elif [ "$PKG_MGR" = "pacman" ]; then
+            sudo pacman -S fzf --noconfirm
+        elif [ "$PKG_MGR" = "dnf" ]; then
+            sudo dnf install fzf -y
         fi
     fi
-
 
     clear
     echo ""
@@ -1011,12 +1102,18 @@ uup() {
         --preview 'if [[ {1} == "0." ]]; then echo "Execute all updates and cleanup."; else echo "Action: {1}" | sed "s/_/ /g"; fi' \
         --preview-window='up:1:wrap')
 
-    [ -z "$SELECTED_TASKS" ] && { echo -e "${RED}❌ No tasks selected. Aborting...${NC}"; return; }
+    [ -z "$SELECTED_TASKS" ] && {
+        echo -e "${RED}❌ No tasks selected. Aborting...${NC}"
+        return
+    }
 
     # --- Sudo Keep-alive ---
     echo -e "${YLW}🔑 Requesting sudo permission...${NC}"
     sudo -v || return
-    (while true; do sudo -n true; sleep 60; done) 2>/dev/null &
+    (while true; do
+        sudo -n true
+        sleep 60
+    done) 2>/dev/null &
     local SUDO_PID=$!
     trap "kill $SUDO_PID 2>/dev/null" RETURN INT TERM
 
@@ -1147,8 +1244,6 @@ uup() {
     fi
 }
 
-
-
 # ======================================================
 #  🆘 HELP MENU — Modern UI/UX Edition
 # ======================================================
@@ -1159,20 +1254,20 @@ keep() {
     DIM='\033[2m'
 
     # Primary Colors
-    CYAN='\033[38;5;51m'      # Electric Cyan
-    PINK='\033[38;5;213m'     # Hot Pink
-    PURPLE='\033[38;5;141m'   # Soft Purple
-    GREEN='\033[38;5;82m'     # Neon Green
-    YELLOW='\033[38;5;220m'   # Gold Yellow
-    ORANGE='\033[38;5;208m'   # Orange
-    BLUE='\033[38;5;75m'      # Sky Blue
-    RED='\033[38;5;203m'      # Soft Red
-    WHITE='\033[38;5;255m'    # Pure White
-    GRAY='\033[38;5;245m'     # Gray
+    CYAN='\033[38;5;51m'    # Electric Cyan
+    PINK='\033[38;5;213m'   # Hot Pink
+    PURPLE='\033[38;5;141m' # Soft Purple
+    GREEN='\033[38;5;82m'   # Neon Green
+    YELLOW='\033[38;5;220m' # Gold Yellow
+    ORANGE='\033[38;5;208m' # Orange
+    BLUE='\033[38;5;75m'    # Sky Blue
+    RED='\033[38;5;203m'    # Soft Red
+    WHITE='\033[38;5;255m'  # Pure White
+    GRAY='\033[38;5;245m'   # Gray
 
     # Background Colors
-    BG_DARK='\033[48;5;234m'  # Dark background
-    BG_CARD='\033[48;5;236m'  # Card background
+    BG_DARK='\033[48;5;234m' # Dark background
+    BG_CARD='\033[48;5;236m' # Card background
 
     # Icons
     ICON_ROCKET='🚀'
@@ -1316,7 +1411,6 @@ keep() {
     print_cmd "rt" " Install Node(nvm) , Bun , Deno" "" "$YELLOW"
     print_cmd "rn" "Renamed All file @ & % * # @" "" "$PINK"
 
-
     # ==================== UTILITIES ====================
     print_category "$ICON_TERMINAL" "UTILITY TOOLS" "$CYAN"
     print_cmd "ex <file>" "Extract any archive" "ex file.zip" "$GREEN"
@@ -1405,8 +1499,6 @@ keep() {
     print_cmd "npf / bpf" "prisma format" "npf" "$YELLOW"
     print_cmd "npv / bpv" "prisma version" "npv" "$GRAY"
 
-
-
     # ==================== ADVANCED INTERACTIVE TOOLS ====================
     print_category "$ICON_LIGHTNING" "ADVANCED INTERACTIVE TOOLS" "$PURPLE"
     print_cmd "cf" "Fuzzy find & navigate directories" "" "$CYAN"
@@ -1434,8 +1526,6 @@ keep() {
     echo -e "  ${PURPLE}│${RESET}    • ${GRAY}Prompt shows:${RESET} Git status │ Node/Bun versions │ System stats    ${PURPLE} ${RESET}"
     echo -e "  ${PURPLE}└─────────────────────────────────────────────────────────────────────┘${RESET}"
 
-
-
     echo ""
     echo -e "        \e[1;36m========================================================================\e[0m"
     echo -e "        \e[1;33m          🚀 MY LINUX SETUP LIST         \e[0m"
@@ -1457,8 +1547,6 @@ keep() {
     echo -e "        \e[1;36m========================================================================\e[0m"
     echo ""
 
-
-
     # Dynamic stats
     echo -e "\n  ${DIM}$(date +'%H:%M:%S') • Bash v${BASH_VERSION:0:3} • $(whoami)@$(hostname) • $PWD${RESET}\n"
 }
@@ -1466,8 +1554,6 @@ keep() {
 # ======================================================
 #  📦 Run ts / js file on terminal
 # ======================================================
-
-
 
 run() {
     # Color Codes
@@ -1504,7 +1590,7 @@ run() {
         fi
 
         # Beautifully aligned row
-        printf "${CYAN}  [%2d]${NC}  %b  %-30s\n" "$((i+1))" "$icon" "${files[$i]}"
+        printf "${CYAN}  [%2d]${NC}  %b  %-30s\n" "$((i + 1))" "$icon" "${files[$i]}"
     done
 
     echo -e "${CYAN}────────────────────────────────────────────${NC}"
@@ -1515,7 +1601,7 @@ run() {
 
     # File selection validation
     if [[ $choice -gt 0 && $choice -le ${#files[@]} ]]; then
-        selected_file=${files[$((choice-1))]}
+        selected_file=${files[$((choice - 1))]}
 
         echo -e "\n${GREEN}✔ Selected:${NC} ${BOLD}$selected_file${NC}"
         echo -e "${CYAN}────────────────────────────────────────────${NC}"
@@ -1559,8 +1645,6 @@ run() {
 # ======================================================
 #  📦 VIDEO FILLTER AND OPEN
 # ======================================================
-
-
 
 v() {
     local DIR="${1:-$PWD}"
@@ -1617,18 +1701,16 @@ v() {
         local FULL_PATH=$(echo "$RAW_LIST" | sed -n "${INDEX}p")
 
         echo -e "\e[1;92m▶ Playing:\e[0m $(basename "$FULL_PATH")"
-        $PLAYER "$FULL_PATH" >/dev/null 2>&1 & disown
+        $PLAYER "$FULL_PATH" >/dev/null 2>&1 &
+        disown
     else
         echo "👋 Exit"
     fi
 }
 
-
 # ======================================================
 #  📦universal clean
 # ======================================================
-
-
 
 uc() {
     # ==============================
@@ -1638,8 +1720,10 @@ uc() {
     local BLUE="\033[0;34m" CYAN="\033[0;36m" MAGENTA="\033[0;35m" NC="\033[0m"
 
     set -o pipefail
-    set -o errexit  # Exit on error
-    set -o nounset  # Exit on undefined variable
+    # NOTE: errexit and nounset are intentionally disabled inside uc() — they
+    # cause early exits and terminal crashes when running interactively.
+    # set -o errexit  # DISABLED: fires EXIT trap mid-function, killing the terminal
+    # set -o nounset  # DISABLED: any unset var in subshell kills the session
 
     # ==============================
     # 🔐 TRAP & LOG SETUP
@@ -1665,7 +1749,7 @@ uc() {
     fi
 
     _log() {
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE" 2>/dev/null || true
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOG_FILE" 2>/dev/null || true
     }
 
     _trap_exit() {
@@ -1673,7 +1757,8 @@ uc() {
         trap - INT TERM EXIT
         echo -e "\n${RED}⚠️  Interrupted (Exit code: $exit_code)${NC}" >&2
         _log "Session interrupted with code $exit_code"
-        exit 130
+        # Use 'return' not 'exit' — 'exit' kills the entire interactive terminal session
+        return 130
     }
     trap _trap_exit INT TERM EXIT
 
@@ -1692,7 +1777,7 @@ uc() {
                     ID) d_id="${value//\"/}" ;;
                     NAME) d_name="${value//\"/}" ;;
                 esac
-            done < /etc/os-release
+            done </etc/os-release
             d_id=$(echo "$d_id" | tr '[:upper:]' '[:lower:]')
         elif [[ -r /etc/redhat-release ]]; then
             d_id="rhel"
@@ -1736,7 +1821,7 @@ uc() {
     # ==============================
     _sudo_check() {
         if [[ $EUID -eq 0 ]]; then
-            return 0  # Already root
+            return 0 # Already root
         fi
         if ! sudo -n true 2>/dev/null; then
             echo -e "${YELLOW}🔐 Sudo authentication required...${NC}"
@@ -1756,20 +1841,20 @@ uc() {
 
         # Detect package manager
         case "$DISTRO_ID" in
-            ubuntu|debian|linuxmint|pop|elementary|zorin)
+            ubuntu | debian | linuxmint | pop | elementary | zorin)
                 pkg_manager="apt"
                 ;;
-            fedora|rhel|centos|rocky|almalinux|nobara)
+            fedora | rhel | centos | rocky | almalinux | nobara)
                 if command -v dnf >/dev/null 2>&1; then
                     pkg_manager="dnf"
                 else
                     pkg_manager="yum"
                 fi
                 ;;
-            arch|manjaro|endeavouros|garuda|cachyos)
+            arch | manjaro | endeavouros | garuda | cachyos)
                 pkg_manager="pacman"
                 ;;
-            opensuse*|suse*|tumbleweed|leap)
+            opensuse* | suse* | tumbleweed | leap)
                 pkg_manager="zypper"
                 ;;
             alpine)
@@ -1795,8 +1880,8 @@ uc() {
         local exit_code=0
         case "$pkg_manager" in
             apt)
-                sudo apt-get update -qq && \
-                sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs[@]}"
+                sudo apt-get update -qq &&
+                    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs[@]}"
                 exit_code=$?
                 ;;
             dnf)
@@ -1947,7 +2032,7 @@ uc() {
                     echo "# fzf configuration added by uc-optimizer"
                     echo "source $fzf_shell/completion.bash 2>/dev/null || true"
                     echo "source $fzf_shell/key-bindings.bash 2>/dev/null || true"
-                } >> "$bashrc"
+                } >>"$bashrc"
             fi
         fi
 
@@ -1981,7 +2066,7 @@ uc() {
 
         if ! command -v sensors-detect >/dev/null 2>&1; then
             echo -e "${YELLOW}⚠️  sensors-detect not found${NC}"
-            return 0  # Partial success
+            return 0 # Partial success
         fi
 
         # Non-interactive configuration
@@ -1993,8 +2078,8 @@ uc() {
             answers="${answers}YES\n"
         done
 
-        echo -e "$answers" | sudo sensors-detect --no-interactive 2>/dev/null || \
-        echo -e "$answers" | sudo sensors-detect 2>/dev/null || true
+        echo -e "$answers" | sudo sensors-detect --no-interactive 2>/dev/null ||
+            echo -e "$answers" | sudo sensors-detect 2>/dev/null || true
 
         # Load common modules
         local modules=(coretemp nct6775 k10temp acpi_cpufreq it87)
@@ -2004,8 +2089,8 @@ uc() {
 
         # Enable service
         if command -v systemctl >/dev/null 2>&1; then
-            sudo systemctl enable --now lm-sensors 2>/dev/null || \
-            sudo systemctl enable --now sensord 2>/dev/null || true
+            sudo systemctl enable --now lm-sensors 2>/dev/null ||
+                sudo systemctl enable --now sensord 2>/dev/null || true
         fi
 
         # Generate sensors.conf if missing
@@ -2030,13 +2115,13 @@ uc() {
         local extra_pkgs=()
 
         case "$DISTRO_ID" in
-            ubuntu|debian|linuxmint|pop)
+            ubuntu | debian | linuxmint | pop)
                 pkg_name="zram-tools"
                 ;;
-            fedora|rhel|centos|rocky)
-                pkg_name="zram"
+            fedora | rhel | centos | rocky | almalinux | nobara)
+                pkg_name="zram-generator"
                 ;;
-            arch|manjaro|endeavouros)
+            arch | manjaro | endeavouros)
                 pkg_name="zram-generator"
                 extra_pkgs=("util-linux")
                 ;;
@@ -2072,9 +2157,9 @@ uc() {
         # Calculate size (50% of RAM)
         local mem_total zram_size
         mem_total=$(awk '/MemTotal/{print $2}' /proc/meminfo 2>/dev/null || echo "0")
-        zram_size=$((mem_total * 512))  # KB to bytes / 2
+        zram_size=$((mem_total * 512)) # KB to bytes / 2
 
-        [[ "$zram_size" -lt 104857600 ]] && zram_size=536870912  # Minimum 512MB
+        [[ "$zram_size" -lt 104857600 ]] && zram_size=536870912 # Minimum 512MB
 
         # Configure
         echo "$zram_size" | sudo tee /sys/block/zram0/disksize >/dev/null 2>/dev/null || {
@@ -2175,21 +2260,21 @@ EOF
     _pkg_clean() {
         _sudo_check || return 1
         case "$DISTRO_ID" in
-            ubuntu|debian|linuxmint|pop|elementary)
+            ubuntu | debian | linuxmint | pop | elementary)
                 sudo apt-get autoremove --purge -y && sudo apt-get autoclean
                 ;;
-            fedora|rhel|centos|rocky|almalinux|nobara)
+            fedora | rhel | centos | rocky | almalinux | nobara)
                 if command -v dnf >/dev/null 2>&1; then
                     sudo dnf autoremove -y && sudo dnf clean all
                 else
                     sudo yum autoremove -y && sudo yum clean all
                 fi
                 ;;
-            arch|manjaro|endeavouros|garuda)
+            arch | manjaro | endeavouros | garuda)
                 sudo pacman -Sc --noconfirm
                 command -v paccache >/dev/null 2>&1 && sudo paccache -r
                 ;;
-            opensuse*|suse*)
+            opensuse* | suse*)
                 sudo zypper clean
                 ;;
             alpine)
@@ -2243,14 +2328,20 @@ EOF
 
     _format_size() {
         local kb=$1
-        [[ "$kb" =~ ^[0-9]+$ ]] || { echo "0KB"; return; }
+        [[ "$kb" =~ ^[0-9]+$ ]] || {
+            echo "0KB"
+            return
+        }
 
         local mb=$((kb / 1024))
         local gb=$((mb / 1024))
 
-        if [[ $kb -lt 1024 ]]; then echo "${kb}KB"
-        elif [[ $mb -lt 1024 ]]; then echo "${mb}MB"
-        else echo "${gb}GB"
+        if [[ $kb -lt 1024 ]]; then
+            echo "${kb}KB"
+        elif [[ $mb -lt 1024 ]]; then
+            echo "${mb}MB"
+        else
+            echo "${gb}GB"
         fi
     }
 
@@ -2280,11 +2371,16 @@ EOF
 
         _sudo_check || return 1
 
+        local space_before
+        space_before=$(_get_free_kb)
+
         echo -e "${CYAN}🗑️  Cleaning package cache...${NC}"
         _pkg_clean
 
         echo -e "${CYAN}📋 Vacuuming journals...${NC}"
-        sudo journalctl --vacuum-time=3d --quiet 2>/dev/null || true
+        if command -v journalctl >/dev/null 2>&1; then
+            sudo journalctl --vacuum-time=3d --quiet 2>/dev/null || true
+        fi
 
         echo -e "${CYAN}🖼️  Cleaning thumbnails...${NC}"
         if [[ -d "$HOME/.cache/thumbnails" ]]; then
@@ -2292,21 +2388,41 @@ EOF
         fi
 
         echo -e "${CYAN}🗑️  Emptying trash...${NC}"
-        if [[ -d "$HOME/.local/share/Trash/files" ]]; then
-            rm -rf "$HOME/.local/share/Trash/files/"* 2>/dev/null || true
+        if command -v gio &>/dev/null; then
+            gio trash --empty &>/dev/null || true
         fi
-        if [[ -d "$HOME/.local/share/Trash/info" ]]; then
-            rm -rf "$HOME/.local/share/Trash/info/"* 2>/dev/null || true
-        fi
+        rm -rf "$HOME/.local/share/Trash/files" "$HOME/.local/share/Trash/info" 2>/dev/null || true
+        mkdir -p "$HOME/.local/share/Trash/files" "$HOME/.local/share/Trash/info" 2>/dev/null || true
 
         # Clean old logs
         sudo find /var/log -type f -name "*.old" -delete 2>/dev/null || true
         sudo find /var/log -type f -name "*.gz" -mtime +30 -delete 2>/dev/null || true
 
-        echo -e "${GREEN}✅ OS cleanup completed${NC}"
+        # Developer cache cleaning (optional)
+        local dev_confirm=""
+        echo -n "Clean developer caches? (npm/bun/pip) [y/N]: "
+        read -r dev_confirm
+        if [[ "$dev_confirm" =~ ^[Yy]$ ]]; then
+            echo -e "${CYAN}💻 Cleaning developer caches...${NC}"
+            command -v npm &>/dev/null && npm cache clean --force 2>/dev/null || true
+            command -v bun &>/dev/null && bun pm cache rm 2>/dev/null || true
+            command -v pip &>/dev/null && pip cache purge 2>/dev/null || true
+            command -v pip3 &>/dev/null && pip3 cache purge 2>/dev/null || true
+            command -v pnpm &>/dev/null && pnpm store prune 2>/dev/null || true
+            [[ -d "$HOME/.cache/pip" ]] && rm -rf "$HOME/.cache/pip"/* 2>/dev/null || true
+            [[ -d "$HOME/.cache/go-build" ]] && rm -rf "$HOME/.cache/go-build"/* 2>/dev/null || true
+            [[ -d "$HOME/.cargo/registry/cache" ]] && rm -rf "$HOME/.cargo/registry/cache"/* 2>/dev/null || true
+            echo -e "   ${GREEN}✅ Developer caches cleared${NC}"
+        fi
+
+        local space_after freed_kb freed_str
+        space_after=$(_get_free_kb)
+        freed_kb=$((space_after - space_before))
+        freed_str=""
+        [[ $freed_kb -gt 0 ]] && freed_str=" (freed: $(_format_size $freed_kb))"
+        echo -e "${GREEN}✅ OS cleanup completed${freed_str}${NC}"
         _log "OS clean executed"
     }
-
 
     _container_clean() {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
@@ -2333,13 +2449,13 @@ EOF
                     [[ "$rev" =~ ^[0-9]+$ ]] || continue
                     echo -e "   ${YELLOW}Removing: $name (rev $rev)${NC}"
                     sudo snap remove --revision="$rev" "$name" 2>/dev/null || true
-                done <<< "$snap_output"
+                done <<<"$snap_output"
             fi
 
             sudo rm -rf /var/lib/snapd/cache/* 2>/dev/null || true
 
             end_space=$(_get_free_kb)
-            saved=$(( (end_space - start_space) * 1024 ))
+            saved=$(((end_space - start_space) * 1024))
             [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
             echo -e "   ${GREEN}Snap saved: $(_format_size $((saved / 1024)))${NC}"
         fi
@@ -2360,7 +2476,7 @@ EOF
             # fi
 
             local end_space=$(_get_free_kb)
-            local saved=$(( (end_space - start_space) * 1024 ))
+            local saved=$(((end_space - start_space) * 1024))
             [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
             echo -e "   ${GREEN}Flatpak saved: $(_format_size $((saved / 1024)))${NC}"
         fi
@@ -2374,7 +2490,7 @@ EOF
                 docker system prune -a --volumes -f 2>/dev/null || true
 
                 local end_space=$(_get_free_kb)
-                local saved=$(( (end_space - start_space) * 1024 ))
+                local saved=$(((end_space - start_space) * 1024))
                 [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
                 echo -e "   ${GREEN}Docker saved: $(_format_size $((saved / 1024)))${NC}"
             else
@@ -2422,7 +2538,7 @@ EOF
         _sudo_check || return 1
 
         case "$DISTRO_ID" in
-            ubuntu|debian|linuxmint|pop|elementary)
+            ubuntu | debian | linuxmint | pop | elementary)
                 local kernels=()
                 while IFS= read -r line; do
                     kernels+=("$line")
@@ -2461,7 +2577,7 @@ EOF
                 fi
                 ;;
 
-            fedora|rhel|centos|rocky|almalinux|nobara)
+            fedora | rhel | centos | rocky | almalinux | nobara)
                 if command -v dnf >/dev/null 2>&1; then
                     echo -e "${CYAN}Removing old kernels...${NC}"
                     sudo dnf remove --oldinstallonly --setopt installonly_limit=2 -y 2>/dev/null || {
@@ -2475,7 +2591,7 @@ EOF
                 fi
                 ;;
 
-            arch|manjaro|endeavouros|garuda|cachyos)
+            arch | manjaro | endeavouros | garuda | cachyos)
                 echo -e "${CYAN}Removing orphan packages...${NC}"
                 local orphans
                 orphans=$(pacman -Qtdq 2>/dev/null || true)
@@ -2529,8 +2645,8 @@ EOF
 
         # Display
         echo -e "📊 ${CYAN}System Status:${NC}"
-        echo -e "   Memory: ${mem_pct}% used ($((mem_used/1024))MB / $((mem_total/1024))MB)"
-        echo -e "   Disk:   ${disk_pct}% used ($(_format_size $((disk_used/1024))) / $(_format_size $(( (disk_used+disk_avail)/1024 ))))"
+        echo -e "   Memory: ${mem_pct}% used ($((mem_used / 1024))MB / $((mem_total / 1024))MB)"
+        echo -e "   Disk:   ${disk_pct}% used ($(_format_size $((disk_used / 1024))) / $(_format_size $(((disk_used + disk_avail) / 1024))))"
         echo -e "   Temp:   ${temp}°C"
         echo -e "   ZRAM:   ${zram_used}% used"
 
@@ -2613,6 +2729,87 @@ EOF
     }
 
     # ==============================
+    # 🗑️ APPIMAGE ARTIFACT CLEANUP
+    # ==============================
+    _appimage_cleanup() {
+        echo -e "${BLUE}╔════════════════════════════════╗${NC}"
+        echo -e "${BLUE}║${NC}    🗑️  APPIMAGE ARTIFACT CLEAN  ${BLUE}║${NC}"
+        echo -e "${BLUE}╚════════════════════════════════╝${NC}"
+        echo -e "${CYAN}Scanning for orphaned .desktop & icon files...${NC}\n"
+
+        local desktop_dir="$HOME/.local/share/applications"
+        local icon_dir="$HOME/.local/share/icons"
+        local autostart_dir="$HOME/.config/autostart"
+        local found_count=0 removed_count=0
+        local -a orphans=()
+
+        # Find .desktop files pointing to missing AppImage binaries
+        if [[ -d "$desktop_dir" ]]; then
+            while IFS= read -r -d '' desktop_file; do
+                local exec_line bin_path
+                exec_line=$(grep -i '^Exec=' "$desktop_file" 2>/dev/null | head -1 | cut -d= -f2- | awk '{print $1}')
+                [[ -z "$exec_line" ]] && continue
+                if [[ "$exec_line" == *.AppImage* ]] || [[ "$exec_line" == *.appimage* ]]; then
+                    bin_path=$(echo "$exec_line" | sed 's/ .*//')
+                    if [[ ! -f "$bin_path" ]]; then
+                        orphans+=("$desktop_file")
+                        ((found_count++)) || true
+                        echo -e "   ${YELLOW}Orphan: $(basename "$desktop_file")${NC}"
+                    fi
+                fi
+            done < <(find "$desktop_dir" -name "*.desktop" -print0 2>/dev/null)
+        fi
+
+        # Also check autostart directory
+        if [[ -d "$autostart_dir" ]]; then
+            while IFS= read -r -d '' desktop_file; do
+                local exec_line bin_path
+                exec_line=$(grep -i '^Exec=' "$desktop_file" 2>/dev/null | head -1 | cut -d= -f2- | awk '{print $1}')
+                [[ -z "$exec_line" ]] && continue
+                if [[ "$exec_line" == *.AppImage* ]] || [[ "$exec_line" == *.appimage* ]]; then
+                    bin_path=$(echo "$exec_line" | sed 's/ .*//')
+                    if [[ ! -f "$bin_path" ]]; then
+                        orphans+=("$desktop_file")
+                        ((found_count++)) || true
+                        echo -e "   ${YELLOW}Orphan (autostart): $(basename "$desktop_file")${NC}"
+                    fi
+                fi
+            done < <(find "$autostart_dir" -name "*.desktop" -print0 2>/dev/null)
+        fi
+
+        if [[ $found_count -eq 0 ]]; then
+            echo -e "${GREEN}✅ No orphaned AppImage artifacts found.${NC}"
+            _log "AppImage cleanup: nothing to remove"
+            return 0
+        fi
+
+        echo ""
+        read -r -p "Remove $found_count orphaned file(s)? [y/N]: " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || return 0
+
+        for f in "${orphans[@]}"; do
+            rm -f "$f" 2>/dev/null && ((removed_count++)) || true
+            echo -e "   ${RED}Removed: $(basename "$f")${NC}"
+        done
+
+        # Remove orphaned appimagekit icon files
+        if [[ -d "$icon_dir" ]]; then
+            local icon_count=0
+            while IFS= read -r -d '' icon_file; do
+                rm -f "$icon_file" 2>/dev/null && ((icon_count++)) || true
+            done < <(find "$icon_dir" -name "appimagekit_*" -print0 2>/dev/null)
+            [[ $icon_count -gt 0 ]] && echo -e "   ${RED}Removed $icon_count orphaned icon(s)${NC}"
+        fi
+
+        # Refresh the desktop application database
+        command -v update-desktop-database &>/dev/null &&
+            update-desktop-database "$desktop_dir" 2>/dev/null || true
+
+        echo -e "${GREEN}✅ Removed $removed_count orphaned AppImage artifact(s).${NC}"
+        _log "AppImage cleanup: removed $removed_count files"
+    }
+
+    # ==============================
     # 📋 INTERACTIVE MENU
     # ==============================
     _show_menu() {
@@ -2620,6 +2817,7 @@ EOF
             "🚀  Full System Boost"
             "🤖  AI Smart Cleanup"
             "⚡  OS Clean"
+            "🗑️  AppImage Artifact Clean"
             "🐳  Container Clean"
             "🔗  Fix Broken Links"
             "⚡  Kernel Clean"
@@ -2628,7 +2826,7 @@ EOF
         )
 
         local choice
-        choice=$(printf "%s\n" "${choices[@]}" | \
+        choice=$(printf "%s\n" "${choices[@]}" |
             fzf --height=70% \
                 --layout=reverse \
                 --border=rounded \
@@ -2643,13 +2841,14 @@ EOF
 
         [[ -z "$choice" ]] && return 1
 
-        # Extract action (remove emoji and padding)
-        local action="${choice#*[[:space:]]}"
-        action="${action#*[[:space:]]}"
+        # Extract action (robust emoji & padding removal)
+        local action
+        action=$(echo "$choice" | sed 's/^[^[:alnum:]]*[[:space:]]*//')
 
         case "$action" in
             "Full System Boost")
                 _os_clean
+                _appimage_cleanup
                 _container_clean
                 _fix_links
                 _orphan_engine
@@ -2658,6 +2857,7 @@ EOF
                 ;;
             "AI Smart Cleanup") _ai_mode ;;
             "OS Clean") _os_clean ;;
+            "AppImage Artifact Clean") _appimage_cleanup ;;
             "Container Clean") _container_clean ;;
             "Fix Broken Links") _fix_links ;;
             "Kernel Clean") _orphan_engine ;;
@@ -2696,16 +2896,13 @@ EOF
     return $menu_result
 }
 
-
 # ======================================================
 #  📦 runtime install
 # ======================================================
 
-
-
 rt() {
     # ১. fzf চেক এবং অটো-ইন্সটলেশন
-    if ! command -v fzf &> /dev/null; then
+    if ! command -v fzf &>/dev/null; then
         echo "🔍 fzf খুঁজে পাওয়া যায়নি। ইন্সটল করা হচ্ছে..."
 
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -2713,7 +2910,7 @@ rt() {
             sudo apt update && sudo apt install fzf -y
         elif [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS এর জন্য (Homebrew প্রয়োজন)
-            if command -v brew &> /dev/null; then
+            if command -v brew &>/dev/null; then
                 brew install fzf
             else
                 echo "❌ Error: Homebrew পাওয়া যায়নি। অনুগ্রহ করে fzf ম্যানুয়ালি ইন্সটল করুন।"
@@ -2759,26 +2956,24 @@ rt() {
         "Node.js (LTS Version)")
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            if command -v nvm &> /dev/null; then
+            if command -v nvm &>/dev/null; then
                 nvm install --lts && nvm use --lts
             else
                 echo "❌ আগে NVM ইন্সটল করুন!"
             fi
             ;;
         "Bun (Fast JS Runtime)")
-            command -v bun &> /dev/null && echo "✅ Bun আছে: $(bun -v)" || (curl -fsSL https://bun.sh/install | bash && export PATH="$HOME/.bun/bin:$PATH")
+            command -v bun &>/dev/null && echo "✅ Bun আছে: $(bun -v)" || (curl -fsSL https://bun.sh/install | bash && export PATH="$HOME/.bun/bin:$PATH")
             ;;
         "Deno (Secure JS Runtime)")
-            command -v deno &> /dev/null && echo "✅ Deno আছে: $(deno -v)" || (curl -fsSL https://deno.land/x/install/install.sh | sh && export PATH="$HOME/.deno/bin:$PATH")
+            command -v deno &>/dev/null && echo "✅ Deno আছে: $(deno -v)" || (curl -fsSL https://deno.land/x/install/install.sh | sh && export PATH="$HOME/.deno/bin:$PATH")
             ;;
     esac
 }
 
-
 # =========================================
 # Ultimate Smart PC Optimizer (v5.1 - Clean UI)
 # =========================================
-
 
 ut() {
     # ===== 🎨 UI PALETTE =====
@@ -2786,7 +2981,7 @@ ut() {
     local BLUE='\033[1;34m' PURPLE='\033[1;35m' CYAN='\033[1;36m'
     local WHITE='\033[1;37m' BOLD='\033[1m' DIM='\033[2m' NC='\033[0m'
     local LOGFILE="/tmp/pcop_$(whoami)_$$.log"
-    : > "$LOGFILE"
+    : >"$LOGFILE"
 
     # ===== 🖥️ DISTRO DETECTION =====
     local DISTRO_ID="" PKG_MANAGER="" PKG_INSTALL="" PKG_QUERY=""
@@ -2801,23 +2996,23 @@ ut() {
         fi
 
         case "$DISTRO_ID" in
-            ubuntu|deepin|debian|linuxmint|pop|elementary|zorin|kali|parrot)
+            ubuntu | deepin | debian | linuxmint | pop | elementary | zorin | kali | parrot)
                 PKG_MANAGER="apt"
                 PKG_INSTALL="sudo apt install -y"
                 PKG_QUERY="dpkg-query -W -f='${Status}'"
                 ;;
-            fedora|rhel|centos|rocky|almalinux|nobara)
+            fedora | rhel | centos | rocky | almalinux | nobara)
                 PKG_MANAGER="dnf"
                 [[ "$DISTRO_ID" == "centos" ]] && [[ -z "$(command -v dnf)" ]] && PKG_MANAGER="yum"
                 PKG_INSTALL="sudo $PKG_MANAGER install -y"
                 PKG_QUERY="rpm -q"
                 ;;
-            arch|manjaro|endeavouros|garuda|cachyos|artix)
+            arch | manjaro | endeavouros | garuda | cachyos | artix)
                 PKG_MANAGER="pacman"
                 PKG_INSTALL="sudo pacman -S --noconfirm --needed"
                 PKG_QUERY="pacman -Q"
                 ;;
-            opensuse*|suse*)
+            opensuse* | suse*)
                 PKG_MANAGER="zypper"
                 PKG_INSTALL="sudo zypper install -y"
                 PKG_QUERY="rpm -q"
@@ -2851,7 +3046,7 @@ ut() {
         echo -e "${YELLOW}📦 Installing fzf...${NC}"
         case "$PKG_MANAGER" in
             "apt") sudo apt update -y && sudo apt install -y fzf ;;
-            "dnf"|"yum") sudo $PKG_MANAGER install -y fzf ;;
+            "dnf" | "yum") sudo $PKG_MANAGER install -y fzf ;;
             "pacman") sudo pacman -S --noconfirm fzf ;;
             "zypper") sudo zypper install -y fzf ;;
             "apk") sudo apk add fzf ;;
@@ -2968,7 +3163,7 @@ ut() {
         local idx=1
         case "$PKG_MANAGER" in
             "apt") idx=1 ;;
-            "dnf"|"yum") idx=2 ;;
+            "dnf" | "yum") idx=2 ;;
             "pacman") idx=3 ;;
             "zypper") idx=4 ;;
             "apk") idx=5 ;;
@@ -2981,7 +3176,7 @@ ut() {
         local pkg="$1"
         case "$PKG_MANAGER" in
             "apt") dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "ok installed" ;;
-            "dnf"|"yum"|"zypper") rpm -q "$pkg" &>/dev/null ;;
+            "dnf" | "yum" | "zypper") rpm -q "$pkg" &>/dev/null ;;
             "pacman") pacman -Q "$pkg" &>/dev/null ;;
             "apk") apk info -e "$pkg" &>/dev/null ;;
             "xbps") xbps-query "$pkg" &>/dev/null ;;
@@ -3074,20 +3269,20 @@ ut() {
     local idx=0
     for item in "${tool_list[@]}"; do
         ((idx++))
-        IFS='|' read -r cat generic desc <<< "$item"
+        IFS='|' read -r cat generic desc <<<"$item"
         local pkg=$(get_pkg_name "$generic")
 
         local status="${DIM}○${NC}"
         is_installed "$pkg" && status="${GREEN}●${NC}"
 
         case "$cat" in
-            "PERF")   c_cat="${PURPLE}PERF${NC}" ;;
-            "DISK")   c_cat="${RED}DISK${NC}" ;;
+            "PERF") c_cat="${PURPLE}PERF${NC}" ;;
+            "DISK") c_cat="${RED}DISK${NC}" ;;
             "SECURE") c_cat="${GREEN}SECU${NC}" ;;
-            "NET")    c_cat="${CYAN}NET ${NC}" ;;
-            "DEV")    c_cat="${BLUE}DEV ${NC}" ;;
+            "NET") c_cat="${CYAN}NET ${NC}" ;;
+            "DEV") c_cat="${BLUE}DEV ${NC}" ;;
             "MODERN") c_cat="${YELLOW}MOD ${NC}" ;;
-            *)        c_cat="${DIM}SYS ${NC}" ;;
+            *) c_cat="${DIM}SYS ${NC}" ;;
         esac
 
         # INDEX NUMBER ADD KORA HOYECHE - FORMAT: [idx]
@@ -3097,18 +3292,21 @@ ut() {
 
     # ===== 🖥️ UI LAUNCHER WITH INDEX =====
     local selected_raw=$(printf "%s\n" "${menu_items[@]}" | fzf \
-    --ansi --multi --delimiter='\|' --with-nth=1 \
-    --height=90% --layout=reverse --border=rounded \
-    --prompt="🔍 Search Arsenal > " \
-    --header="  [TAB] Select Multiple  |  [ENTER] Process  |  [Q] Exit  | (${PKG_MANAGER})
+        --ansi --multi --delimiter='\|' --with-nth=1 \
+        --height=90% --layout=reverse --border=rounded \
+        --prompt="🔍 Search Arsenal > " \
+        --header="  [TAB] Select Multiple  |  [ENTER] Process  |  [Q] Exit  | (${PKG_MANAGER})
   ─────────────────────────────────────────────────────────────────────────
   STAT  [IDX]  CATEGORY       PACKAGE          DESCRIPTION")
 
-    [[ $? -ne 0 || -z "$selected_raw" ]] && { echo -e "\n${YELLOW}👋 Operation cancelled.${NC}"; return 0; }
+    [[ $? -ne 0 || -z "$selected_raw" ]] && {
+        echo -e "\n${YELLOW}👋 Operation cancelled.${NC}"
+        return 0
+    }
 
     # CRITICAL FIX: Proper extraction (index 2 and 3, skip 1)
-    mapfile -t selected_tools <<< "$(echo "$selected_raw" | awk -F'|' '{print $2}')"
-    mapfile -t actual_packages <<< "$(echo "$selected_raw" | awk -F'|' '{print $3}')"
+    mapfile -t selected_tools <<<"$(echo "$selected_raw" | awk -F'|' '{print $2}')"
+    mapfile -t actual_packages <<<"$(echo "$selected_raw" | awk -F'|' '{print $3}')"
 
     # Trim whitespace
     for i in "${!selected_tools[@]}"; do
@@ -3116,10 +3314,16 @@ ut() {
         actual_packages[$i]=$(echo "${actual_packages[$i]}" | xargs)
     done
 
-    [[ ${#selected_tools[@]} -eq 0 ]] && { echo -e "${YELLOW}⚠️ Nothing selected${NC}"; return 0; }
+    [[ ${#selected_tools[@]} -eq 0 ]] && {
+        echo -e "${YELLOW}⚠️ Nothing selected${NC}"
+        return 0
+    }
 
     # ===== ⬇️ INSTALL & CONFIG ENGINE =====
-    sudo -v || { echo -e "${RED}❌ Sudo required${NC}"; return 1; }
+    sudo -v || {
+        echo -e "${RED}❌ Sudo required${NC}"
+        return 1
+    }
 
     # Keep sudo alive - SILENT VERSION
     (
@@ -3138,7 +3342,7 @@ ut() {
 
     case "$PKG_MANAGER" in
         "apt") sudo apt update -y &>>"$LOGFILE" ;;
-        "dnf"|"yum") sudo $PKG_MANAGER check-update -y &>>"$LOGFILE" || true ;;
+        "dnf" | "yum") sudo $PKG_MANAGER check-update -y &>>"$LOGFILE" || true ;;
         "pacman") sudo pacman -Sy &>>"$LOGFILE" ;;
         "zypper") sudo zypper refresh &>>"$LOGFILE" ;;
         "apk") sudo apk update &>>"$LOGFILE" ;;
@@ -3153,8 +3357,8 @@ ut() {
         local marker="$1"
         local content="$2"
         if ! grep -qF "$marker" "$RC_FILE" 2>/dev/null; then
-            echo -e "\n# $marker" >> "$RC_FILE"
-            echo "$content" >> "$RC_FILE"
+            echo -e "\n# $marker" >>"$RC_FILE"
+            echo "$content" >>"$RC_FILE"
         fi
     }
 
@@ -3189,7 +3393,7 @@ ut() {
                 [[ "$SERVICE_CMD" == "systemctl" ]] && sudo systemctl enable --now docker &>>"$LOGFILE" || true
                 ;;
             "tmux")
-                [[ ! -f ~/.tmux.conf ]] && echo -e "set -g mouse on\nset -g default-terminal \"screen-256color\"" > ~/.tmux.conf
+                [[ ! -f ~/.tmux.conf ]] && echo -e "set -g mouse on\nset -g default-terminal \"screen-256color\"" >~/.tmux.conf
                 ;;
             "git")
                 git config --global color.ui auto 2>/dev/null || true
@@ -3198,7 +3402,7 @@ ut() {
                 ;;
             "neovim")
                 mkdir -p ~/.config/nvim
-                [[ ! -f ~/.config/nvim/init.vim ]] && echo -e "set number\nset relativenumber\nset mouse=a\nset termguicolors" > ~/.config/nvim/init.vim
+                [[ ! -f ~/.config/nvim/init.vim ]] && echo -e "set number\nset relativenumber\nset mouse=a\nset termguicolors" >~/.config/nvim/init.vim
                 add_config "Neovim Alias" "alias v='nvim'\nalias vim='nvim'"
                 ;;
             "zram-tools")
@@ -3215,14 +3419,14 @@ ut() {
                 ;;
             "micro")
                 mkdir -p ~/.config/micro
-                [[ ! -f ~/.config/micro/settings.json ]] && echo '{"mouse": true, "clipboard": "terminal"}' > ~/.config/micro/settings.json
+                [[ ! -f ~/.config/micro/settings.json ]] && echo '{"mouse": true, "clipboard": "terminal"}' >~/.config/micro/settings.json
                 ;;
             "ufw")
                 command -v ufw &>/dev/null && { sudo ufw allow ssh 2>/dev/null && sudo ufw --force enable &>>"$LOGFILE" || true; }
                 ;;
             "htop")
                 mkdir -p ~/.config/htop
-                [[ ! -f ~/.config/htop/htoprc ]] && echo "highlight_megabytes=1\nshow_program_path=1" > ~/.config/htop/htoprc
+                [[ ! -f ~/.config/htop/htoprc ]] && echo "highlight_megabytes=1\nshow_program_path=1" >~/.config/htop/htoprc
                 ;;
             "acpi")
                 add_config "Battery Status" "alias battery='acpi -V'"
@@ -3251,7 +3455,7 @@ ut() {
             "earlyoom")
                 echo -e "${CYAN}🔧 Configuring EarlyOOM (Memory Protection)...${NC}"
                 # Default settings: 10% memory and 5% swap threshold
-                if [[ "$PKG_MANAGER" == "apt" ]]; then
+                if [ -f /etc/default/earlyoom ]; then
                     sudo sed -i 's/EARLYOOM_ARGS=.*/EARLYOOM_ARGS="-m 10 -s 5 --prefer '"'^(electron|java|python)'"'"/' /etc/default/earlyoom
                 fi
                 [[ "$SERVICE_CMD" == "systemctl" ]] && {
@@ -3264,8 +3468,8 @@ ut() {
                 # --yes flag gives auto-confirmation to all sensor detection prompts
                 sudo sensors-detect --auto &>>"$LOGFILE"
                 [[ "$SERVICE_CMD" == "systemctl" ]] && {
-                    sudo systemctl enable --now lm_sensors &>>"$LOGFILE" 2>/dev/null || \
-                    sudo systemctl enable --now sensord &>>"$LOGFILE" 2>/dev/null
+                    sudo systemctl enable --now lm_sensors &>>"$LOGFILE" 2>/dev/null ||
+                        sudo systemctl enable --now sensord &>>"$LOGFILE" 2>/dev/null
                 }
                 add_config "Sensor Alias" "alias temp='sensors'"
                 ;;
@@ -3288,7 +3492,7 @@ ut() {
     # Cleanup
     case "$PKG_MANAGER" in
         "apt") sudo apt autoremove -y &>>"$LOGFILE" || true ;;
-        "dnf"|"yum") sudo $PKG_MANAGER autoremove -y &>>"$LOGFILE" || true ;;
+        "dnf" | "yum") sudo $PKG_MANAGER autoremove -y &>>"$LOGFILE" || true ;;
         "pacman") sudo pacman -Sc --noconfirm &>>"$LOGFILE" || true ;;
     esac
 
@@ -3308,12 +3512,9 @@ ut() {
     rm -f "$LOGFILE" 2>/dev/null || true
 }
 
-
-
 # ======================================================
 #  📂 all file re name
 # ======================================================
-
 
 rn() {
     local target_dir="${1:-.}"
@@ -3359,8 +3560,6 @@ rn() {
     echo "Done!"
 }
 
-
-
 # ======================================================
 #  📂 package genarator
 # ======================================================
@@ -3377,17 +3576,17 @@ pg() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         case "$ID" in
-            ubuntu|deepin|debian|kali|linuxmint|pop)
+            ubuntu | deepin | debian | kali | linuxmint | pop)
                 os_type="debian"
                 pkg_manager="apt"
                 target_ext="deb"
                 ;;
-            fedora|rhel|centos|amzn)
+            fedora | rhel | centos | amzn)
                 os_type="redhat"
                 pkg_manager="dnf"
                 target_ext="rpm"
                 ;;
-            arch|manjaro)
+            arch | manjaro)
                 os_type="arch"
                 pkg_manager="pacman"
                 target_ext="tgz" # Alien Arch এর জন্য tgz ব্যবহার করে
@@ -3407,7 +3606,7 @@ pg() {
     fi
 
     # ৩. Alien টুলটি আছে কিনা চেক ও ইনস্টল করা
-    if ! command -v alien &> /dev/null; then
+    if ! command -v alien &>/dev/null; then
         echo "Alien not installed $pkg_manager Package Used To install..."
         if [[ "$pkg_manager" == "apt" ]]; then
             sudo apt update && sudo apt install alien -y
@@ -3425,7 +3624,7 @@ pg() {
         case "$os_type" in
             "debian") sudo alien --to-deb --scripts "$file" ;;
             "redhat") sudo alien --to-rpm --scripts "$file" ;;
-            "arch")   sudo alien --to-tgz --scripts "$file" ;;
+            "arch") sudo alien --to-tgz --scripts "$file" ;;
         esac
 
         if [[ $? -eq 0 ]]; then
@@ -3451,10 +3650,6 @@ pg() {
         echo "file is missing: $file"
     fi
 }
-
-
-
-
 
 # ======================================================
 #  📂 ALIASES: Navigation & System
@@ -3506,7 +3701,6 @@ drive() {
     fi
 }
 
-
 # --- Quick Folder Jumps (Change paths as needed) ---
 alias dev='cd ~/Developer'
 alias doc='cd ~/Documents'
@@ -3524,10 +3718,48 @@ alias fig='cd ~/Developer/Figma'
 alias fr='cd ~/Developer/frontend'
 alias fu='cd ~/Developer/fullstack'
 
-
 # --- System Maintenance ---
-alias update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install -f && flatpak update -y'
-alias clean='sudo apt-get autoremove --purge -y && sudo apt-get autoclean && sudo apt-get clean -y && flatpak uninstall --unused -y && flatpak repair'
+update() {
+    echo -e "\033[1;36m🔄 Updating system packages...\033[0m"
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install -f
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -Syu --noconfirm
+    elif command -v dnf &>/dev/null; then
+        sudo dnf upgrade --refresh -y
+    elif command -v brew &>/dev/null; then
+        brew update && brew upgrade
+    fi
+    if command -v flatpak &>/dev/null; then
+        echo -e "\033[1;34m📦 Updating Flatpaks...\033[0m"
+        flatpak update -y
+    fi
+    if command -v snap &>/dev/null; then
+        echo -e "\033[1;35m⚡ Refreshing Snaps...\033[0m"
+        sudo snap refresh 2>/dev/null || true
+    fi
+}
+
+clean() {
+    echo -e "\033[1;33m🧹 Cleaning system caches...\033[0m"
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get autoremove --purge -y && sudo apt-get autoclean && sudo apt-get clean -y
+    elif command -v pacman &>/dev/null; then
+        local orphans
+        orphans=$(pacman -Qtdq 2>/dev/null)
+        [[ -n "$orphans" ]] && sudo pacman -Rns --noconfirm $orphans 2>/dev/null || true
+        sudo pacman -Sc --noconfirm
+    elif command -v dnf &>/dev/null; then
+        sudo dnf autoremove -y && sudo dnf clean all
+    elif command -v brew &>/dev/null; then
+        brew cleanup
+    fi
+    if command -v flatpak &>/dev/null; then
+        echo -e "\033[1;34m💎 Cleaning Flatpak unused data...\033[0m"
+        flatpak uninstall --unused -y && flatpak repair
+    fi
+}
+
 alias bashrc='code ~/.bashrc'
 alias to='code .'
 alias rel='source ~/.bashrc && echo "✅ .bashrc reloaded successfully!"'
@@ -3537,7 +3769,6 @@ alias serve='python3 -m http.server'
 alias ports='ss -tulpn'
 alias myip='ip a | grep inet'
 
-
 # --- PostgreSQL ---
 alias pgstart='sudo systemctl start postgresql'
 alias pgstop='sudo systemctl stop postgresql'
@@ -3545,61 +3776,61 @@ alias pgrestart='sudo systemctl restart postgresql'
 alias pgstatus='sudo systemctl status postgresql'
 alias pgenable='sudo systemctl enable postgresql && echo "✅ PostgreSQL auto-start enabled"'
 alias pgdisable='sudo systemctl disable postgresql && echo "🚫 PostgreSQL auto-start disabled"'
-alias pgl='sudo -u postgres psql'                          # postgres user hisebe login
-alias pgdb='psql -U postgres -d'                           # Usage: pgdb mydb
-alias pgls='psql -U postgres -c "\\l"'                      # সব database list
-alias pgtables='psql -U postgres -c "\\dt"'                 # সব table list
-alias pgdump='pg_dump -U postgres'                          # Usage: pgdump mydb > backup.sql
-alias pgrestore='psql -U postgres'                          # Usage: pgrestore mydb < backup.sql
-alias pglogs='sudo tail -f /var/log/postgresql/*.log'      # PostgreSQL logs দেখুন
-alias pgcreate='createdb -U postgres'                      # Usage: pgcreate mydb
-alias pgdrop='dropdb -U postgres'                          # Usage: pgdrop mydb
-alias pgusers='psql -U postgres -c "\\du"'                  # সব users/roles দেখুন
-alias pgsize='psql -U postgres -c "SELECT pg_database.datname, pg_size_pretty(pg_database_size(pg_database.datname)) AS size FROM pg_database ORDER BY pg_database_size(pg_database.datname) DESC;"'  # প্রতিটি DBর সাইজ
-alias pgver='psql -U postgres -c "SELECT version();"'     # PostgreSQL version দেখুন
-alias pgconn='psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"'  # active connections
+alias pgl='sudo -u postgres psql'           # postgres user hisebe login
+alias pgdb='psql -U postgres -d'            # Usage: pgdb mydb
+alias pgls='psql -U postgres -c "\\l"'      # সব database list
+alias pgtables='psql -U postgres -c "\\dt"' # সব table list
+alias pgdump='pg_dump -U postgres'          # Usage: pgdump mydb > backup.sql
+alias pgrestore='psql -U postgres'          # Usage: pgrestore mydb < backup.sql
+pglogs() {
+    if [ -d /var/log/postgresql ] && ls /var/log/postgresql/*.log &>/dev/null; then
+        sudo tail -f /var/log/postgresql/*.log
+    else
+        sudo journalctl -u postgresql -f
+    fi
+}
+alias pgcreate='createdb -U postgres'                                                                                                                                                                # Usage: pgcreate mydb
+alias pgdrop='dropdb -U postgres'                                                                                                                                                                    # Usage: pgdrop mydb
+alias pgusers='psql -U postgres -c "\\du"'                                                                                                                                                           # সব users/roles দেখুন
+alias pgsize='psql -U postgres -c "SELECT pg_database.datname, pg_size_pretty(pg_database_size(pg_database.datname)) AS size FROM pg_database ORDER BY pg_database_size(pg_database.datname) DESC;"' # প্রতিটি DBর সাইজ
+alias pgver='psql -U postgres -c "SELECT version();"'                                                                                                                                                # PostgreSQL version দেখুন
+alias pgconn='psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"'                                                                                                                          # active connections
 
 # --- Node/NPX Prisma ORM (np*) — first letter of each word ---
-alias np='npx prisma'                                       # npx prisma
-alias npi='npx prisma init'                                 # npx prisma init
-alias npg='npx prisma generate'                             # npx prisma generate
-alias nps='npx prisma studio'                               # npx prisma studio
-alias npmd='npx prisma migrate dev'                         # npx prisma migrate dev
-alias npmdn='npx prisma migrate dev --name'                 # npx prisma migrate dev --name
-alias npmr='npx prisma migrate reset'                       # npx prisma migrate reset
-alias npmdp='npx prisma migrate deploy'                     # npx prisma migrate deploy
-alias npms='npx prisma migrate status'                      # npx prisma migrate status
-alias npdp='npx prisma db push'                             # npx prisma db push
-alias npdl='npx prisma db pull'                             # npx prisma db pull
-alias npds='npx prisma db seed'                             # npx prisma db seed
-alias npf='npx prisma format'                               # npx prisma format
-alias npv='npx prisma version'                              # npx prisma version
+alias np='npx prisma'                       # npx prisma
+alias npi='npx prisma init'                 # npx prisma init
+alias npg='npx prisma generate'             # npx prisma generate
+alias nps='npx prisma studio'               # npx prisma studio
+alias npmd='npx prisma migrate dev'         # npx prisma migrate dev
+alias npmdn='npx prisma migrate dev --name' # npx prisma migrate dev --name
+alias npmr='npx prisma migrate reset'       # npx prisma migrate reset
+alias npmdp='npx prisma migrate deploy'     # npx prisma migrate deploy
+alias npms='npx prisma migrate status'      # npx prisma migrate status
+alias npdp='npx prisma db push'             # npx prisma db push
+alias npdl='npx prisma db pull'             # npx prisma db pull
+alias npds='npx prisma db seed'             # npx prisma db seed
+alias npf='npx prisma format'               # npx prisma format
+alias npv='npx prisma version'              # npx prisma version
 
 # --- Bun Prisma ORM (bp*) — first letter of each word ---
-alias bp='bunx prisma'                                      # bunx prisma
-alias bpi='bunx prisma init'                                # bunx prisma init
-alias bpg='bunx prisma generate'                            # bunx prisma generate
-alias bps='bunx prisma studio'                              # bunx prisma studio
-alias bpmd='bunx prisma migrate dev'                        # bunx prisma migrate dev
-alias bpmdn='bunx prisma migrate dev --name'                # bunx prisma migrate dev --name
-alias bpmr='bunx prisma migrate reset'                      # bunx prisma migrate reset
-alias bpmdp='bunx prisma migrate deploy'                    # bunx prisma migrate deploy
-alias bpms='bunx prisma migrate status'                     # bunx prisma migrate status
-alias bpdp='bunx prisma db push'                            # bunx prisma db push
-alias bpdl='bunx prisma db pull'                            # bunx prisma db pull
-alias bpds='bunx prisma db seed'                            # bunx prisma db seed
-alias bpf='bunx prisma format'                              # bunx prisma format
-alias bpv='bunx prisma version'                             # bunx prisma version
-
-
-
-
-
+alias bp='bunx prisma'                       # bunx prisma
+alias bpi='bunx prisma init'                 # bunx prisma init
+alias bpg='bunx prisma generate'             # bunx prisma generate
+alias bps='bunx prisma studio'               # bunx prisma studio
+alias bpmd='bunx prisma migrate dev'         # bunx prisma migrate dev
+alias bpmdn='bunx prisma migrate dev --name' # bunx prisma migrate dev --name
+alias bpmr='bunx prisma migrate reset'       # bunx prisma migrate reset
+alias bpmdp='bunx prisma migrate deploy'     # bunx prisma migrate deploy
+alias bpms='bunx prisma migrate status'      # bunx prisma migrate status
+alias bpdp='bunx prisma db push'             # bunx prisma db push
+alias bpdl='bunx prisma db pull'             # bunx prisma db pull
+alias bpds='bunx prisma db seed'             # bunx prisma db seed
+alias bpf='bunx prisma format'               # bunx prisma format
+alias bpv='bunx prisma version'              # bunx prisma version
 
 # ======================================================
 #  🛠️  FUNCTION TOOLS (Better than Aliases)
 # ======================================================
-
 
 # Create directory and enter it immediately
 # Usage: mkd new_folder
@@ -3623,7 +3854,6 @@ rmf() {
 # cd() {
 #     builtin cd "$@" && ls --color=auto -F
 # }
-
 
 # ======================================================
 #  📦 DEV STACK ALIASES (NPM, BUN, GIT)
@@ -3668,17 +3898,23 @@ alias gpop='git stash pop'
 # Fetch and prune deleted branches
 alias gfp='git fetch --prune'
 
-
 alias vlc="flatpak run org.videolan.VLC"
 alias brave="flatpak run com.brave.Browser"
 alias youtube="brave --app=https://www.youtube.com"
 
 # Handle unknown commands politely
 command_not_found_handle() {
-  echo "❌ Command not found: $1"
-  echo "🔍 Try searching: apt search $1 | npm i -g $1"
+    echo "❌ Command not found: $1"
+    if command -v apt &>/dev/null; then
+        echo "🔍 Try searching: apt search $1 | npm i -g $1"
+    elif command -v pacman &>/dev/null; then
+        echo "🔍 Try searching: pacman -Ss $1 | npm i -g $1"
+    elif command -v dnf &>/dev/null; then
+        echo "🔍 Try searching: dnf search $1 | npm i -g $1"
+    else
+        echo "🔍 Try searching via package manager or npm i -g $1"
+    fi
 }
-
 
 alias br='cd ~/Downloads/Brave'
 alias ch='cd ~/Downloads/Chrome'
@@ -3687,9 +3923,7 @@ alias pa='cd ~/Downloads/Packet'
 alias ss='cd ~/Downloads/Screenshot'
 alias vi='cd ~/Downloads/Video'
 
-
 shopt -s autocd
-
 
 # Remove any Flatpak app paths from LD_LIBRARY_PATH
 if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/app/"* ]]; then
@@ -3701,7 +3935,6 @@ if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/ap
         unset LD_LIBRARY_PATH
     fi
 fi
-
 
 # ==============================================================================
 # 1. Auto-LS and FZF Summary Preview when changing directory (Bash Version)
@@ -3717,7 +3950,7 @@ accurate_auto_ls() {
     # Bash-er native alternative array parse logic
     # (Dotglob on kore hidden file accurately count korar jonne)
     shopt -s dotglob
-    local -a total_items=( * )
+    local -a total_items=(*)
     shopt -u dotglob
 
     local file_count=0
@@ -3756,7 +3989,6 @@ if [[ ! " ${PROMPT_COMMAND[*]} " == *"accurate_auto_ls"* ]]; then
     fi
 fi
 
-
 # ==============================================================================
 # 2. Advanced FZF Quick CD Function
 # ==============================================================================
@@ -3768,7 +4000,7 @@ cf() {
     local target_dir="${1:-.}"
 
     # 1. Faster search utilizing fd (respects .gitignore natively)
-    if command -v fd &> /dev/null; then
+    if command -v fd &>/dev/null; then
         search_cmd="fd --type d --hidden --exclude .git --exclude node_modules . \"$target_dir\""
     else
         search_cmd="find \"$target_dir\" -path '*/.*' -prune -o -type d -print 2>/dev/null"
@@ -3785,7 +4017,7 @@ cf() {
         --marker="✔" \
         --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path | [CTRL-H] Parent Dir" \
         --header-first \
-        --bind "ctrl-y:execute-silent(echo -n {} | xclip -selection clipboard || echo -n {} | pbcopy)+change-prompt(📋 Copied! > )" \
+        --bind "ctrl-y:execute-silent(echo -n {} | (wl-copy 2>/dev/null || xclip -selection clipboard 2>/dev/null || pbcopy 2>/dev/null))+change-prompt(📋 Copied! > )" \
         --bind "ctrl-o:execute(code {} || cursor {} || nvim {})+abort" \
         --bind "ctrl-h:reload(fd --type d --hidden --exclude .git --exclude node_modules . \$(dirname {}) || find \$(dirname {}) -type d)+change-prompt(⚡ Parent: )" \
         --preview '
@@ -3811,7 +4043,6 @@ cf() {
         cd "$dir" || return
     fi
 }
-
 
 # ====================================================================
 #              🐳 THE ULTIMATE DOCKER SWISS ARMY KNIFE 🐳
@@ -3930,21 +4161,30 @@ dip() {
 
 # কন্টেইনারের রিয়েল-টাইম ফাইল সিস্টেম পরিবর্তন লাইভ ট্র্যাকিং করা
 dwatch() {
-    if [ -z "$1" ]; then echo "Usage: dwatch <container-name>"; return 1; fi
+    if [ -z "$1" ]; then
+        echo "Usage: dwatch <container-name>"
+        return 1
+    fi
     echo -e "\e[1;35mWatching file changes in '$1' (Press Ctrl+C to stop)...\e[0m"
     watch -n 1 "docker diff $1"
 }
 
 # কন্টেইনারের ট্রাফিক এবং লাইভ পোর্ট বাইন্ডিং ডিবাগ করা
 dnetstat() {
-    if [ -z "$1" ]; then echo "Usage: dnetstat <container-name>"; return 1; fi
+    if [ -z "$1" ]; then
+        echo "Usage: dnetstat <container-name>"
+        return 1
+    fi
     echo -e "\e[1;36mActive connections inside '$1':\e[0m"
     docker exec -it "$1" netstat -tulan 2>/dev/null || docker exec -it "$1" ss -tulan 2>/dev/null || echo "Error: Neither netstat nor ss is installed in this container."
 }
 
 # কন্টেইনারের ভেতরের প্রসেস ট্রি (Process Tree) দেখা
 dtop-proc() {
-    if [ -z "$1" ]; then echo "Usage: dtop-proc <container-name>"; return 1; fi
+    if [ -z "$1" ]; then
+        echo "Usage: dtop-proc <container-name>"
+        return 1
+    fi
     docker top "$1" aux
 }
 
@@ -3981,7 +4221,7 @@ dclean() {
 _docker_containers_completion() {
     local curr_arg=${COMP_WORDS[COMP_CWORD]}
     local actions=$(docker ps -a --format "{{.Names}}")
-    COMPREPLY=( $(compgen -W "$actions" -- "$curr_arg") )
+    COMPREPLY=($(compgen -W "$actions" -- "$curr_arg"))
 }
 complete -F _docker_containers_completion dsh dlogs dstop dkill drestart dports dwatch dnetstat dtop-proc
 
@@ -3989,18 +4229,17 @@ complete -F _docker_containers_completion dsh dlogs dstop dkill drestart dports 
 _docker_images_completion() {
     local curr_arg=${COMP_WORDS[COMP_CWORD]}
     local images=$(docker images --format "{{.Repository}}")
-    COMPREPLY=( $(compgen -W "$images" -- "$curr_arg") )
+    COMPREPLY=($(compgen -W "$images" -- "$curr_arg"))
 }
 complete -F _docker_images_completion drmi dhist
 
 # টার্মিনাল ওপেন করলেই ব্যাকগ্রাউন্ডে কয়টি কন্টেইনার চলছে তা মনে করিয়ে দেওয়া
-if command -v docker &> /dev/null && systemctl is-active --quiet docker; then
+if command -v docker &>/dev/null && systemctl is-active --quiet docker; then
     running_count=$(docker ps -q | wc -l)
     if [ "$running_count" -gt 0 ]; then
         echo -e "\e[1;36m🐳 Docker is active. Running containers: $running_count\e[0m"
     fi
 fi
-
 
 # ======================================================
 # Advance C/C++ boilerplate generator
@@ -4040,7 +4279,7 @@ makecpp() {
 
     # 1. Generate general boilerplate code
     if [ "$type" = "c" ]; then
-        cat <<EOF > main.c
+        cat <<EOF >main.c
 #include <stdio.h>
 
 int main() {
@@ -4049,7 +4288,7 @@ int main() {
 }
 EOF
     else
-        cat <<EOF > main.cpp
+        cat <<EOF >main.cpp
 #include <iostream>
 
 int main() {
@@ -4060,7 +4299,7 @@ EOF
     fi
 
     # 2. Create a smart Makefile
-    cat <<EOF > Makefile
+    cat <<EOF >Makefile
 CC = $compiler
 CFLAGS = $flags
 TARGET = main
@@ -4080,7 +4319,7 @@ EOF
     # 3. Auto-initialize Git and create .gitignore
     if command -v git >/dev/null 2>&1; then
         git init -q
-        echo -e "main\n*.o\n*.out\n.vscode/" > .gitignore
+        echo -e "main\n*.o\n*.out\n.vscode/" >.gitignore
         echo "✅ Git repository initialized with .gitignore"
     fi
 

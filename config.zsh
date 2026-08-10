@@ -52,9 +52,14 @@ rand_emoji() {
 # HELPERS
 # ======================================================
 parse_git_branch() {
-  local branch=$(git symbolic-ref --short HEAD 2>/dev/null) || return
+  local branch=$(git branch --show-current 2>/dev/null)
+  if [[ -z "$branch" ]]; then
+    branch=$(git rev-parse --short HEAD 2>/dev/null)
+    [[ -n "$branch" ]] && branch="➦ $branch"
+  fi
+  [[ -z "$branch" ]] && return
   local dirty=""
-  [[ -n $(git status --porcelain 2>/dev/null) ]] && dirty=" ❗"
+  [[ -n $(git status --porcelain --untracked-files=no 2>/dev/null) ]] && dirty=" ❗"
   echo " [🌿 $branch$dirty]"
 }
 
@@ -64,9 +69,19 @@ bun_version()  { command -v bun  >/dev/null 2>&1 && echo "🥐 $(bun -v) │ "; 
 time_date() { echo "📅 $(date +'%b %d')"; }
 
 sys_info() {
+  if [[ -f /proc/meminfo ]]; then
+    local mem_total=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)
+    local mem_avail=$(awk '/MemAvailable/ {print $2}' /proc/meminfo 2>/dev/null)
+    if [[ -n "$mem_total" && -n "$mem_avail" ]]; then
+      local mem_used=$(( (mem_total - mem_avail) / 1024 ))
+      local mem_total_mb=$(( mem_total / 1024 ))
+      echo "📟 🧠 ${mem_used}M/${mem_total_mb}M │ "
+      return
+    fi
+  fi
   if command -v free >/dev/null 2>&1; then
     local RAM=$(free -h 2>/dev/null | awk '/^Mem/ {print $3 "/" $2}')
-    echo "📟 🧠 ${RAM} │ "
+    [[ -n "$RAM" ]] && echo "📟 🧠 ${RAM} │ "
   fi
 }
 
@@ -81,15 +96,25 @@ battery_info() {
 kernel_version() { echo "🐧 $(uname -r | cut -d'-' -f1) │ "; }
 
 cpu_temp() {
-  if command -v sensors >/dev/null 2>&1; then
-    local temp=$(sensors 2>/dev/null | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
-    [[ -n "$temp" ]] && echo " 🌡️ ${temp}°C"
+  local temp=""
+  if [[ -f /sys/class/thermal/thermal_zone0/temp ]]; then
+    local raw=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
+    [[ -n "$raw" && "$raw" -gt 0 ]] && temp=$((raw / 1000))
   fi
+  if [[ -z "$temp" ]] && command -v sensors >/dev/null 2>&1; then
+    temp=$(sensors 2>/dev/null | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
+  fi
+  [[ -n "$temp" ]] && echo " 🌡️ ${temp}°C"
 }
 
 folder_size() {
-  local size=$(du -sh . 2>/dev/null | cut -f1)
-  [[ -n "$size" ]] && echo " 📂 ${size}"
+  local size=""
+  if command -v timeout >/dev/null 2>&1; then
+    size=$(timeout 0.2s du -sh . 2>/dev/null | cut -f1)
+  else
+    size=$(du -sh . 2>/dev/null | cut -f1)
+  fi
+  [[ -n "$size" ]] && echo " 📂 ${size}" || echo " 📂 ~"
 }
 
 disk_usage() {
@@ -122,6 +147,12 @@ pending_updates() {
   local updates=0
   if command -v checkupdates >/dev/null 2>&1; then
     updates=$(checkupdates 2>/dev/null | wc -l)
+  elif command -v dnf >/dev/null 2>&1; then
+    updates=$(dnf check-update -q 2>/dev/null | grep -c '^[a-zA-Z0-9]')
+  elif [ -f /var/lib/update-notifier/updates-available ]; then
+    updates=$(cat /var/lib/update-notifier/updates-available | grep -Po '^[0-9]+(?= updates? can be installed)' | head -n1)
+  elif command -v apt-get >/dev/null 2>&1; then
+    updates=$(apt-get -s upgrade 2>/dev/null | grep -iP '^[0-9]+ upgraded' | cut -d' ' -f1)
   fi
   [[ -n "$updates" && "$updates" -gt 0 ]] && echo " 🆙 $updates"
 }
@@ -160,16 +191,20 @@ add-zsh-hook precmd build_prompt
 
 # --- Initialize a Project (Bun or NPM) ---
 ii() {
-  local has_bun=0 has_npm=0
-  command -v bun >/dev/null 2>&1 && has_bun=1
-  command -v npm >/dev/null 2>&1 && has_npm=1
+  local has_bun=0 has_npm=0 has_pnpm=0 has_yarn=0
+  command -v bun  >/dev/null 2>&1 && has_bun=1
+  command -v npm  >/dev/null 2>&1 && has_npm=1
+  command -v pnpm >/dev/null 2>&1 && has_pnpm=1
+  command -v yarn >/dev/null 2>&1 && has_yarn=1
 
   echo "🚀 Select Package Manager:"
-  [[ $has_bun -eq 1 ]] && echo "1) 🥐 Bun (Fast)" || echo "1) 🥐 Bun (Not installed)"
-  [[ $has_npm -eq 1 ]] && echo "2) 📦 NPM (Standard)" || echo "2) 📦 NPM (Not installed)"
+  [[ $has_bun  -eq 1 ]] && echo "1) 🥐 Bun (Fast)"       || echo "1) 🥐 Bun (Not installed)"
+  [[ $has_npm  -eq 1 ]] && echo "2) 📦 NPM (Standard)"   || echo "2) 📦 NPM (Not installed)"
+  [[ $has_pnpm -eq 1 ]] && echo "3) 🟡 PNPM (Strict)"    || echo "3) 🟡 PNPM (Not installed)"
+  [[ $has_yarn -eq 1 ]] && echo "4) 🧶 Yarn (Classic)"   || echo "4) 🧶 Yarn (Not installed)"
 
   # ✅ Zsh compatible
-  read "choice?Enter choice [1/2]: "
+  read "choice?Enter choice [1-4]: "
 
   case "$choice" in
     1)
@@ -179,6 +214,14 @@ ii() {
     2)
       [[ $has_npm -eq 0 ]] && { echo "❌ NPM not installed."; return 1; }
       npm init -y
+      ;;
+    3)
+      [[ $has_pnpm -eq 0 ]] && { echo "❌ PNPM not installed."; return 1; }
+      pnpm init
+      ;;
+    4)
+      [[ $has_yarn -eq 0 ]] && { echo "❌ Yarn not installed."; return 1; }
+      yarn init -y
       ;;
     *) echo "❌ Cancelled."; return 1 ;;
   esac
@@ -773,15 +816,17 @@ kp() {
 ex() {
   if [ -f "$1" ] ; then
     case "$1" in
-      *.tar.bz2)   tar xjf "$1"   ;;
-      *.tar.gz)    tar xzf "$1"   ;;
-      *.bz2)       bunzip2 "$1"   ;;
-      *.rar)       unrar x "$1"   ;;
-      *.gz)        gunzip "$1"    ;;
-      *.tar)       tar xf "$1"    ;;
-      *.zip)       unzip "$1"     ;;
-      *.7z)        7z x "$1"      ;;
-      *)           echo "❌ Extraction error" ;;
+      *.tar.bz2|*.tbz2) tar xjf "$1" ;;
+      *.tar.gz|*.tgz)   tar xzf "$1" ;;
+      *.tar.xz)         tar xJf "$1" ;;
+      *.tar.zst|*.zst)  unzstd "$1" 2>/dev/null || tar --zstd -xf "$1" ;;
+      *.bz2)            bunzip2 "$1" ;;
+      *.rar)            unrar x "$1" 2>/dev/null || 7z x "$1" ;;
+      *.gz)             gunzip "$1" ;;
+      *.tar)            tar xf "$1" ;;
+      *.zip)            unzip "$1" ;;
+      *.7z)             7z x "$1" ;;
+      *)                echo "❌ Unknown archive format" ;;
     esac
   else
     echo "❌ '$1' is not a valid file"
@@ -791,14 +836,18 @@ ex() {
 
 # Usage: ff filename
 ff() {
-  find . -type f -iname "*$1*" -not -path "*/node_modules/*" -not -path "*/.git/*"
+  if command -v fd >/dev/null 2>&1; then
+    fd -H -E "node_modules" -E ".git" "$1"
+  else
+    find . -type f -iname "*$1*" -not -path "*/node_modules/*" -not -path "*/.git/*"
+  fi
 }
 
 #  Secret Key Generator (Usage: gen 32)
 gen() {
   local len="${1:-24}"
-  openssl rand -base64 "$len" | cut -c1-"$len"
-  echo -e "\n✅ Secret generated!"
+  echo -e "🔑 Base64: \033[1;32m$(openssl rand -base64 "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
+  echo -e "🔑 Hex:    \033[1;36m$(openssl rand -hex "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
 }
 
 #  Backup File (Usage: bak .env)
@@ -815,9 +864,24 @@ alias iploc='curl -s ipinfo.io/json | grep -E "ip|city|region|org"'
 # Usage: h git
 alias h='history | grep'
 
-# 10. Trash (Safe Delete - moves to system trash)
+# FZF History Search (Usage: fh)
+fh() {
+  if command -v fzf >/dev/null 2>&1; then
+    local cmd=$(history | awk '{$1=""; print $0}' | fzf --reverse +s)
+    [[ -n "$cmd" ]] && eval "$cmd"
+  else
+    history | tail -n 30
+  fi
+}
+
+# Safe Delete - moves to system trash
 trash() {
-  mv "$@" ~/.local/share/Trash/files/ 2>/dev/null || mv "$@" ~/.Trash/ 2>/dev/null && echo "🗑 Moved to Trash."
+  if command -v gio >/dev/null 2>&1; then
+    gio trash "$@" && echo "🗑 Moved to Trash via GIO."
+  else
+    mkdir -p ~/.local/share/Trash/files/ 2>/dev/null
+    mv "$@" ~/.local/share/Trash/files/ 2>/dev/null || mv "$@" ~/.Trash/ 2>/dev/null && echo "🗑 Moved to Trash."
+  fi
 }
 
 
@@ -854,9 +918,12 @@ gwip() {
     echo -e "\n${CYAN}📦 Committing...${NC}"
     git commit -m "🚧 WIP: $final_msg"
 
-    # ৬. পুশ করা
+    # ৬. পুশ করা (অটো আপস্ট্রিম সাপোর্টসহ)
     echo -e "\n${YELLOW}📤 Pushing to remote...${NC}"
-    if git push; then
+    local cur_branch=$(git branch --show-current 2>/dev/null)
+    local push_cmd="git push"
+    [[ -n "$cur_branch" ]] && push_cmd="git push origin $cur_branch 2>/dev/null || git push -u origin $cur_branch"
+    if eval "$push_cmd"; then
         echo -e "\n${GREEN}✅ Everything committed and pushed successfully!${NC}"
     else
         echo -e "\n${RED}❌ Push failed! Check your internet or remote settings.${NC}"
@@ -1875,8 +1942,8 @@ run() {
     # zsh: nullglob enable (local scope)
     setopt localoptions nullglob
 
-    # Safe file collection - zsh native glob with (N) qualifier
-    local files=(*.js(N) *.ts(N))
+    # Safe file collection
+    local files=(*.js *.ts)
 
     if (( ${#files} == 0 )); then
         echo -e "${RED}󱓇 No .js or .ts files found!${NC}"
@@ -2451,8 +2518,8 @@ uc() {
             ubuntu|debian|linuxmint|pop)
                 pkg_name="zram-tools"
                 ;;
-            fedora|rhel|centos|rocky)
-                pkg_name="zram"
+            fedora|rhel|centos|rocky|almalinux|nobara)
+                pkg_name="zram-generator"
                 ;;
             arch|manjaro|endeavouros)
                 pkg_name="zram-generator"
@@ -2703,11 +2770,16 @@ EOF
 
         _sudo_check || return 1
 
+        local space_before
+        space_before=$(_get_free_kb)
+
         echo -e "${CYAN}🗑️  Cleaning package cache...${NC}"
         _pkg_clean
 
         echo -e "${CYAN}📋 Vacuuming journals...${NC}"
-        sudo journalctl --vacuum-time=3d --quiet 2>/dev/null || true
+        if command -v journalctl >/dev/null 2>&1; then
+            sudo journalctl --vacuum-time=3d --quiet 2>/dev/null || true
+        fi
 
         echo -e "${CYAN}🖼️  Cleaning thumbnails...${NC}"
         if [[ -d "$HOME/.cache/thumbnails" ]]; then
@@ -2715,18 +2787,39 @@ EOF
         fi
 
         echo -e "${CYAN}🗑️  Emptying trash...${NC}"
-        if [[ -d "$HOME/.local/share/Trash/files" ]]; then
-            rm -rf "$HOME/.local/share/Trash/files/"* 2>/dev/null || true
+        if command -v gio &>/dev/null; then
+            gio trash --empty &>/dev/null || true
         fi
-        if [[ -d "$HOME/.local/share/Trash/info" ]]; then
-            rm -rf "$HOME/.local/share/Trash/info/"* 2>/dev/null || true
-        fi
+        rm -rf "$HOME/.local/share/Trash/files" "$HOME/.local/share/Trash/info" 2>/dev/null || true
+        mkdir -p "$HOME/.local/share/Trash/files" "$HOME/.local/share/Trash/info" 2>/dev/null || true
 
         # Clean old logs
         sudo find /var/log -type f -name "*.old" -delete 2>/dev/null || true
         sudo find /var/log -type f -name "*.gz" -mtime +30 -delete 2>/dev/null || true
 
-        echo -e "${GREEN}✅ OS cleanup completed${NC}"
+        # Developer cache cleaning (optional)
+        local dev_confirm=""
+        echo -n "Clean developer caches? (npm/bun/pip) [y/N]: "
+        read -r dev_confirm
+        if [[ "$dev_confirm" =~ ^[Yy]$ ]]; then
+            echo -e "${CYAN}💻 Cleaning developer caches...${NC}"
+            command -v npm &>/dev/null && npm cache clean --force 2>/dev/null || true
+            command -v bun &>/dev/null && bun pm cache rm 2>/dev/null || true
+            command -v pip &>/dev/null && pip cache purge 2>/dev/null || true
+            command -v pip3 &>/dev/null && pip3 cache purge 2>/dev/null || true
+            command -v pnpm &>/dev/null && pnpm store prune 2>/dev/null || true
+            [[ -d "$HOME/.cache/pip" ]] && rm -rf "$HOME/.cache/pip"/* 2>/dev/null || true
+            [[ -d "$HOME/.cache/go-build" ]] && rm -rf "$HOME/.cache/go-build"/* 2>/dev/null || true
+            [[ -d "$HOME/.cargo/registry/cache" ]] && rm -rf "$HOME/.cargo/registry/cache"/* 2>/dev/null || true
+            echo -e "   ${GREEN}✅ Developer caches cleared${NC}"
+        fi
+
+        local space_after freed_kb
+        space_after=$(_get_free_kb)
+        freed_kb=$(( space_after - space_before ))
+        local freed_str=""
+        [[ $freed_kb -gt 0 ]] && freed_str=" (freed: $(_format_size $freed_kb))"
+        echo -e "${GREEN}✅ OS cleanup completed${freed_str}${NC}"
         _log "OS clean executed"
     }
 
@@ -3063,6 +3156,96 @@ EOF
     }
 
     # ==============================
+    # 🗑️ APPIMAGE ARTIFACT CLEANUP
+    # ==============================
+    _appimage_cleanup() {
+        echo -e "${BLUE}╔════════════════════════════════╗${NC}"
+        echo -e "${BLUE}║${NC}    🗑️  APPIMAGE ARTIFACT CLEAN  ${BLUE}║${NC}"
+        echo -e "${BLUE}╚════════════════════════════════╝${NC}"
+        echo -e "${CYAN}Scanning for orphaned .desktop & icon files...${NC}\n"
+
+        local desktop_dir="$HOME/.local/share/applications"
+        local icon_dir="$HOME/.local/share/icons"
+        local autostart_dir="$HOME/.config/autostart"
+        local found_count=0
+        local removed_count=0
+        local -a orphans=()
+
+        # Find .desktop files referencing missing AppImage paths
+        if [[ -d "$desktop_dir" ]]; then
+            while IFS= read -r -d '' desktop_file; do
+                # Extract Exec line
+                local exec_line
+                exec_line=$(grep -i '^Exec=' "$desktop_file" 2>/dev/null | head -1 | cut -d= -f2- | awk '{print $1}')
+                [[ -z "$exec_line" ]] && continue
+
+                # Check if it references an AppImage that no longer exists
+                if [[ "$exec_line" == *.AppImage* ]] || [[ "$exec_line" == *.appimage* ]]; then
+                    # Strip any args to get the binary path
+                    local bin_path
+                    bin_path=$(echo "$exec_line" | sed 's/ .*//')
+                    if [[ ! -f "$bin_path" ]]; then
+                        orphans+=("$desktop_file")
+                        (( found_count++ )) || true
+                        echo -e "   ${YELLOW}Orphan: $(basename "$desktop_file")${NC}"
+                    fi
+                fi
+            done < <(find "$desktop_dir" -name "*.desktop" -print0 2>/dev/null)
+        fi
+
+        # Also check autostart for orphaned AppImage entries
+        if [[ -d "$autostart_dir" ]]; then
+            while IFS= read -r -d '' desktop_file; do
+                local exec_line
+                exec_line=$(grep -i '^Exec=' "$desktop_file" 2>/dev/null | head -1 | cut -d= -f2- | awk '{print $1}')
+                [[ -z "$exec_line" ]] && continue
+                if [[ "$exec_line" == *.AppImage* ]] || [[ "$exec_line" == *.appimage* ]]; then
+                    local bin_path
+                    bin_path=$(echo "$exec_line" | sed 's/ .*//')
+                    if [[ ! -f "$bin_path" ]]; then
+                        orphans+=("$desktop_file")
+                        (( found_count++ )) || true
+                        echo -e "   ${YELLOW}Orphan (autostart): $(basename "$desktop_file")${NC}"
+                    fi
+                fi
+            done < <(find "$autostart_dir" -name "*.desktop" -print0 2>/dev/null)
+        fi
+
+        if [[ $found_count -eq 0 ]]; then
+            echo -e "${GREEN}✅ No orphaned AppImage artifacts found.${NC}"
+            _log "AppImage cleanup: nothing to remove"
+            return 0
+        fi
+
+        echo ""
+        local confirm=""
+        echo -n "Remove $found_count orphaned file(s)? [y/N]: "
+        read -r confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || return 0
+
+        for f in "${orphans[@]}"; do
+            rm -f "$f" 2>/dev/null && (( removed_count++ )) || true
+            echo -e "   ${RED}Removed: $(basename "$f")${NC}"
+        done
+
+        # Clean up orphaned appimagekit icons
+        if [[ -d "$icon_dir" ]]; then
+            local icon_count=0
+            while IFS= read -r -d '' icon_file; do
+                rm -f "$icon_file" 2>/dev/null && (( icon_count++ )) || true
+            done < <(find "$icon_dir" -name "appimagekit_*" -print0 2>/dev/null)
+            [[ $icon_count -gt 0 ]] && echo -e "   ${RED}Removed $icon_count orphaned icon(s)${NC}"
+        fi
+
+        # Refresh desktop database
+        command -v update-desktop-database &>/dev/null && \
+            update-desktop-database "$desktop_dir" 2>/dev/null || true
+
+        echo -e "${GREEN}✅ Removed $removed_count orphaned AppImage artifact(s).${NC}"
+        _log "AppImage cleanup: removed $removed_count files"
+    }
+
+    # ==============================
     # 📋 INTERACTIVE MENU
     # ==============================
     _show_menu() {
@@ -3072,6 +3255,7 @@ EOF
             "🚀  Full System Boost"
             "🤖  AI Smart Cleanup"
             "⚡  OS Clean"
+            "🗑️  AppImage Artifact Clean"
             "🐳  Container Clean"
             "🔗  Fix Broken Links"
             "⚡  Kernel Clean"
@@ -3095,13 +3279,14 @@ EOF
 
         [[ -z "$choice" ]] && return 1
 
-        # Extract action (remove emoji and padding)
-        local action="${choice#*[[:space:]]}"
-        action="${action#*[[:space:]]}"
+        # Extract action (robust emoji & padding removal)
+        local action
+        action=$(echo "$choice" | sed 's/^[^[:alnum:]]*[[:space:]]*//')
 
         case "$action" in
             "Full System Boost")
                 _os_clean
+                _appimage_cleanup
                 _container_clean
                 _fix_links
                 _orphan_engine
@@ -3110,6 +3295,7 @@ EOF
                 ;;
             "AI Smart Cleanup") _ai_mode ;;
             "OS Clean") _os_clean ;;
+            "AppImage Artifact Clean") _appimage_cleanup ;;
             "Container Clean") _container_clean ;;
             "Fix Broken Links") _fix_links ;;
             "Kernel Clean") _orphan_engine ;;
@@ -3733,7 +3919,7 @@ ut() {
                 ;;
             "earlyoom")
                 echo -e "${CYAN}🔧 Configuring EarlyOOM...${NC}"
-                if [[ "$PKG_MANAGER" == "apt" ]]; then
+                if [ -f /etc/default/earlyoom ]; then
                     sudo sed -i 's/EARLYOOM_ARGS=.*/EARLYOOM_ARGS="-m 10 -s 5 --prefer '"'^(electron|java|python)'"'"/' /etc/default/earlyoom
                 fi
                 [[ "$SERVICE_CMD" == "systemctl" ]] && {
@@ -3990,8 +4176,47 @@ alias fu='cd ~/Developer/fullstack'
 
 
 # --- System Maintenance ---
-alias update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install -f && flatpak update -y'
-alias clean='sudo apt-get autoremove --purge -y && sudo apt-get autoclean && sudo apt-get clean -y && flatpak uninstall --unused -y && flatpak repair'
+update() {
+    echo -e "\033[1;36m🔄 Updating system packages...\033[0m"
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install -f
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -Syu --noconfirm
+    elif command -v dnf &>/dev/null; then
+        sudo dnf upgrade --refresh -y
+    elif command -v brew &>/dev/null; then
+        brew update && brew upgrade
+    fi
+    if command -v flatpak &>/dev/null; then
+        echo -e "\033[1;34m📦 Updating Flatpaks...\033[0m"
+        flatpak update -y
+    fi
+    if command -v snap &>/dev/null; then
+        echo -e "\033[1;35m⚡ Refreshing Snaps...\033[0m"
+        sudo snap refresh 2>/dev/null || true
+    fi
+}
+
+clean() {
+    echo -e "\033[1;33m🧹 Cleaning system caches...\033[0m"
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get autoremove --purge -y && sudo apt-get autoclean && sudo apt-get clean -y
+    elif command -v pacman &>/dev/null; then
+        local orphans
+        orphans=$(pacman -Qtdq 2>/dev/null)
+        [[ -n "$orphans" ]] && sudo pacman -Rns --noconfirm $orphans 2>/dev/null || true
+        sudo pacman -Sc --noconfirm
+    elif command -v dnf &>/dev/null; then
+        sudo dnf autoremove -y && sudo dnf clean all
+    elif command -v brew &>/dev/null; then
+        brew cleanup
+    fi
+    if command -v flatpak &>/dev/null; then
+        echo -e "\033[1;34m💎 Cleaning Flatpak unused data...\033[0m"
+        flatpak uninstall --unused -y && flatpak repair
+    fi
+}
+
 alias zshrc='code ~/.zshrc'
 alias to='code .'
 alias rel='source ~/.zshrc && echo "✅ .zshrc reloaded successfully!"'
@@ -4015,7 +4240,13 @@ alias pgls='psql -U postgres -c "\\l"'                      # সব database li
 alias pgtables='psql -U postgres -c "\\dt"'                 # সব table list
 alias pgdump='pg_dump -U postgres'                          # Usage: pgdump mydb > backup.sql
 alias pgrestore='psql -U postgres'                          # Usage: pgrestore mydb < backup.sql
-alias pglogs='sudo tail -f /var/log/postgresql/*.log'      # PostgreSQL logs দেখুন
+pglogs() {
+    if [ -d /var/log/postgresql ] && ls /var/log/postgresql/*.log &>/dev/null; then
+        sudo tail -f /var/log/postgresql/*.log
+    else
+        sudo journalctl -u postgresql -f
+    fi
+}
 alias pgcreate='createdb -U postgres'                      # Usage: pgcreate mydb
 alias pgdrop='dropdb -U postgres'                          # Usage: pgdrop mydb
 alias pgusers='psql -U postgres -c "\\du"'                  # সব users/roles দেখুন
@@ -4138,10 +4369,19 @@ alias brave="flatpak run com.brave.Browser"
 alias youtube="brave --app=https://www.youtube.com"
 
 # Handle unknown commands politely
-command_not_found_handle() {
+command_not_found_handler() {
   echo "❌ Command not found: $1"
-  echo "🔍 Try searching: apt search $1 | npm i -g $1"
+  if command -v apt &>/dev/null; then
+    echo "🔍 Try searching: apt search $1 | npm i -g $1"
+  elif command -v pacman &>/dev/null; then
+    echo "🔍 Try searching: pacman -Ss $1 | npm i -g $1"
+  elif command -v dnf &>/dev/null; then
+    echo "🔍 Try searching: dnf search $1 | npm i -g $1"
+  else
+    echo "🔍 Try searching via package manager or npm i -g $1"
+  fi
 }
+command_not_found_handle() { command_not_found_handler "$@"; }
 
 
 alias br='cd ~/Downloads/Brave'
@@ -4244,7 +4484,7 @@ cf() {
         --marker="✔" \
         --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path | [CTRL-H] Parent Dir" \
         --header-first \
-        --bind "ctrl-y:execute-silent(echo -n {} | xclip -selection clipboard || echo -n {} | pbcopy)+change-prompt(📋 Copied! > )" \
+        --bind "ctrl-y:execute-silent(echo -n {} | (wl-copy 2>/dev/null || xclip -selection clipboard 2>/dev/null || pbcopy 2>/dev/null))+change-prompt(📋 Copied! > )" \
         --bind "ctrl-o:execute(code {} || cursor {} || nvim {})+abort" \
         --bind "ctrl-h:reload(fd --type d --hidden --exclude .git --exclude node_modules . {1:h} || find {1:h} -type d)+change-prompt(⚡ Parent: )" \
         --preview '
