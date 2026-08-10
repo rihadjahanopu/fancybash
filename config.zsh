@@ -2160,22 +2160,33 @@ function run {
 unalias v 2>/dev/null
 function v {
     local TARGET="${1:-$PWD}"
-    local PLAYER=""
 
-    # 🎥 Player check (Flatpak VLC Priority)
-    if flatpak info org.videolan.VLC >/dev/null 2>&1; then
-        PLAYER='flatpak run org.videolan.VLC'
-    elif command -v mpv >/dev/null 2>&1; then
-        PLAYER='mpv --fs --no-terminal'
+    # 🎥 Smart Player Detection (fastest first)
+    local PLAYER_CMD
+    if command -v flatpak &>/dev/null && flatpak list 2>/dev/null | grep -q 'org.videolan.VLC'; then
+        PLAYER_CMD="flatpak run org.videolan.VLC"
+    elif command -v vlc &>/dev/null; then
+        PLAYER_CMD="vlc"
+    elif command -v mpv &>/dev/null; then
+        PLAYER_CMD="mpv --fs --no-terminal"
+    elif command -v totem &>/dev/null; then
+        PLAYER_CMD="totem"
+    elif command -v celluloid &>/dev/null; then
+        PLAYER_CMD="celluloid"
+    elif command -v xdg-open &>/dev/null; then
+        PLAYER_CMD="xdg-open"
     else
-        PLAYER='vlc'
+        echo -e "\e[1;31m❌ কোনো ভিডিও প্লেয়ার পাওয়া যায়নি। VLC বা mpv ইন্সটল করুন।\e[0m"
+        return 1
     fi
 
     # Direct file play support if target is a single video file
     if [ -f "$TARGET" ]; then
         echo -e "\e[1;35m🎬 Playing video:\e[0m $(basename "$TARGET")"
-        $PLAYER "$TARGET" >/dev/null 2>&1 &
-        disown 2>/dev/null || true
+        # Zsh array split on spaces for multi-word player commands
+        local -a player_args=("${(s/ /)PLAYER_CMD}")
+        "${player_args[@]}" "$TARGET" >/dev/null 2>&1 &
+        disown $! 2>/dev/null || true
         return 0
     fi
 
