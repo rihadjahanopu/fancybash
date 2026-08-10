@@ -4178,7 +4178,7 @@ alias fu='cd ~/Developer/fullstack'
 # --- System Maintenance ---
 unalias update 2>/dev/null
 unalias clean 2>/dev/null
-update() {
+function update {
     echo -e "\033[1;36m🔄 Updating system packages...\033[0m"
     if command -v apt-get &>/dev/null; then
         sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install -f
@@ -4199,7 +4199,7 @@ update() {
     fi
 }
 
-clean() {
+function clean {
     echo -e "\033[1;33m🧹 Cleaning system caches...\033[0m"
     if command -v apt-get &>/dev/null; then
         sudo apt-get autoremove --purge -y && sudo apt-get autoclean && sudo apt-get clean -y
