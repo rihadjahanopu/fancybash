@@ -13,11 +13,13 @@
 
 rainbow_colors=(31 32 33 34 35 36 91 92 93 94 95 96)
 
-rand_color() {
+unalias rand_color 2>/dev/null
+function rand_color {
     echo "${rainbow_colors[$RANDOM % ${#rainbow_colors[@]}]}"
 }
 
-rand_emoji() {
+unalias rand_emoji 2>/dev/null
+function rand_emoji {
     local folder=$(basename "$PWD")
     case $folder in
         *web*) echo "🌐" ;;
@@ -36,7 +38,8 @@ rand_emoji() {
 # HELPERS
 # ======================================================
 
-parse_git_branch() {
+unalias parse_git_branch 2>/dev/null
+function parse_git_branch {
     local branch=$(git branch --show-current 2>/dev/null)
     if [[ -z "$branch" ]]; then
         branch=$(git rev-parse --short HEAD 2>/dev/null)
@@ -48,12 +51,17 @@ parse_git_branch() {
     echo "$branch$dirty"
 }
 
-node_version() { command -v node >/dev/null 2>&1 && echo "🟢 $(node -v)"; }
-npm_version() { command -v npm >/dev/null 2>&1 && echo "📦 $(npm -v)"; }
-bun_version() { command -v bun >/dev/null 2>&1 && echo "🥐 $(bun -v)"; }
-time_date() { echo "📅 $(date +'%b %d')"; }
+unalias node_version 2>/dev/null
+function node_version { command -v node >/dev/null 2>&1 && echo "🟢 $(node -v)"; }
+unalias npm_version 2>/dev/null
+function npm_version { command -v npm >/dev/null 2>&1 && echo "📦 $(npm -v)"; }
+unalias bun_version 2>/dev/null
+function bun_version { command -v bun >/dev/null 2>&1 && echo "🥐 $(bun -v)"; }
+unalias time_date 2>/dev/null
+function time_date { echo "📅 $(date +'%b %d')"; }
 
-sys_info() {
+unalias sys_info 2>/dev/null
+function sys_info {
     if [[ -f /proc/meminfo ]]; then
         local mem_total=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)
         local mem_avail=$(awk '/MemAvailable/ {print $2}' /proc/meminfo 2>/dev/null)
@@ -70,15 +78,18 @@ sys_info() {
     fi
 }
 
-battery_info() {
+unalias battery_info 2>/dev/null
+function battery_info {
     [[ -f /sys/class/power_supply/BAT0/capacity ]] && echo "🔋$(cat /sys/class/power_supply/BAT0/capacity)%"
 }
 
-kernel_version() {
+unalias kernel_version 2>/dev/null
+function kernel_version {
     echo "🐧 $(uname -r | cut -d'-' -f1)"
 }
 
-cpu_temp() {
+unalias cpu_temp 2>/dev/null
+function cpu_temp {
     local temp=""
     if [[ -f /sys/class/thermal/thermal_zone0/temp ]]; then
         local raw=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -99,7 +110,8 @@ cpu_temp() {
 }
 
 # 📁 FOLDER SIZE
-folder_size() {
+unalias folder_size 2>/dev/null
+function folder_size {
     local size=""
     if command -v timeout >/dev/null 2>&1; then
         size=$(timeout 0.2s du -sh . 2>/dev/null | cut -f1)
@@ -109,11 +121,13 @@ folder_size() {
     [[ -n "$size" ]] && echo "📂 ${size}" || echo "📂 ~"
 }
 
-disk_usage() {
+unalias disk_usage 2>/dev/null
+function disk_usage {
     echo " 💽 $(df -h / | awk 'NR==2 {print $4}') free"
 }
 
-load_avg() {
+unalias load_avg 2>/dev/null
+function load_avg {
     echo " ⚖️ $(uptime | awk -F'load average:' '{ print $2 }' | cut -d',' -f1 | sed 's/ //g')"
 }
 
@@ -121,7 +135,8 @@ load_avg() {
 function timer_start { timer=${timer:-$SECONDS}; }
 trap 'timer_start' DEBUG
 
-get_duration() {
+unalias get_duration 2>/dev/null
+function get_duration {
     local delta=$((SECONDS - timer))
     if [ $delta -ge 1 ]; then
         echo " ⏱️ ${delta}s"
@@ -129,11 +144,13 @@ get_duration() {
     unset timer
 }
 
-check_readonly() {
+unalias check_readonly 2>/dev/null
+function check_readonly {
     [ ! -w . ] && echo " 🔒"
 }
 
-pending_updates() {
+unalias pending_updates 2>/dev/null
+function pending_updates {
     local updates=0
 
     # ১. আর্চ লিনাক্স (Arch Linux) এর জন্য চেক
@@ -183,7 +200,8 @@ PS1+="${blink_cursor} "
 # ======================================================
 
 # --- Initialize a Project (Bun or NPM) ---
-ii() {
+unalias ii 2>/dev/null
+function ii {
     local has_bun=0 has_npm=0 has_pnpm=0 has_yarn=0
     command -v bun >/dev/null 2>&1 && has_bun=1
     command -v npm >/dev/null 2>&1 && has_npm=1
@@ -229,7 +247,8 @@ ii() {
 }
 
 # --- Setup Next.js Project ---
-next() {
+unalias next 2>/dev/null
+function next {
     echo "⚡ Setup Next.js with:"
     echo "1) Bun"
     echo "2) NPM"
@@ -245,7 +264,8 @@ next() {
 
 # Auto-patch tsconfig/jsconfig with baseUrl and @/* paths
 # Priority: tsconfig.app.json (Vite TS) -> tsconfig.json (Next.js TS) -> jsconfig.json (JS)
-_ui_patch_tsconfig() {
+unalias _ui_patch_tsconfig 2>/dev/null
+function _ui_patch_tsconfig {
     local tsconfig
 
     if [[ -f "tsconfig.app.json" ]]; then
@@ -304,7 +324,8 @@ _ui_patch_tsconfig() {
 }
 
 # Auto-patch vite.config.ts with path alias and tailwind import
-_ui_patch_viteconfig() {
+unalias _ui_patch_viteconfig 2>/dev/null
+function _ui_patch_viteconfig {
     local viteconfig
     viteconfig=$(ls vite.config.ts vite.config.js 2>/dev/null | head -n1)
 
@@ -357,7 +378,8 @@ _ui_patch_viteconfig() {
     fi
 }
 
-ui() {
+unalias ui 2>/dev/null
+function ui {
     echo "Setup Shadcn UI"
     echo ""
 
@@ -479,7 +501,8 @@ ui() {
 }
 
 # --- Setup Vite (React/Vue) Project ---
-vite() {
+unalias vite 2>/dev/null
+function vite {
     echo "⚡ Setup Vite with:"
     echo "1) Bun"
     echo "2) NPM"
@@ -540,7 +563,8 @@ vite() {
 # 🚀 Install Tailwind CSS + Helpers
 # ======================================================
 
-css() {
+unalias css 2>/dev/null
+function css {
     if [[ ! -f package.json ]]; then
         echo "❌ Error: package.json not found!"
         return 1
@@ -562,7 +586,8 @@ css() {
 }
 
 #  Kill Port (Usage: kp 3000)
-kp() {
+unalias kp 2>/dev/null
+function kp {
     if [ -z "$1" ]; then
         echo "❌ Port number required!"
         return
@@ -574,7 +599,8 @@ kp() {
 # 🚀 Universal Extractor (Usage: ex file.zip)
 # ======================================================
 
-ex() {
+unalias ex 2>/dev/null
+function ex {
     if [ -f "$1" ]; then
         case "$1" in
             *.tar.bz2 | *.tbz2) tar xjf "$1" ;;
@@ -595,7 +621,8 @@ ex() {
 }
 
 # Usage: ff filename
-ff() {
+unalias ff 2>/dev/null
+function ff {
     if command -v fd >/dev/null 2>&1; then
         fd -H -E "node_modules" -E ".git" "$1"
     else
@@ -604,14 +631,16 @@ ff() {
 }
 
 #  Secret Key Generator (Usage: gen 32)
-gen() {
+unalias gen 2>/dev/null
+function gen {
     local len="${1:-24}"
     echo -e "🔑 Base64: \033[1;32m$(openssl rand -base64 "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
     echo -e "🔑 Hex:    \033[1;36m$(openssl rand -hex "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
 }
 
 #  Backup File (Usage: bak .env)
-bak() {
+unalias bak 2>/dev/null
+function bak {
     cp "$1" "$1.bak" && echo "✅ Created: $1.bak"
 }
 
@@ -623,7 +652,8 @@ alias iploc='curl -s ipinfo.io/json | grep -E "ip|city|region|org"'
 alias h='history | grep'
 
 # FZF History Search (Usage: fh)
-fh() {
+unalias fh 2>/dev/null
+function fh {
     if command -v fzf >/dev/null 2>&1; then
         local cmd=$(history | awk '{$1=""; print $0}' | fzf --reverse +s)
         [[ -n "$cmd" ]] && eval "$cmd"
@@ -633,7 +663,8 @@ fh() {
 }
 
 # Safe Delete - moves to system trash
-trash() {
+unalias trash 2>/dev/null
+function trash {
     if command -v gio >/dev/null 2>&1; then
         gio trash "$@" && echo "🗑 Moved to Trash via GIO."
     else
@@ -646,7 +677,8 @@ trash() {
 # 🚀 INTERACTIVE GIT WIP & PUSH
 # ======================================================
 
-gwip() {
+unalias gwip 2>/dev/null
+function gwip {
     # ১. সব ফাইল স্টেজ করা
     git add .
 
@@ -680,7 +712,8 @@ gwip() {
 #  📦 universal remove
 # ======================================================
 
-uu() {
+unalias uu 2>/dev/null
+function uu {
     local RED='\033[1;31m' GRN='\033[1;32m' YLW='\033[1;33m' CYN='\033[1;36m' BOLD='\033[1m' NC='\033[0m'
 
     # --- OS & Package Manager Detection ---
@@ -718,7 +751,8 @@ uu() {
 
     echo -e "${CYN}🔍 Harvesting System Assets...${NC}"
 
-    shred_animation() {
+    unalias shred_animation 2>/dev/null
+    function shred_animation {
         local PID=$1
         local pkg=$2
         local sp='/-\|'
@@ -750,7 +784,8 @@ uu() {
         return $exit_status
     }
 
-    format_name() {
+    unalias format_name 2>/dev/null
+    function format_name {
         echo "$1" | sed -E 's/(google-chrome-stable|google-chrome)/chrome/g; s/(brave-browser)/brave/g; s/code/vscode/g; s/(-stable|-bin|-desktop)//g; s/\.[a-zA-Z0-9]+$//' | cut -c1-18
     }
 
@@ -1046,7 +1081,8 @@ uu() {
 #  📦 Universal Update pack
 # ======================================================
 
-uup() {
+unalias uup 2>/dev/null
+function uup {
     # --- UI Colors & Styles ---
     local RED='\033[1;31m' GRN='\033[1;32m' YLW='\033[1;33m' BLU='\033[1;34m'
     local PUR='\033[1;35m' CYN='\033[1;36m' BOLD='\033[1m' NC='\033[0m'
@@ -1247,7 +1283,8 @@ uup() {
 # ======================================================
 #  🆘 HELP MENU — Modern UI/UX Edition
 # ======================================================
-keep() {
+unalias keep 2>/dev/null
+function keep {
     # Modern Color Palette
     RESET='\033[0m'
     BOLD='\033[1m'
@@ -1295,7 +1332,8 @@ keep() {
     echo -e "${GRAY}  v2.0 • Modern Terminal UX • $(date +'%B %d, %Y')${RESET}\n"
 
     # Function to print category headers
-    print_category() {
+    unalias print_category 2>/dev/null
+    function print_category {
         local icon=$1
         local title=$2
         local color=$3
@@ -1305,7 +1343,8 @@ keep() {
     }
 
     # Function to print command row
-    print_cmd() {
+    unalias print_cmd 2>/dev/null
+    function print_cmd {
         local cmd=$1
         local desc=$2
         local example=$3
@@ -1319,7 +1358,8 @@ keep() {
     }
 
     # Function to print alias row
-    print_alias() {
+    unalias print_alias 2>/dev/null
+    function print_alias {
         local alias=$1
         local equals=$2
         local full=$3
@@ -1555,7 +1595,8 @@ keep() {
 #  📦 Run ts / js file on terminal
 # ======================================================
 
-run() {
+unalias run 2>/dev/null
+function run {
     # Color Codes
     CYAN='\033[0;36m'
     YELLOW='\033[1;33m'
@@ -1646,7 +1687,8 @@ run() {
 #  📦 VIDEO FILLTER AND OPEN
 # ======================================================
 
-v() {
+unalias v 2>/dev/null
+function v {
     local DIR="${1:-$PWD}"
     local PLAYER=""
 
@@ -1712,7 +1754,8 @@ v() {
 #  📦universal clean
 # ======================================================
 
-uc() {
+unalias uc 2>/dev/null
+function uc {
     # ==============================
     # 🎨 COLORS & SAFETY
     # ==============================
@@ -1748,11 +1791,13 @@ uc() {
         LOG_FILE="/dev/null"
     fi
 
-    _log() {
+    unalias _log 2>/dev/null
+    function _log {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >>"$LOG_FILE" 2>/dev/null || true
     }
 
-    _trap_exit() {
+    unalias _trap_exit 2>/dev/null
+    function _trap_exit {
         local exit_code=$?
         trap - INT TERM EXIT
         echo -e "\n${RED}⚠️  Interrupted (Exit code: $exit_code)${NC}" >&2
@@ -1767,7 +1812,8 @@ uc() {
     # ==============================
     # 🐧 DISTRO DETECTION
     # ==============================
-    _detect_distro() {
+    unalias _detect_distro 2>/dev/null
+    function _detect_distro {
         local d_id="unknown" d_name="Unknown Linux"
 
         if [[ -r /etc/os-release ]]; then
@@ -1819,7 +1865,8 @@ uc() {
     # ==============================
     # 🔒 PACKAGE MANAGER
     # ==============================
-    _sudo_check() {
+    unalias _sudo_check 2>/dev/null
+    function _sudo_check {
         if [[ $EUID -eq 0 ]]; then
             return 0 # Already root
         fi
@@ -1833,7 +1880,8 @@ uc() {
         return 0
     }
 
-    _pkg_install() {
+    unalias _pkg_install 2>/dev/null
+    function _pkg_install {
         local pkgs=("$@")
         local pkg_manager=""
 
@@ -1924,7 +1972,8 @@ uc() {
     # ==============================
     # 🔄 PATH & ENV REFRESH
     # ==============================
-    _refresh_env() {
+    unalias _refresh_env 2>/dev/null
+    function _refresh_env {
         # Reload PATH
         local paths=(
             "/usr/local/sbin"
@@ -1964,7 +2013,8 @@ uc() {
     # ==============================
     # 🛠️ TOOL INSTALLERS
     # ==============================
-    _install_fzf() {
+    unalias _install_fzf 2>/dev/null
+    function _install_fzf {
         echo -e "${YELLOW}⚠️  fzf not found. Installing...${NC}"
 
         # Try package manager first
@@ -2003,7 +2053,8 @@ uc() {
         return 1
     }
 
-    _configure_fzf() {
+    unalias _configure_fzf 2>/dev/null
+    function _configure_fzf {
         echo -e "${BLUE}🔧 Configuring fzf...${NC}"
 
         _refresh_env
@@ -2050,7 +2101,8 @@ uc() {
         fi
     }
 
-    _install_sensors() {
+    unalias _install_sensors 2>/dev/null
+    function _install_sensors {
         echo -e "${YELLOW}⚠️  sensors not found. Installing...${NC}"
 
         local pkg_name="lm-sensors"
@@ -2108,7 +2160,8 @@ uc() {
         return 0
     }
 
-    _install_zram() {
+    unalias _install_zram 2>/dev/null
+    function _install_zram {
         echo -e "${YELLOW}⚠️  zram tools not found. Installing...${NC}"
 
         local pkg_name="util-linux"
@@ -2257,7 +2310,8 @@ EOF
     # ==============================
     # 🔧 CORE FUNCTIONS
     # ==============================
-    _pkg_clean() {
+    unalias _pkg_clean 2>/dev/null
+    function _pkg_clean {
         _sudo_check || return 1
         case "$DISTRO_ID" in
             ubuntu | debian | linuxmint | pop | elementary)
@@ -2286,7 +2340,8 @@ EOF
         esac
     }
 
-    _get_temp_zram() {
+    unalias _get_temp_zram 2>/dev/null
+    function _get_temp_zram {
         local temp="N/A" zram_used="0"
 
         if command -v sensors >/dev/null 2>&1; then
@@ -2320,13 +2375,15 @@ EOF
         printf '%s %s' "${temp:-N/A}" "${zram_used:-0}"
     }
 
-    _get_free_kb() {
+    unalias _get_free_kb 2>/dev/null
+    function _get_free_kb {
         local avail
         avail=$(df -k / 2>/dev/null | awk 'NR==2 {print $4}')
         [[ "$avail" =~ ^[0-9]+$ ]] && echo "$avail" || echo "0"
     }
 
-    _format_size() {
+    unalias _format_size 2>/dev/null
+    function _format_size {
         local kb=$1
         [[ "$kb" =~ ^[0-9]+$ ]] || {
             echo "0KB"
@@ -2345,7 +2402,8 @@ EOF
         fi
     }
 
-    _run_task() {
+    unalias _run_task 2>/dev/null
+    function _run_task {
         local label=$1
         shift
         echo -ne "   ${GREEN}➤ $label...${NC} "
@@ -2361,7 +2419,8 @@ EOF
     # ==============================
     # 🧹 CLEANING FUNCTIONS
     # ==============================
-    _os_clean() {
+    unalias _os_clean 2>/dev/null
+    function _os_clean {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}        ⚡ OS CLEAN             ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2424,7 +2483,8 @@ EOF
         _log "OS clean executed"
     }
 
-    _container_clean() {
+    unalias _container_clean 2>/dev/null
+    function _container_clean {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}      🐳 CONTAINER CLEAN        ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2509,7 +2569,8 @@ EOF
         _log "Container clean executed"
     }
 
-    _fix_links() {
+    unalias _fix_links 2>/dev/null
+    function _fix_links {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}        🔗 FIX LINKS            ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2526,7 +2587,8 @@ EOF
         _log "Fixed $count broken links"
     }
 
-    _orphan_engine() {
+    unalias _orphan_engine 2>/dev/null
+    function _orphan_engine {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}       ⚡ KERNEL CLEAN           ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2619,7 +2681,8 @@ EOF
         _log "Kernel clean executed"
     }
 
-    _ai_mode() {
+    unalias _ai_mode 2>/dev/null
+    function _ai_mode {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}       🤖 AI DIAGNOSTICS        ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2682,7 +2745,8 @@ EOF
         _log "AI mode executed"
     }
 
-    _report() {
+    unalias _report 2>/dev/null
+    function _report {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}       📊 SYSTEM REPORT         ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2731,7 +2795,8 @@ EOF
     # ==============================
     # 🗑️ APPIMAGE ARTIFACT CLEANUP
     # ==============================
-    _appimage_cleanup() {
+    unalias _appimage_cleanup 2>/dev/null
+    function _appimage_cleanup {
         echo -e "${BLUE}╔════════════════════════════════╗${NC}"
         echo -e "${BLUE}║${NC}    🗑️  APPIMAGE ARTIFACT CLEAN  ${BLUE}║${NC}"
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
@@ -2812,7 +2877,8 @@ EOF
     # ==============================
     # 📋 INTERACTIVE MENU
     # ==============================
-    _show_menu() {
+    unalias _show_menu 2>/dev/null
+    function _show_menu {
         local -a choices=(
             "🚀  Full System Boost"
             "🤖  AI Smart Cleanup"
@@ -2900,7 +2966,8 @@ EOF
 #  📦 runtime install
 # ======================================================
 
-rt() {
+unalias rt 2>/dev/null
+function rt {
     # ১. fzf চেক এবং অটো-ইন্সটলেশন
     if ! command -v fzf &>/dev/null; then
         echo "🔍 fzf খুঁজে পাওয়া যায়নি। ইন্সটল করা হচ্ছে..."
@@ -2975,7 +3042,8 @@ rt() {
 # Ultimate Smart PC Optimizer (v5.1 - Clean UI)
 # =========================================
 
-ut() {
+unalias ut 2>/dev/null
+function ut {
     # ===== 🎨 UI PALETTE =====
     local RED='\033[1;31m' GREEN='\033[1;32m' YELLOW='\033[1;33m'
     local BLUE='\033[1;34m' PURPLE='\033[1;35m' CYAN='\033[1;36m'
@@ -2987,7 +3055,8 @@ ut() {
     local DISTRO_ID="" PKG_MANAGER="" PKG_INSTALL="" PKG_QUERY=""
     local SERVICE_CMD="systemctl"
 
-    detect_distro() {
+    unalias detect_distro 2>/dev/null
+    function detect_distro {
         if [[ -f /etc/os-release ]]; then
             source /etc/os-release
             DISTRO_ID="${ID,,}"
@@ -3042,7 +3111,8 @@ ut() {
     echo -e "${CYAN} 🖥️  Detected: ${BOLD}${DISTRO_ID}${NC} | Package Manager: ${BOLD}${PKG_MANAGER}${NC}"
 
     # ===== ⚙️ FZF CHECK =====
-    install_fzf_universal() {
+    unalias install_fzf_universal 2>/dev/null
+    function install_fzf_universal {
         echo -e "${YELLOW}📦 Installing fzf...${NC}"
         case "$PKG_MANAGER" in
             "apt") sudo apt update -y && sudo apt install -y fzf ;;
@@ -3156,7 +3226,8 @@ ut() {
         ["net-tools"]="net-tools|net-tools|net-tools|net-tools|net-tools|net-tools"
     )
 
-    get_pkg_name() {
+    unalias get_pkg_name 2>/dev/null
+    function get_pkg_name {
         local generic="$1"
         local mapping="${PKG_MAP[$generic]}"
         [[ -z "$mapping" ]] && echo "$generic" && return
@@ -3172,7 +3243,8 @@ ut() {
         echo "$mapping" | cut -d'|' -f$idx
     }
 
-    is_installed() {
+    unalias is_installed 2>/dev/null
+    function is_installed {
         local pkg="$1"
         case "$PKG_MANAGER" in
             "apt") dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "ok installed" ;;
@@ -3353,7 +3425,8 @@ ut() {
     [[ "$SHELL" == */zsh ]] && RC_FILE="$HOME/.zshrc"
     local SHELL_NAME=$(basename "$SHELL")
 
-    add_config() {
+    unalias add_config 2>/dev/null
+    function add_config {
         local marker="$1"
         local content="$2"
         if ! grep -qF "$marker" "$RC_FILE" 2>/dev/null; then
@@ -3516,7 +3589,8 @@ ut() {
 #  📂 all file re name
 # ======================================================
 
-rn() {
+unalias rn 2>/dev/null
+function rn {
     local target_dir="${1:-.}"
 
     if [ ! -d "$target_dir" ]; then
@@ -3565,7 +3639,8 @@ rn() {
 # ======================================================
 
 # Smart Universal Package Converter & Manager
-pg() {
+unalias pg 2>/dev/null
+function pg {
     local file="$1"
     local install_flag="$2"
     local os_type=""
@@ -3665,7 +3740,8 @@ alias ....='cd ../../..'
 
 # alias drive='cd /media/Rihad/085df205-a554-40c8-b0b1-59a1ad469a94'
 
-drive() {
+unalias drive 2>/dev/null
+function drive {
     # 1st and 2nd drive er unique sesh ongsho (UUID) ekhane bosiye din
     local drive1_uuid="469a94"
     local drive2_uuid="b2c89f" # <--- Apnar 2nd drive er UUID match kore niben
@@ -3784,7 +3860,8 @@ alias pgls='psql -U postgres -c "\\l"'      # সব database list
 alias pgtables='psql -U postgres -c "\\dt"' # সব table list
 alias pgdump='pg_dump -U postgres'          # Usage: pgdump mydb > backup.sql
 alias pgrestore='psql -U postgres'          # Usage: pgrestore mydb < backup.sql
-pglogs() {
+unalias pglogs 2>/dev/null
+function pglogs {
     if [ -d /var/log/postgresql ] && ls /var/log/postgresql/*.log &>/dev/null; then
         sudo tail -f /var/log/postgresql/*.log
     else
@@ -3836,19 +3913,22 @@ alias bpv='bunx prisma version'              # bunx prisma version
 
 # Create directory and enter it immediately
 # Usage: mkd new_folder
-mkd() {
+unalias mkd 2>/dev/null
+function mkd {
     mkdir -p "$1" && cd "$1" && echo "✅ Created & Entered: $1"
 }
 
 # Force remove directory
 # Usage: rmd folder_name
-rmd() {
+unalias rmd 2>/dev/null
+function rmd {
     rm -rf "$1" && echo "✅ Removed directory: $1"
 }
 
 # Remove file with confirmation
 # Usage: rmf file.txt
-rmf() {
+unalias rmf 2>/dev/null
+function rmf {
     rm -i "$1" && echo "✅ Removed file: $1"
 }
 
@@ -3905,7 +3985,8 @@ alias brave="flatpak run com.brave.Browser"
 alias youtube="brave --app=https://www.youtube.com"
 
 # Handle unknown commands politely
-command_not_found_handle() {
+unalias command_not_found_handle 2>/dev/null
+function command_not_found_handle {
     echo "❌ Command not found: $1"
     if command -v apt &>/dev/null; then
         echo "🔍 Try searching: apt search $1 | npm i -g $1"
@@ -3942,7 +4023,8 @@ fi
 # 1. Auto-LS and FZF Summary Preview when changing directory (Bash Version)
 # ==============================================================================
 
-accurate_auto_ls() {
+unalias accurate_auto_ls 2>/dev/null
+function accurate_auto_ls {
     # Shudhu jokhon directory change hobe (kew cd korbe) tokhon e run hobe
     if [ "$PWD" = "$LAST_PWD" ]; then
         return
@@ -3996,7 +4078,8 @@ fi
 # ==============================================================================
 # Terminal-e shudhu 'cf' likhle fzf open hobe pipeline preview shoho
 
-cf() {
+unalias cf 2>/dev/null
+function cf {
     local dir
     local search_cmd
     local target_dir="${1:-.}"
@@ -4144,7 +4227,8 @@ alias dtest-alpine="docker run --rm -it alpine:latest sh"
 # --------------------------------------------------------------------
 
 # ইমেজ বা কন্টেইনারের নাম দিয়ে সার্চ করা
-dfind() {
+unalias dfind 2>/dev/null
+function dfind {
     echo -e "\e[1;34m--> Running Containers:\e[0m"
     docker ps | grep -i "$1"
     echo -e "\n\e[1;32m--> Downloaded Images:\e[0m"
@@ -4152,17 +4236,20 @@ dfind() {
 }
 
 # কন্টেইনারের ভেতর সরাসরি Root ইউজার হিসেবে ঢোকা (পারমিশন এরর এড়াতে)
-droot() {
+unalias droot 2>/dev/null
+function droot {
     docker exec -it -u root "$1" bash 2>/dev/null || docker exec -it -u root "$1" sh
 }
 
 # নির্দিষ্ট কন্টেইনারের শুধু লোকাল IP এড্রেসটি দেখতে
-dip() {
+unalias dip 2>/dev/null
+function dip {
     docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$1"
 }
 
 # কন্টেইনারের রিয়েল-টাইম ফাইল সিস্টেম পরিবর্তন লাইভ ট্র্যাকিং করা
-dwatch() {
+unalias dwatch 2>/dev/null
+function dwatch {
     if [ -z "$1" ]; then
         echo "Usage: dwatch <container-name>"
         return 1
@@ -4172,7 +4259,8 @@ dwatch() {
 }
 
 # কন্টেইনারের ট্রাফিক এবং লাইভ পোর্ট বাইন্ডিং ডিবাগ করা
-dnetstat() {
+unalias dnetstat 2>/dev/null
+function dnetstat {
     if [ -z "$1" ]; then
         echo "Usage: dnetstat <container-name>"
         return 1
@@ -4182,7 +4270,8 @@ dnetstat() {
 }
 
 # কন্টেইনারের ভেতরের প্রসেস ট্রি (Process Tree) দেখা
-dtop-proc() {
+unalias dtop-proc 2>/dev/null
+function dtop-proc {
     if [ -z "$1" ]; then
         echo "Usage: dtop-proc <container-name>"
         return 1
@@ -4191,12 +4280,14 @@ dtop-proc() {
 }
 
 # কোনো ডকার কন্টেইনারের ভলিউম ডিরেক্টলি ব্যাকআপ নেওয়া (Tar ফাইল হিসেবে)
-dbackup() {
+unalias dbackup 2>/dev/null
+function dbackup {
     docker run --rm -v "$1":/volume -v "$(pwd)":/backup alpine tar cvf /backup/"$2" -C /volume .
 }
 
 # ইন্টারেক্টিভ সব চলমান কন্টেইনার ফোর্স কিল করা (কনফার্মেশনসহ)
-dkill-force() {
+unalias dkill-force 2>/dev/null
+function dkill-force {
     echo -e "\e[1;31m⚠️  WARNING: You are about to stop and remove ALL running containers!\e[0m"
     read -p "Are you sure? (y/N): " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
@@ -4209,7 +4300,8 @@ dkill-force() {
 }
 
 # আলটিমেট সিস্টেম ক্লিনআপ (অব্যবহৃত ক্যাশ, কন্টেইনার, ভলিউম ও ইমেজ ডিলিট করে জিবি জিবি জায়গা খালি করা)
-dclean() {
+unalias dclean 2>/dev/null
+function dclean {
     echo -e "\e[1;31m🧹 Performing deep clean of all unused Docker resources...\e[0m"
     docker system prune -a --volumes -f
     echo -e "\e[1;32m✨ System optimization complete!\e[0m"
@@ -4220,7 +4312,8 @@ dclean() {
 # --------------------------------------------------------------------
 
 # শর্টকাট কমান্ডগুলোর জন্য কন্টেইনারের নাম অটো-কম্প্লিট (Tab) করা
-_docker_containers_completion() {
+unalias _docker_containers_completion 2>/dev/null
+function _docker_containers_completion {
     local curr_arg=${COMP_WORDS[COMP_CWORD]}
     local actions=$(docker ps -a --format "{{.Names}}")
     COMPREPLY=($(compgen -W "$actions" -- "$curr_arg"))
@@ -4228,7 +4321,8 @@ _docker_containers_completion() {
 complete -F _docker_containers_completion dsh dlogs dstop dkill drestart dports dwatch dnetstat dtop-proc
 
 # শর্টকাট কমান্ডগুলোর জন্য ইমেজের নাম অটো-কম্প্লিট করা
-_docker_images_completion() {
+unalias _docker_images_completion 2>/dev/null
+function _docker_images_completion {
     local curr_arg=${COMP_WORDS[COMP_CWORD]}
     local images=$(docker images --format "{{.Repository}}")
     COMPREPLY=($(compgen -W "$images" -- "$curr_arg"))
@@ -4246,7 +4340,8 @@ fi
 # ======================================================
 # Advance C/C++ boilerplate generator
 # ======================================================
-makecpp() {
+unalias makecpp 2>/dev/null
+function makecpp {
     if [ -z "$1" ]; then
         echo "❌ Error: Please provide a project name! (e.g., makecpp my_project)"
         return 1
@@ -4335,7 +4430,8 @@ EOF
     fi
 }
 
-t() {
+unalias t 2>/dev/null
+function t {
     if [ $# -eq 0 ]; then
         echo "❌ Provide at least one filename."
         return 1
