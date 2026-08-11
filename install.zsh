@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ZSHRC="$HOME/.zshrc"
-URL="https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/config.zsh"
+URL="https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/config.zsh"
 
 START="# >>> fancy-zshrc >>>"
 END="# <<< fancy-zshrc <<<"
