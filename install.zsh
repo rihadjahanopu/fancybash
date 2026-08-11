@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ZSHRC="$HOME/.zshrc"
-URL="https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/config.zsh"
+URL="https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/config.zsh"
 START="# >>> fancy-zshrc >>>"
 END="# <<< fancy-zshrc <<<"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "$PWD")"
@@ -55,10 +55,10 @@ draw_progress_bar() {
     local percentage=$((current * 100 / total))
     local completed=$((width * current / total))
     local remaining=$((width - completed))
-    
+
     local bar=$(printf "%${completed}s" | tr ' ' '█')
     local empty=$(printf "%${remaining}s" | tr ' ' '░')
-    
+
     echo ""
     printf "${BLUE}Progress:${NC} [${GREEN}%s${GRAY}%s${NC}] ${CYAN}%d%%${NC} (Step %d/%d)\n" "$bar" "$empty" "$percentage" "$current" "$total"
 }
@@ -147,7 +147,7 @@ check_and_install_fonts() {
     echo ""
     printf "${YELLOW}  ❯ Missing components detected.${NC}\n"
     printf "    Would you like to auto-install them? [${GREEN}Y${NC}/n]: "
-    
+
     # Read from /dev/tty safely for curl piped scripts
     local response="y"
     if [ -t 0 ]; then
@@ -155,7 +155,7 @@ check_and_install_fonts() {
     elif [ -c /dev/tty ]; then
         read -r response < /dev/tty || response="y"
     fi
-    
+
     if [[ "$response" =~ ^([nN][oO]|[nN])$ ]]; then
         printf "  ${YELLOW}⚠ Skipped installation.${NC}\n"
         return 0
