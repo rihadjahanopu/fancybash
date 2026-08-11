@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 
 set -euo pipefail
 
@@ -6,31 +6,61 @@ ZSHRC="$HOME/.zshrc"
 URL="https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/config.zsh"
 START="# >>> fancy-zshrc >>>"
 END="# <<< fancy-zshrc <<<"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "$PWD")"
 LOCAL_CONFIG="$SCRIPT_DIR/config.zsh"
 
 # ─── Colors & Formatting ───────────────────
-RED='\033[38;5;203m'
-GREEN='\033[38;5;120m'
-YELLOW='\033[38;5;221m'
-BLUE='\033[38;5;75m'
-PURPLE='\033[38;5;141m'
-CYAN='\033[38;5;86m'
-GRAY='\033[38;5;245m'
+RED='\033[38;2;243;139;168m'
+GREEN='\033[38;2;166;227;161m'
+YELLOW='\033[38;2;249;226;175m'
+BLUE='\033[38;2;137;180;250m'
+PURPLE='\033[38;2;203;166;247m'
+CYAN='\033[38;2;148;226;213m'
+GRAY='\033[38;2;147;153;178m'
 BOLD='\033[1m'
 NC='\033[0m'
+
+tmpfile=""
+backup_file=""
+
+# ─── Safe Signal Trap & Cursor Restore ─────
+cleanup() {
+    tput cnorm 2>/dev/null || true
+    if [ -n "$tmpfile" ] && [ -f "$tmpfile" ]; then
+        rm -f "$tmpfile"
+    fi
+}
+trap cleanup EXIT SIGINT SIGTERM
 
 # ─── Spinner ───────────────────────────────
 spinner() {
     local pid=$1 msg="$2" delay=0.08
     local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    tput civis 2>/dev/null || true
     while kill -0 "$pid" 2>/dev/null; do
         for char in "${spin[@]}"; do
-            printf "\r${CYAN}%s${NC} %s" "$char" "$msg"
+            printf "\r  ${CYAN}%s${NC} %s" "$char" "$msg"
             sleep $delay
         done
     done
-    printf "\r${GREEN}  ✔${NC} %s\n" "$msg"
+    tput cnorm 2>/dev/null || true
+    printf "\r  ${GREEN}✔${NC} %s\n" "$msg"
+}
+
+# ─── Progress Bar ──────────────────────────
+draw_progress_bar() {
+    local current=$1
+    local total=5
+    local width=30
+    local percentage=$((current * 100 / total))
+    local completed=$((width * current / total))
+    local remaining=$((width - completed))
+    
+    local bar=$(printf "%${completed}s" | tr ' ' '█')
+    local empty=$(printf "%${remaining}s" | tr ' ' '░')
+    
+    echo ""
+    printf "${BLUE}Progress:${NC} [${GREEN}%s${GRAY}%s${NC}] ${CYAN}%d%%${NC} (Step %d/%d)\n" "$bar" "$empty" "$percentage" "$current" "$total"
 }
 
 # ─── Header ────────────────────────────────
@@ -40,6 +70,27 @@ show_header() {
     echo -e "${PURPLE}│${NC}  ✨ ${BOLD}${CYAN}F A N C Y B A S H${NC}  •  ${BOLD}Zsh Config Installer${NC}   ${PURPLE}│${NC}"
     echo -e "${PURPLE}╰──────────────────────────────────────────────────╯${NC}"
     echo ""
+}
+
+# ─── System Information ────────────────────
+show_sysinfo() {
+    local os_name=$(uname -s)
+    if [ -f /etc/os-release ]; then
+        os_name=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d '=' -f 2 | tr -d '"')
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        os_name="macOS $(sw_vers -productVersion 2>/dev/null || echo '')"
+    fi
+
+    local arch=$(uname -m)
+    local user=${USER:-$(whoami 2>/dev/null || echo "user")}
+    local current_shell=$(basename "${SHELL:-zsh}")
+
+    echo -e "${BLUE}╭─ System Information ─────────────────────────────╮${NC}"
+    printf "${BLUE}│${NC}  💻 ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "OS:" "$os_name"
+    printf "${BLUE}│${NC}  👤 ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "User:" "$user"
+    printf "${BLUE}│${NC}  🐚 ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "Shell:" "$current_shell"
+    printf "${BLUE}│${NC}  ⚙️  ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "Arch:" "$arch"
+    echo -e "${BLUE}╰──────────────────────────────────────────────────╯${NC}"
 }
 
 # ─── OS & Package Manager Detection ────────
@@ -69,7 +120,7 @@ detect_pm() {
 
 # ─── Check & Install Fonts ──────────────────
 check_and_install_fonts() {
-    printf "${BLUE}[1/5]${NC} Checking system fonts & dependencies...\n"
+    printf "  ${CYAN}➜${NC} Checking system dependencies...\n"
 
     local missing_deps=()
     for cmd in curl grep git fzf; do
@@ -88,49 +139,68 @@ check_and_install_fonts() {
     fi
 
     if [ ${#missing_deps[@]} -eq 0 ] && [ $fonts_needed -eq 0 ]; then
-        printf "${GREEN}  ✔${NC} All dependencies & fonts are already installed!\n"
+        printf "  ${GREEN}✔${NC} All dependencies & fonts are already installed!\n"
         return 0
     fi
 
-    printf "${YELLOW}  ⚠ Missing components detected. Attempting auto-installation...${NC}\n"
+    # Interactive Prompt
+    echo ""
+    printf "${YELLOW}  ❯ Missing components detected.${NC}\n"
+    printf "    Would you like to auto-install them? [${GREEN}Y${NC}/n]: "
+    
+    # Read from /dev/tty safely for curl piped scripts
+    local response="y"
+    if [ -t 0 ]; then
+        read -r response
+    elif [ -c /dev/tty ]; then
+        read -r response < /dev/tty || response="y"
+    fi
+    
+    if [[ "$response" =~ ^([nN][oO]|[nN])$ ]]; then
+        printf "  ${YELLOW}⚠ Skipped installation.${NC}\n"
+        return 0
+    fi
+
     local pm=$(detect_pm)
     local sudo_cmd=""
     if [ "${EUID:-$(id -u)}" -ne 0 ] && command -v sudo &>/dev/null; then
         sudo_cmd="sudo"
     fi
 
+    printf "  ${CYAN}➜${NC} Installing via ${pm}...\n"
+
     case "$pm" in
         apt)
-            $sudo_cmd apt update -qq 2>/dev/null || true
-            $sudo_cmd apt install -y curl git fzf fonts-noto-color-emoji fonts-firacode fonts-cascadia-code fontconfig 2>/dev/null || true
+            $sudo_cmd apt update -qq >/dev/null 2>&1 || true
+            $sudo_cmd apt install -y curl git fzf fonts-noto-color-emoji fonts-firacode fonts-cascadia-code fontconfig >/dev/null 2>&1 || true
             ;;
         pacman)
-            $sudo_cmd pacman -Sy --noconfirm curl git fzf ttf-noto-emoji ttf-fira-code ttf-cascadia-code fontconfig 2>/dev/null || true
+            $sudo_cmd pacman -Sy --noconfirm curl git fzf ttf-noto-emoji ttf-fira-code ttf-cascadia-code fontconfig >/dev/null 2>&1 || true
             ;;
         dnf)
-            $sudo_cmd dnf install -y curl git fzf google-noto-emoji-fonts fira-code-fonts cascadia-code-fonts fontconfig 2>/dev/null || true
+            $sudo_cmd dnf install -y curl git fzf google-noto-emoji-fonts fira-code-fonts cascadia-code-fonts fontconfig >/dev/null 2>&1 || true
             ;;
         apk)
-            $sudo_cmd apk add --no-cache curl git fzf font-noto-emoji font-fira-code fontconfig 2>/dev/null || true
+            $sudo_cmd apk add --no-cache curl git fzf font-noto-emoji font-fira-code fontconfig >/dev/null 2>&1 || true
             ;;
         brew)
-            brew install curl git fzf font-fira-code font-cascadia-code font-noto-emoji 2>/dev/null || true
+            brew install curl git fzf font-fira-code font-cascadia-code font-noto-emoji >/dev/null 2>&1 || true
             ;;
         *)
-            printf "${GRAY}  ℹ Package manager not recognized. Skipping automatic font install.${NC}\n"
+            printf "  ${GRAY}ℹ Package manager not recognized. Skipping.${NC}\n"
             ;;
     esac
-    printf "${GREEN}  ✔${NC} Dependencies & fonts process completed.\n"
+    printf "  ${GREEN}✔${NC} Dependencies process completed.\n"
 }
 
 # ─── Configure Fontconfig ──────────────────
 setup_fontconfig() {
-    printf "${BLUE}[2/5]${NC} Checking font configuration (fonts.conf)...\n"
+    printf "  ${CYAN}➜${NC} Checking font configuration...\n"
     local font_dir="$HOME/.config/fontconfig"
     local font_conf="$font_dir/fonts.conf"
 
     if [ -f "$font_conf" ]; then
-        printf "${GREEN}  ✔${NC} Fontconfig already exists (${GRAY}%s${NC})\n" "~/.config/fontconfig/fonts.conf"
+        printf "  ${GREEN}✔${NC} Fontconfig already exists (${GRAY}~/.config/fontconfig/fonts.conf${NC})\n"
         return 0
     fi
 
@@ -154,45 +224,45 @@ setup_fontconfig() {
   </alias>
 </fontconfig>
 EOF
-    printf "${GREEN}  ✔${NC} Created ${PURPLE}~/.config/fontconfig/fonts.conf${NC}\n"
+    printf "  ${GREEN}✔${NC} Created ${PURPLE}~/.config/fontconfig/fonts.conf${NC}\n"
 
     if command -v fc-cache &>/dev/null; then
         fc-cache -f &>/dev/null || true
-        printf "${GREEN}  ✔${NC} Font cache refreshed!\n"
+        printf "  ${GREEN}✔${NC} Font cache refreshed!\n"
     fi
 }
 
 # ─── Check Existing Installation ───────────
 check_existing_install() {
-    printf "${BLUE}[3/5]${NC} Checking existing configuration...\n"
+    printf "  ${CYAN}➜${NC} Checking existing configuration...\n"
     if [ ! -f "$ZSHRC" ]; then
-        printf "${YELLOW}  ⚠ Creating $ZSHRC...${NC}\n"
+        printf "  ${YELLOW}⚠ Creating $ZSHRC...${NC}\n"
         touch "$ZSHRC"
     fi
 
     if grep -qF "$START" "$ZSHRC" 2>/dev/null; then
-        printf "${GREEN}  ✔${NC} Fancy Zsh config is already installed!\n"
-        printf "  ${CYAN}💡 Run:${NC} ${BOLD}source $ZSHRC${NC} to reload.\n\n"
+        printf "  ${GREEN}✔${NC} Fancy Zsh config is already installed!\n"
+        printf "    ${CYAN}💡 Run:${NC} ${BOLD}source ~/.zshrc${NC} to reload.\n\n"
         exit 0
     fi
-    printf "${GREEN}  ✔${NC} Ready for installation.\n"
+    printf "  ${GREEN}✔${NC} Ready for installation.\n"
 }
 
 # ─── Backup ────────────────────────────────
 backup_zshrc() {
-    printf "${BLUE}[4/5]${NC} Creating backup...\n"
+    printf "  ${CYAN}➜${NC} Creating backup...\n"
     backup_file="$ZSHRC.backup.$(date +%Y%m%d_%H%M%S)"
     cp "$ZSHRC" "$backup_file"
-    printf "${GREEN}  ✔${NC} Backup created: ${PURPLE}%s${NC}\n" "$(basename "$backup_file")"
+    printf "  ${GREEN}✔${NC} Backup created: ${PURPLE}$(basename "$backup_file")${NC}\n"
 }
 
 # ─── Fetch & Append Config ─────────────────
 install_config() {
-    printf "${BLUE}[5/5]${NC} Fetching and applying config...\n"
+    printf "  ${CYAN}➜${NC} Fetching and applying config...\n"
     tmpfile=$(mktemp)
 
     if [ -f "$LOCAL_CONFIG" ]; then
-        printf "${GREEN}  ✔${NC} Using local config.zsh\n"
+        printf "  ${GREEN}✔${NC} Using local config.zsh\n"
         cp "$LOCAL_CONFIG" "$tmpfile"
     else
         (
@@ -201,7 +271,7 @@ install_config() {
                 exit 1
             fi
         ) &
-        spinner $! "Fetching from GitHub..."
+        spinner $! "Downloading from GitHub..."
     fi
 
     if [ ! -s "$tmpfile" ]; then
@@ -224,22 +294,22 @@ install_config() {
     } >> "$ZSHRC"
 
     rm -f "$tmpfile"
-    printf "${GREEN}  ✔${NC} Config successfully added to ~/.zshrc!\n"
+    printf "  ${GREEN}✔${NC} Config successfully added to ~/.zshrc!\n"
 }
 
 # ─── Reload & Summary ──────────────────────
 show_summary() {
     echo ""
     if source "$ZSHRC" 2>/dev/null; then
-        printf "${GREEN}✨ Installation & auto-reload successful!${NC}\n\n"
+        printf "  ${GREEN}✨ Installation & auto-reload successful!${NC}\n\n"
     else
-        printf "${YELLOW}⚠ Auto-reload skipped.${NC} Please run: ${BOLD}source ~/.zshrc${NC}\n\n"
+        printf "  ${YELLOW}⚠ Auto-reload skipped.${NC} Please run: ${BOLD}source ~/.zshrc${NC}\n\n"
     fi
 
     echo -e "${CYAN}╭──────────────────────────────────────────────────╮${NC}"
-    echo -e "${CYAN}│${NC}  📋  ${BOLD}INSTALLATION SUMMARY${NC}                       ${CYAN}│${NC}"
+    echo -e "${CYAN}│${NC}  📋  ${BOLD}INSTALLATION SUMMARY${NC}                      ${CYAN}│${NC}"
     echo -e "${CYAN}├──────────────────────────────────────────────────┤${NC}"
-    echo -e "${CYAN}│${NC}  • Backup:   ${GREEN}$(basename "$backup_file")${NC}"
+    echo -e "${CYAN}│${NC}  • Backup:   ${GREEN}$(basename "${backup_file:-none}")${NC}"
     echo -e "${CYAN}│${NC}  • Config:   ${GREEN}~/.zshrc${NC}"
     echo -e "${CYAN}│${NC}  • Reload:   ${PURPLE}source ~/.zshrc${NC}"
     echo -e "${CYAN}│${NC}  • Uninstall:${YELLOW}sed -i '/$START/,/$END/d' ~/.zshrc${NC}"
@@ -250,11 +320,23 @@ show_summary() {
 # ─── Main Execution ────────────────────────
 main() {
     show_header
+    show_sysinfo
+
+    draw_progress_bar 1 5
     check_and_install_fonts
+
+    draw_progress_bar 2 5
     setup_fontconfig
+
+    draw_progress_bar 3 5
     check_existing_install
+
+    draw_progress_bar 4 5
     backup_zshrc
+
+    draw_progress_bar 5 5
     install_config
+
     show_summary
 }
 
