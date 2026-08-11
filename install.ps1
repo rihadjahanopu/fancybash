@@ -3,7 +3,7 @@
 # ==============================================================================
 
 $PROFILE_PATH = $PROFILE
-$URL = "https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/config.ps1"
+$URL = "https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/config.ps1"
 $START = "# >>> fancy-powershell >>>"
 $END = "# <<< fancy-powershell <<<"
 

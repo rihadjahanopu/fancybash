@@ -102,20 +102,20 @@ One file. One install. Zero drama.
 **For Bash (`.bashrc`):**
 
 ```bash
-bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/a1c286e48b3ecee1a207c759279e352c/raw/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.sh)
 ```
 
 **For Zsh (`.zshrc`):**
 
 ```zsh
-zsh <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/fa5874bf928c2416816b7092030f1f3b/raw/install.zsh)
+zsh <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.zsh)
 ```
 
 **For PowerShell (`$PROFILE`):** (Coming Soon)
 
 <!--
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://gist.githubusercontent.com/rihadjahanopu/54b3d3bf8aac456b1aa19a62ac76a993/raw/install.ps1)
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1)
 ```
 -->
 
@@ -553,7 +553,7 @@ Install a fully-configured `settings.json` for the [Zed](https://zed.dev) editor
 ### One-Line Install
 
 ```bash
-bash <(curl -fsSL https://gist.githubusercontent.com/rihadjahanopu/bb56371f87793c21a8fad4e4b9815a9b/raw/install-settings.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/zed/install-settings.sh)
 ```
 
 The script will:
