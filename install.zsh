@@ -72,7 +72,7 @@ check_and_install_fonts() {
     printf "${BLUE}[1/5]${NC} Checking system fonts & dependencies...\n"
 
     local missing_deps=()
-    for cmd in curl grep git; do
+    for cmd in curl grep git fzf; do
         if ! command -v "$cmd" &>/dev/null; then
             missing_deps+=("$cmd")
         fi
@@ -102,19 +102,19 @@ check_and_install_fonts() {
     case "$pm" in
         apt)
             $sudo_cmd apt update -qq 2>/dev/null || true
-            $sudo_cmd apt install -y git fonts-noto-color-emoji fonts-firacode fonts-cascadia-code fontconfig 2>/dev/null || true
+            $sudo_cmd apt install -y curl git fzf fonts-noto-color-emoji fonts-firacode fonts-cascadia-code fontconfig 2>/dev/null || true
             ;;
         pacman)
-            $sudo_cmd pacman -Sy --noconfirm git ttf-noto-emoji ttf-fira-code ttf-cascadia-code fontconfig 2>/dev/null || true
+            $sudo_cmd pacman -Sy --noconfirm curl git fzf ttf-noto-emoji ttf-fira-code ttf-cascadia-code fontconfig 2>/dev/null || true
             ;;
         dnf)
-            $sudo_cmd dnf install -y git google-noto-emoji-fonts fira-code-fonts cascadia-code-fonts fontconfig 2>/dev/null || true
+            $sudo_cmd dnf install -y curl git fzf google-noto-emoji-fonts fira-code-fonts cascadia-code-fonts fontconfig 2>/dev/null || true
             ;;
         apk)
-            $sudo_cmd apk add --no-cache git font-noto-emoji font-fira-code fontconfig 2>/dev/null || true
+            $sudo_cmd apk add --no-cache curl git fzf font-noto-emoji font-fira-code fontconfig 2>/dev/null || true
             ;;
         brew)
-            brew install git font-fira-code font-cascadia-code font-noto-emoji 2>/dev/null || true
+            brew install curl git fzf font-fira-code font-cascadia-code font-noto-emoji 2>/dev/null || true
             ;;
         *)
             printf "${GRAY}  ℹ Package manager not recognized. Skipping automatic font install.${NC}\n"
