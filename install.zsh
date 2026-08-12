@@ -6,7 +6,7 @@ ZSHRC="$HOME/.zshrc"
 URL="https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/config.zsh"
 START="# >>> fancy-zshrc >>>"
 END="# <<< fancy-zshrc <<<"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "$PWD")"
+SCRIPT_DIR="$(cd "$(dirname "${(%):-%x}")" 2>/dev/null && pwd || echo "$PWD")"
 LOCAL_CONFIG="$SCRIPT_DIR/config.zsh"
 
 # ─── Colors & Formatting ───────────────────

@@ -6,7 +6,7 @@ BASHRC="$HOME/.bashrc"
 URL="https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/config.sh"
 START="# >>> fancy-bashrc >>>"
 END="# <<< fancy-bashrc <<<"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "$PWD")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo "$PWD")"
 LOCAL_CONFIG="$SCRIPT_DIR/config.sh"
 
 # ─── Colors & Formatting ───────────────────
