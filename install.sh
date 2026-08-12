@@ -309,14 +309,14 @@ show_summary() {
         printf "  ${YELLOW}⚠ Auto-reload skipped.${NC} Please run: ${BOLD}source ~/.bashrc${NC}\n\n"
     fi
 
-    echo -e "${CYAN}╭──────────────────────────────────────────────────╮${NC}"
-    echo -e "${CYAN}│${NC}  📋  ${BOLD}INSTALLATION SUMMARY${NC}                       ${CYAN}│${NC}"
-    echo -e "${CYAN}├──────────────────────────────────────────────────┤${NC}"
-    echo -e "${CYAN}│${NC}  • Backup:   ${GREEN}$(basename "${backup_file:-none}")${NC}"
-    echo -e "${CYAN}│${NC}  • Config:   ${GREEN}~/.bashrc${NC}"
-    echo -e "${CYAN}│${NC}  • Reload:   ${PURPLE}source ~/.bashrc${NC}"
-    echo -e "${CYAN}│${NC}  • Uninstall:${YELLOW}sed -i '/$START/,/$END/d' ~/.bashrc${NC}"
-    echo -e "${CYAN}╰──────────────────────────────────────────────────╯${NC}"
+    echo -e "\n${CYAN}──────────────────────────────────────────────────────────${NC}"
+    echo -e " 🚀  ${BOLD}INSTALLATION SUMMARY${NC}"
+    echo -e "${CYAN}──────────────────────────────────────────────────────────${NC}\n"
+    echo -e "  📦  ${BOLD}Backup:${NC}    ${GREEN}$(basename "${backup_file:-none}")${NC}"
+    echo -e "  ⚙️   ${BOLD}Config:${NC}    ${GREEN}~/.bashrc${NC}"
+    echo -e "  🔄  ${BOLD}Reload:${NC}    ${PURPLE}source ~/.bashrc${NC}"
+    echo -e "${CYAN}──────────────────────────────────────────────────────────${NC}\n"
+    echo -e "  🎉  ${BOLD}Installation complete!${NC}\n"
     echo ""
 }
 
