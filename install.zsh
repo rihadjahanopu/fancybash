@@ -85,12 +85,15 @@ show_sysinfo() {
     local user=${USER:-$(whoami 2>/dev/null || echo "user")}
     local current_shell=$(basename "${SHELL:-zsh}")
 
-    echo -e "${BLUE}╭─ System Information ─────────────────────────────╮${NC}"
-    printf "${BLUE}│${NC}  💻 ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "OS:" "$os_name"
-    printf "${BLUE}│${NC}  👤 ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "User:" "$user"
-    printf "${BLUE}│${NC}  🐚 ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "Shell:" "$current_shell"
-    printf "${BLUE}│${NC}  ⚙️  ${BOLD}%-8s${NC} %-36s ${BLUE}│${NC}\n" "Arch:" "$arch"
-    echo -e "${BLUE}╰──────────────────────────────────────────────────╯${NC}"
+    echo -e "\n${BLUE}──────────────────────────────────────────────────${NC}"
+    echo -e " 🖥️  ${BOLD}SYSTEM INFORMATION${NC}"
+    echo -e "${BLUE}──────────────────────────────────────────────────${NC}\n"
+    echo -e "  💻  ${BOLD}OS:${NC}      ${CYAN}$os_name${NC}"
+    echo -e "  👤  ${BOLD}User:${NC}    ${CYAN}$user${NC}"
+    echo -e "  🐚  ${BOLD}Shell:${NC}   ${CYAN}$current_shell${NC}"
+    echo -e "  ⚙️   ${BOLD}Arch:${NC}    ${CYAN}$arch${NC}\n"
+    echo -e "${BLUE}──────────────────────────────────────────────────${NC}\n"
+    echo ""
 }
 
 # ─── OS & Package Manager Detection ────────
