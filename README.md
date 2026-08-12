@@ -97,7 +97,18 @@ One file. One install. Zero drama.
 
 > **Requirements:** `curl`, `bash` — that's it.
 
-### One-Line Install (Recommended)
+### Universal One-Line Install (Recommended)
+
+Auto-detects your OS (Linux/macOS) and active shell (Bash/Zsh/PowerShell) automatically:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.sh | bash
+```
+
+<details>
+<summary><strong>Or install directly for specific shells:</strong></summary>
+
+<br>
 
 **For Bash (`.bashrc`):**
 
@@ -110,6 +121,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs
 ```zsh
 zsh <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.zsh)
 ```
+
+</details>
 
 **For PowerShell (`$PROFILE`):** (Coming Soon)
 
@@ -150,6 +163,19 @@ source ~/.zshrc
 
 Cleanly removes **only** the fancybash block from your config file, leaving the rest untouched:
 
+### Universal Dynamic Uninstaller (Recommended)
+
+Automatically detects your OS (Linux/macOS) and shell configuration (`.bashrc` / `.zshrc`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/u.sh | bash
+```
+
+<details>
+<summary><strong>Or manual command for specific platforms:</strong></summary>
+
+<br>
+
 **For Bash:**
 
 - **Linux (GNU):**
@@ -171,6 +197,8 @@ Cleanly removes **only** the fancybash block from your config file, leaving the 
   ```zsh
   sed -i '' '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
   ```
+
+</details>
 
 **For PowerShell:** (Coming Soon)
 

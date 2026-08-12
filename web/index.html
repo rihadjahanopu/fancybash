@@ -374,9 +374,34 @@
               Quick <span class="gradient-text">Install</span>
             </h2>
             <p class="section-desc">
-              One command. Works on Linux, macOS, and Windows. Requires only
-              <code>curl</code> and your shell.
+              One command auto-detects your OS and active shell. Requires only <code>curl</code> and <code>bash</code>.
             </p>
+          </div>
+
+          <div class="code-block featured-install" style="margin-bottom: 1.5rem; border: 1px solid rgba(203, 166, 247, 0.4); border-radius: 12px; overflow: hidden;">
+            <div class="code-header" style="background: rgba(203, 166, 247, 0.1);">
+              <span class="code-lang" style="color: #cba6f7; font-weight: 600;">⚡ Universal Auto-Detect (Linux &amp; macOS)</span>
+              <button
+                class="copy-btn"
+                aria-label="Copy universal install command"
+                data-copy="curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.sh | bash"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <pre><code>curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.sh | bash</code></pre>
           </div>
 
           <div class="install-tabs" role="tablist" aria-label="Shell selection">
@@ -556,6 +581,32 @@
                 Cleanly removes <strong>only</strong> the fancybash block from your config, leaving
                 the rest untouched.
               </p>
+
+              <div class="code-block featured-uninstall" style="margin-bottom: 1.5rem; border: 1px solid rgba(243, 139, 168, 0.4); border-radius: 12px; overflow: hidden;">
+                <div class="code-header" style="background: rgba(243, 139, 168, 0.1);">
+                  <span class="code-lang" style="color: #f38ba8; font-weight: 600;">⚡ Universal Auto-Uninstall (Linux &amp; macOS)</span>
+                  <button
+                    class="copy-btn"
+                    aria-label="Copy universal uninstall command"
+                    data-copy="curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/u.sh | bash"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                  </button>
+                </div>
+                <pre><code>curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/u.sh | bash</code></pre>
+              </div>
 
               <div class="uninstall-tabs" role="tablist" aria-label="Uninstall shell selection">
                 <button
