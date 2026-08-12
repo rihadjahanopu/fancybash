@@ -608,7 +608,11 @@
                       Copy
                     </button>
                   </div>
-                  <pre><code>sed -i '/# &gt;&gt;&gt; fancy-bashrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-bashrc &lt;&lt;&lt;/d' ~/.bashrc &amp;&amp; source ~/.bashrc</code></pre>
+                  <pre><code># Linux (GNU)
+sed -i '/# &gt;&gt;&gt; fancy-bashrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-bashrc &lt;&lt;&lt;/d' ~/.bashrc &amp;&amp; source ~/.bashrc
+
+# macOS (BSD)
+sed -i '' '/# &gt;&gt;&gt; fancy-bashrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-bashrc &lt;&lt;&lt;/d' ~/.bashrc &amp;&amp; source ~/.bashrc</code></pre>
                 </div>
               </div>
 
@@ -630,7 +634,11 @@
                       Copy
                     </button>
                   </div>
-                  <pre><code>sed -i '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc &lt;&lt;&lt;/d' ~/.zshrc &amp;&amp; source ~/.zshrc</code></pre>
+                  <pre><code># Linux (GNU)
+sed -i '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc &lt;&lt;&lt;/d' ~/.zshrc &amp;&amp; source ~/.zshrc
+
+# macOS (BSD)
+sed -i '' '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc &lt;&lt;&lt;/d' ~/.zshrc &amp;&amp; source ~/.zshrc</code></pre>
                 </div>
               </div>
 

@@ -152,15 +152,25 @@ Cleanly removes **only** the fancybash block from your config file, leaving the 
 
 **For Bash:**
 
-```bash
-sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc
-```
+- **Linux (GNU):**
+  ```bash
+  sed -i '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc
+  ```
+- **macOS (BSD):**
+  ```bash
+  sed -i '' '/# >>> fancy-bashrc >>>/,/# <<< fancy-bashrc <<</d' ~/.bashrc && source ~/.bashrc
+  ```
 
 **For Zsh:**
 
-```zsh
-sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
-```
+- **Linux (GNU):**
+  ```zsh
+  sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
+  ```
+- **macOS (BSD):**
+  ```zsh
+  sed -i '' '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
+  ```
 
 **For PowerShell:** (Coming Soon)
 

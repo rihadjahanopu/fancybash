@@ -252,7 +252,14 @@ EOF
 remove_old_config() {
     if grep -qF "$START" "$BASHRC" 2>/dev/null; then
         printf "  ${YELLOW}⚠${NC} Found existing fancy-bashrc block — removing old config first...\n"
-        sed -i "/$(printf '%s' "$START" | sed 's/[]\/\$*.^[]/\\&/g')/,/$(printf '%s' "$END" | sed 's/[]\/\$*.^[]/\\&/g')/d" "$BASHRC"
+        local start_pattern end_pattern
+        start_pattern="$(printf '%s' "$START" | sed 's/[]\/\$*.^[]/\\&/g')"
+        end_pattern="$(printf '%s' "$END" | sed 's/[]\/\$*.^[]/\\&/g')"
+        if [ "$(uname)" = "Darwin" ]; then
+            sed -i '' "/${start_pattern}/,/${end_pattern}/d" "$BASHRC"
+        else
+            sed -i "/${start_pattern}/,/${end_pattern}/d" "$BASHRC"
+        fi
         printf "  ${GREEN}✔${NC} Old config removed.\n"
     fi
 }

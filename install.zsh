@@ -284,7 +284,14 @@ install_zsh_plugins() {
 remove_old_config() {
     if grep -qF "$START" "$ZSHRC" 2>/dev/null; then
         printf "  ${YELLOW}⚠${NC} Found existing fancy-zshrc block — removing old config first...\n"
-        sed -i "/$(printf '%s' "$START" | sed 's/[]\/\$*.^[]/\\&/g')/,/$(printf '%s' "$END" | sed 's/[]\/\$*.^[]/\\&/g')/d" "$ZSHRC"
+        local start_pattern end_pattern
+        start_pattern="$(printf '%s' "$START" | sed 's/[]\/\$*.^[]/\\&/g')"
+        end_pattern="$(printf '%s' "$END" | sed 's/[]\/\$*.^[]/\\&/g')"
+        if [ "$(uname)" = "Darwin" ]; then
+            sed -i '' "/${start_pattern}/,/${end_pattern}/d" "$ZSHRC"
+        else
+            sed -i "/${start_pattern}/,/${end_pattern}/d" "$ZSHRC"
+        fi
         printf "  ${GREEN}✔${NC} Old config removed.\n"
     fi
 }
