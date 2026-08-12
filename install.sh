@@ -232,18 +232,21 @@ EOF
     fi
 }
 
+# ─── Remove Old Config Block ───────────────
+remove_old_config() {
+    if grep -qF "$START" "$BASHRC" 2>/dev/null; then
+        printf "  ${YELLOW}⚠${NC} Found existing fancy-bashrc block — removing old config first...\n"
+        sed -i "/$(printf '%s' "$START" | sed 's/[]\/\$*.^[]/\\&/g')/,/$(printf '%s' "$END" | sed 's/[]\/\$*.^[]/\\&/g')/d" "$BASHRC"
+        printf "  ${GREEN}✔${NC} Old config removed.\n"
+    fi
+}
+
 # ─── Check Existing Installation ───────────
 check_existing_install() {
     printf "  ${CYAN}➜${NC} Checking existing configuration...\n"
     if [ ! -f "$BASHRC" ]; then
         printf "  ${YELLOW}⚠ Creating $BASHRC...${NC}\n"
         touch "$BASHRC"
-    fi
-
-    if grep -qF "$START" "$BASHRC" 2>/dev/null; then
-        printf "  ${GREEN}✔${NC} Fancy Bash config is already installed!\n"
-        printf "    ${CYAN}💡 Run:${NC} ${BOLD}source ~/.bashrc${NC} to reload.\n\n"
-        exit 0
     fi
     printf "  ${GREEN}✔${NC} Ready for installation.\n"
 }
@@ -330,6 +333,7 @@ main() {
 
     draw_progress_bar 3 5
     check_existing_install
+    remove_old_config
 
     draw_progress_bar 4 5
     backup_bashrc
