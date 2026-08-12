@@ -54,22 +54,27 @@ esac
 printf "  ${CYAN}➜ System:${NC}  ${BOLD}%s${NC} (%s)\n" "$OS" "$DISTRO_NAME"
 
 # ─── 2. Detect Target Shell ──────────────────────────────────────────────────
+# Priority: $SHELL (user's configured login shell) → version vars → binary fallback
 USER_SHELL=""
-if [ -n "${ZSH_VERSION:-}" ]; then
-    USER_SHELL="zsh"
-elif [ -n "${BASH_VERSION:-}" ]; then
-    USER_SHELL="bash"
-fi
 
-if [ -z "$USER_SHELL" ] && [ -n "${SHELL:-}" ]; then
-    SHELL_BASE="$(basename "$SHELL")"
-    case "$SHELL_BASE" in
-        zsh*)  USER_SHELL="zsh" ;;
-        bash*) USER_SHELL="bash" ;;
+# 1st: $SHELL is most reliable — reflects user's actual configured default shell
+if [ -n "${SHELL:-}" ]; then
+    case "$(basename "$SHELL")" in
+        zsh)  USER_SHELL="zsh" ;;
+        bash) USER_SHELL="bash" ;;
     esac
 fi
 
-# Fallback check if shell couldn't be determined from variables
+# 2nd: version vars (useful when $SHELL is unset or generic like /bin/sh)
+if [ -z "$USER_SHELL" ]; then
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        USER_SHELL="zsh"
+    elif [ -n "${BASH_VERSION:-}" ]; then
+        USER_SHELL="bash"
+    fi
+fi
+
+# 3rd: binary fallback — prefer zsh on macOS (default since Catalina), bash elsewhere
 if [ -z "$USER_SHELL" ]; then
     if command -v zsh &>/dev/null && [ "$OS" = "macOS" ]; then
         USER_SHELL="zsh"
