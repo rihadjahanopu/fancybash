@@ -1002,46 +1002,91 @@ function trash {
 
 
 unalias gwip 2>/dev/null
+unalias gcommit 2>/dev/null
+
 function gwip {
-    # Color Codes
-    local CYAN='\033[1;36m'
-    local YELLOW='\033[1;33m'
-    local GREEN='\033[0;32m'
-    local RED='\033[0;31m'
-    local BOLD='\033[1m'
-    local NC='\033[0m'
-
-    # ১. সব ফাইল স্টেজ করা
-    git add .
-
-    # ২. Header দেখানো
-    echo -e "\n${CYAN}🚀 Git Quick Push Mode${NC}"
-    echo -e "${CYAN}────────────────────────────${NC}\n"
-
-    # ৩. মেসেজ ইনপুট (zsh-safe way)
-    echo -ne "${BOLD}📝 Enter commit message${NC} ${YELLOW}[Enter for default]${NC}: "
-    local msg
-    read -r msg
-
-    # ৪. মেসেজ সেট করা (খালি থাকলে ডিফল্ট)
-    local final_msg="${msg:-Work in progress (Save Point)}"
-
-    # ৫. কমিট করা
-    echo -e "\n${CYAN}📦 Committing...${NC}"
-    git commit -m "🚧 WIP: $final_msg"
-
-    # ৬. পুশ করা (অটো আপস্ট্রিম সাপোর্টসহ)
-    echo -e "\n${YELLOW}📤 Pushing to remote...${NC}"
-    local cur_branch=$(git branch --show-current 2>/dev/null)
-    local push_cmd="git push"
-    [[ -n "$cur_branch" ]] && push_cmd="git push origin $cur_branch 2>/dev/null || git push -u origin $cur_branch"
-    if eval "$push_cmd"; then
-        echo -e "\n${GREEN}✅ Everything committed and pushed successfully!${NC}"
-    else
-        echo -e "\n${RED}❌ Push failed! Check your internet or remote settings.${NC}"
+    if ! command -v git &>/dev/null; then
+        echo "❌ Git is not installed."
         return 1
     fi
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "❌ Not a git repository."
+        return 1
+    fi
+
+    # 1. Auto stage files
+    git add .
+
+    local TYPE MSG FULL_MSG
+
+    if command -v gum &>/dev/null; then
+        # 2. Select Commit Type
+        TYPE=$(gum choose \
+            "🚧 WIP: Work in progress" \
+            "✨ feat: New feature" \
+            "🐛 fix: Bug fix" \
+            "📝 docs: Documentation" \
+            "💄 style: Styling" \
+            "♻️ refactor: Refactoring" \
+            "🧪 test: Adding tests" \
+            "🔧 chore: Maintenance")
+
+        [ -z "$TYPE" ] && { echo "⚠️ Commit cancelled."; return 0; }
+
+        local TYPE_PREFIX
+        TYPE_PREFIX=$(echo "$TYPE" | awk '{print $1 " " $2}')
+
+        # 3. Input Commit Message
+        MSG=$(gum input --placeholder "Enter commit message (Leave empty for default)...")
+
+        if [ -z "$MSG" ]; then
+            FULL_MSG="$TYPE_PREFIX: Save point ($(date +'%Y-%m-%d %H:%M'))"
+        else
+            FULL_MSG="$TYPE_PREFIX: $MSG"
+        fi
+
+        # 4. Commit
+        git commit -m "$FULL_MSG" || return 1
+
+        # 5. Push with Gum Spinner
+        local cur_branch
+        cur_branch=$(git branch --show-current 2>/dev/null)
+
+        (
+            if [ -n "$cur_branch" ]; then
+                git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch" 2>/dev/null
+            else
+                git push 2>/dev/null
+            fi
+        ) &
+
+        gum spin --spinner dot --title "Pushing to remote..." -- wait $!
+
+        if [ $? -eq 0 ]; then
+            gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+        else
+            echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+            return 1
+        fi
+    else
+        # Fallback if gum is not installed
+        echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
+        read -r "msg?📝 Enter commit message [Enter for default]: "
+        local final_msg="${msg:-Work in progress (Save Point)}"
+        git commit -m "🚧 WIP: $final_msg"
+
+        local cur_branch
+        cur_branch=$(git branch --show-current 2>/dev/null)
+        if [ -n "$cur_branch" ]; then
+            git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch"
+        else
+            git push
+        fi
+    fi
 }
+
+alias gcommit=gwip
 
 
 
@@ -5104,6 +5149,66 @@ function t {
     for file in "$@"; do
         echo "✅ Created File: $file"
     done
+}
+
+# =====================================================
+# 🚀 INTERACTIVE GUM & FZF UTILITIES
+# =====================================================
+
+# 1. Interactive Git Branch Switcher (FZF / Gum)
+
+# 2. Interactive Git Branch Switcher (FZF / Gum)
+gbranch() {
+    if ! command -v git &>/dev/null; then
+        echo "❌ Git is not installed."
+        return 1
+    fi
+
+    local BRANCH=""
+    if command -v fzf &>/dev/null; then
+        BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | fzf --prompt="Select Branch: ")
+    elif command -v gum &>/dev/null; then
+        BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | gum filter --placeholder="Select Branch...")
+    fi
+
+    if [ -n "$BRANCH" ]; then
+        BRANCH=$(echo "$BRANCH" | sed 's#remotes/origin/##')
+        git checkout "$BRANCH"
+    fi
+}
+
+# 3. Interactive Process Killer (FZF / Gum)
+fkill() {
+    local PID=""
+    if command -v fzf &>/dev/null; then
+        PID=$(ps -ef | sed 1d | fzf --header="Select process to kill" | awk '{print $2}')
+    elif command -v gum &>/dev/null; then
+        PID=$(ps -ef | sed 1d | gum filter --placeholder="Select process to kill" | awk '{print $2}')
+    fi
+
+    if [ -n "$PID" ]; then
+        if command -v gum &>/dev/null; then
+            if gum confirm "Kill process $PID?"; then
+                kill -9 "$PID" 2>/dev/null && gum style --foreground 82 "✅ Killed process $PID"
+            fi
+        else
+            kill -9 "$PID" 2>/dev/null && echo "✅ Killed process $PID"
+        fi
+    fi
+}
+
+# 4. Interactive Quick Directory Search & CD
+fcd() {
+    local DIR=""
+    if command -v fzf &>/dev/null; then
+        DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | fzf --prompt="Select Directory: ")
+    elif command -v gum &>/dev/null; then
+        DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | gum filter --placeholder="Select Directory...")
+    fi
+
+    if [ -n "$DIR" ]; then
+        cd "$DIR" || return
+    fi
 }
 
 # =====================================================

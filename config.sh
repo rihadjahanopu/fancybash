@@ -759,35 +759,91 @@ function trash {
 # ======================================================
 
 unalias gwip 2>/dev/null
+unalias gcommit 2>/dev/null
+
 function gwip {
-    # ১. সব ফাইল স্টেজ করা
+    if ! command -v git &>/dev/null; then
+        echo "❌ Git is not installed."
+        return 1
+    fi
+
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "❌ Not a git repository."
+        return 1
+    fi
+
+    # 1. Auto stage files
     git add .
 
-    # ২. ইউজার থেকে মেসেজ নেওয়া
-    echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
-    read -p "📝 Enter commit message [Enter for default]: " msg
+    local TYPE MSG FULL_MSG
 
-    # ৩. মেসেজ সেট করা (খালি থাকলে ডিফল্ট নিবে)
-    local final_msg="${msg:-Work in progress (Save Point)}"
+    if command -v gum &>/dev/null; then
+        # 2. Select Commit Type
+        TYPE=$(gum choose \
+            "🚧 WIP: Work in progress" \
+            "✨ feat: New feature" \
+            "🐛 fix: Bug fix" \
+            "📝 docs: Documentation" \
+            "💄 style: Styling" \
+            "♻️ refactor: Refactoring" \
+            "🧪 test: Adding tests" \
+            "🔧 chore: Maintenance")
 
-    # ৪. কমিট করা
-    git commit -m "🚧 WIP: $final_msg"
+        [ -z "$TYPE" ] && { echo "⚠️ Commit cancelled."; return 0; }
 
-    # ৫. অটো পুশ করা (কারেন্ট ব্রাঞ্চে - অটো আপস্ট্রিম সাপোর্টসহ)
-    echo -e "📤 \033[1;33mPushing to remote...\033[0m"
-    local cur_branch=$(git branch --show-current 2>/dev/null)
-    if [[ -n "$cur_branch" ]]; then
-        git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch"
+        local TYPE_PREFIX
+        TYPE_PREFIX=$(echo "$TYPE" | awk '{print $1 " " $2}')
+
+        # 3. Input Commit Message
+        MSG=$(gum input --placeholder "Enter commit message (Leave empty for default)...")
+
+        if [ -z "$MSG" ]; then
+            FULL_MSG="$TYPE_PREFIX: Save point ($(date +'%Y-%m-%d %H:%M'))"
+        else
+            FULL_MSG="$TYPE_PREFIX: $MSG"
+        fi
+
+        # 4. Commit
+        git commit -m "$FULL_MSG" || return 1
+
+        # 5. Push with Gum Spinner
+        local cur_branch
+        cur_branch=$(git branch --show-current 2>/dev/null)
+
+        (
+            if [ -n "$cur_branch" ]; then
+                git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch" 2>/dev/null
+            else
+                git push 2>/dev/null
+            fi
+        ) &
+
+        gum spin --spinner dot --title "Pushing to remote..." -- wait $!
+
+        if [ $? -eq 0 ]; then
+            gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+        else
+            echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+            return 1
+        fi
     else
-        git push
-    fi
+        # Fallback if gum is not installed
+        echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
+        read -r -p "📝 Enter commit message [Enter for default]: " msg
+        local final_msg="${msg:-Work in progress (Save Point)}"
+        git commit -m "🚧 WIP: $final_msg"
 
-    if [ $? -eq 0 ]; then
-        echo -e "✅ \033[0;32mEverything committed and pushed successfully!\033[0m"
-    else
-        echo -e "❌ \033[0;31mPush failed! Check your internet or remote settings.\033[0m"
+        local cur_branch
+        cur_branch=$(git branch --show-current 2>/dev/null)
+        if [ -n "$cur_branch" ]; then
+            git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch"
+        else
+            git push
+        fi
     fi
 }
+
+alias gcommit=gwip
 
 # ======================================================
 #  📦 universal remove
@@ -4643,6 +4699,66 @@ function t {
     done
 }
 
-# ======================================================
+# =====================================================
+# 🚀 INTERACTIVE GUM & FZF UTILITIES
+# =====================================================
+
+# 1. Interactive Git Branch Switcher (FZF / Gum)
+
+# 2. Interactive Git Branch Switcher (FZF / Gum)
+gbranch() {
+    if ! command -v git &>/dev/null; then
+        echo "❌ Git is not installed."
+        return 1
+    fi
+
+    local BRANCH=""
+    if command -v fzf &>/dev/null; then
+        BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | fzf --prompt="Select Branch: ")
+    elif command -v gum &>/dev/null; then
+        BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | gum filter --placeholder="Select Branch...")
+    fi
+
+    if [ -n "$BRANCH" ]; then
+        BRANCH=$(echo "$BRANCH" | sed 's#remotes/origin/##')
+        git checkout "$BRANCH"
+    fi
+}
+
+# 3. Interactive Process Killer (FZF / Gum)
+fkill() {
+    local PID=""
+    if command -v fzf &>/dev/null; then
+        PID=$(ps -ef | sed 1d | fzf --header="Select process to kill" | awk '{print $2}')
+    elif command -v gum &>/dev/null; then
+        PID=$(ps -ef | sed 1d | gum filter --placeholder="Select process to kill" | awk '{print $2}')
+    fi
+
+    if [ -n "$PID" ]; then
+        if command -v gum &>/dev/null; then
+            if gum confirm "Kill process $PID?"; then
+                kill -9 "$PID" 2>/dev/null && gum style --foreground 82 "✅ Killed process $PID"
+            fi
+        else
+            kill -9 "$PID" 2>/dev/null && echo "✅ Killed process $PID"
+        fi
+    fi
+}
+
+# 4. Interactive Quick Directory Search & CD
+fcd() {
+    local DIR=""
+    if command -v fzf &>/dev/null; then
+        DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | fzf --prompt="Select Directory: ")
+    elif command -v gum &>/dev/null; then
+        DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | gum filter --placeholder="Select Directory...")
+    fi
+
+    if [ -n "$DIR" ]; then
+        cd "$DIR" || return
+    fi
+}
+
+# =====================================================
 # End of .bashrc
-# ======================================================
+# =====================================================
