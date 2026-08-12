@@ -1050,20 +1050,16 @@ function gwip {
         git commit -m "$FULL_MSG" || return 1
 
         # 5. Push with Gum Spinner
-        local cur_branch
+        local cur_branch push_cmd
         cur_branch=$(git branch --show-current 2>/dev/null)
 
-        (
-            if [ -n "$cur_branch" ]; then
-                git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch" 2>/dev/null
-            else
-                git push 2>/dev/null
-            fi
-        ) &
+        if [ -n "$cur_branch" ]; then
+            push_cmd="git push origin $cur_branch 2>/dev/null || git push -u origin $cur_branch 2>/dev/null"
+        else
+            push_cmd="git push 2>/dev/null"
+        fi
 
-        gum spin --spinner dot --title "Pushing to remote..." -- wait $!
-
-        if [ $? -eq 0 ]; then
+        if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"; then
             gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
         else
             echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
