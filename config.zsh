@@ -1022,7 +1022,7 @@ function gwip {
 
     if command -v gum &>/dev/null; then
         # 2. Select Commit Type
-        TYPE=$(gum choose \
+        TYPE=$(gum choose --height 5 \
             "🚧 WIP: Work in progress" \
             "✨ feat: New feature" \
             "🐛 fix: Bug fix" \
@@ -5168,7 +5168,7 @@ gbranch() {
     if command -v fzf &>/dev/null; then
         BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | fzf --prompt="Select Branch: ")
     elif command -v gum &>/dev/null; then
-        BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | gum filter --placeholder="Select Branch...")
+        BRANCH=$(git branch --all 2>/dev/null | grep -v HEAD | sed 's/^[ *]*//' | gum filter --height 5 --placeholder="Select Branch...")
     fi
 
     if [ -n "$BRANCH" ]; then
@@ -5183,7 +5183,7 @@ fkill() {
     if command -v fzf &>/dev/null; then
         PID=$(ps -ef | sed 1d | fzf --header="Select process to kill" | awk '{print $2}')
     elif command -v gum &>/dev/null; then
-        PID=$(ps -ef | sed 1d | gum filter --placeholder="Select process to kill" | awk '{print $2}')
+        PID=$(ps -ef | sed 1d | gum filter --height 5 --placeholder="Select process to kill" | awk '{print $2}')
     fi
 
     if [ -n "$PID" ]; then
@@ -5203,7 +5203,7 @@ fcd() {
     if command -v fzf &>/dev/null; then
         DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | fzf --prompt="Select Directory: ")
     elif command -v gum &>/dev/null; then
-        DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | gum filter --placeholder="Select Directory...")
+        DIR=$(find . -maxdepth 4 -not -path '*/.*' -type d 2>/dev/null | gum filter --height 5 --placeholder="Select Directory...")
     fi
 
     if [ -n "$DIR" ]; then
