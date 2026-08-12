@@ -50,7 +50,7 @@ spinner() {
 # ─── Progress Bar ──────────────────────────
 draw_progress_bar() {
     local current=$1
-    local total=5
+    local total=6
     local width=30
     local percentage=$((current * 100 / total))
     local completed=$((width * current / total))
@@ -232,6 +232,38 @@ EOF
     fi
 }
 
+# ─── Install Zsh Plugins ───────────────────
+install_zsh_plugins() {
+    printf "  ${CYAN}➜${NC} Setting up Zsh plugins...\n"
+
+    local zsh_dir="$HOME/.zsh"
+    mkdir -p "$zsh_dir"
+
+    # zsh-syntax-highlighting
+    if [ -d "$zsh_dir/zsh-syntax-highlighting" ]; then
+        printf "  ${GREEN}✔${NC} zsh-syntax-highlighting already exists, skipping.\n"
+    else
+        (
+            git clone --quiet https://github.com/zsh-users/zsh-syntax-highlighting.git \
+                "$zsh_dir/zsh-syntax-highlighting" 2>/dev/null
+        ) &
+        spinner $! "Cloning zsh-syntax-highlighting..."
+    fi
+
+    # zsh-autosuggestions
+    if [ -d "$zsh_dir/zsh-autosuggestions" ]; then
+        printf "  ${GREEN}✔${NC} zsh-autosuggestions already exists, skipping.\n"
+    else
+        (
+            git clone --quiet https://github.com/zsh-users/zsh-autosuggestions.git \
+                "$zsh_dir/zsh-autosuggestions" 2>/dev/null
+        ) &
+        spinner $! "Cloning zsh-autosuggestions..."
+    fi
+
+    printf "  ${GREEN}✔${NC} Zsh plugins ready in ${PURPLE}~/.zsh/${NC}\n"
+}
+
 # ─── Remove Old Config Block ───────────────
 remove_old_config() {
     if grep -qF "$START" "$ZSHRC" 2>/dev/null; then
@@ -325,20 +357,23 @@ main() {
     show_header
     show_sysinfo
 
-    draw_progress_bar 1 5
+    draw_progress_bar 1 6
     check_and_install_fonts
 
-    draw_progress_bar 2 5
+    draw_progress_bar 2 6
     setup_fontconfig
 
-    draw_progress_bar 3 5
+    draw_progress_bar 3 6
+    install_zsh_plugins
+
+    draw_progress_bar 4 6
     check_existing_install
     remove_old_config
 
-    draw_progress_bar 4 5
+    draw_progress_bar 5 6
     backup_zshrc
 
-    draw_progress_bar 5 5
+    draw_progress_bar 6 6
     install_config
 
     show_summary

@@ -5107,5 +5107,14 @@ function t {
 }
 
 # =====================================================
-# End of .bashrc
+# Zsh Plugins (auto-loaded from ~/.zsh/)
+# =====================================================
+[[ -f "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] && \
+    source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" 2>/dev/null
+
+[[ -f "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] && \
+    source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
+
+# =====================================================
+# End of .zshrc
 # =====================================================
