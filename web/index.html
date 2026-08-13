@@ -3,24 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- Primary Meta Tags -->
     <title>fancybash — Fast, Intelligent Bash, Zsh &amp; PowerShell Shell Setup</title>
-    <meta name="title" content="fancybash — Fast, Intelligent Bash, Zsh &amp; PowerShell Shell Setup" />
+    <meta
+      name="title"
+      content="fancybash — Fast, Intelligent Bash, Zsh &amp; PowerShell Shell Setup"
+    />
     <meta
       name="description"
       content="fancybash is a production-ready, opinionated Bash, Zsh, and PowerShell environment designed for modern web developers. Zero bloat, instant git status, custom themes, and smart dev aliases."
     />
-    <meta name="keywords" content="fancybash, bash prompt, zsh theme, powershell prompt, dotfiles, terminal setup, shell environment, developer experience, linux dev tools, bash aliases, oh-my-zsh alternative, starship prompt alternative" />
+    <meta
+      name="keywords"
+      content="fancybash, bash prompt, zsh theme, powershell prompt, dotfiles, terminal setup, shell environment, developer experience, linux dev tools, bash aliases, oh-my-zsh alternative, starship prompt alternative"
+    />
     <meta name="author" content="Rihad Jahan Opu" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0f172a" />
     <link rel="canonical" href="https://fancybash.netlify.app/" />
 
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://fancybash.netlify.app/" />
-    <meta property="og:title" content="fancybash — The Ultimate Bash Environment for Modern Developers" />
+    <meta
+      property="og:title"
+      content="fancybash — The Ultimate Bash Environment for Modern Developers"
+    />
     <meta
       property="og:description"
       content="One file. One install. Zero drama. Replace your dull terminal with a fully-featured, intelligent shell environment with built-in git integration, custom themes, and dev aliases."
@@ -36,7 +52,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://fancybash.netlify.app/" />
     <meta name="twitter:title" content="fancybash — Fast, Intelligent Shell Setup" />
-    <meta name="twitter:description" content="One file. One install. Zero drama. Production-ready Bash/Zsh/PowerShell configuration." />
+    <meta
+      name="twitter:description"
+      content="One file. One install. Zero drama. Production-ready Bash/Zsh/PowerShell configuration."
+    />
     <meta name="twitter:image" content="https://fancybash.netlify.app/og-image.png" />
     <meta name="twitter:creator" content="@rihadjahanopu" />
 
@@ -51,41 +70,41 @@
 
     <!-- Schema.org JSON-LD Structured Data -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "SoftwareApplication",
-          "@id": "https://fancybash.netlify.app/#software",
-          "name": "fancybash",
-          "operatingSystem": "Linux, macOS, Windows",
-          "applicationCategory": "DeveloperApplication",
-          "softwareVersion": "2.0",
-          "description": "fancybash is a production-ready, opinionated Bash, Zsh, and PowerShell configuration for modern web developers with instant git status, custom themes, and zero bloat.",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://fancybash.netlify.app/#software",
+            "name": "fancybash",
+            "operatingSystem": "Linux, macOS, Windows",
+            "applicationCategory": "DeveloperApplication",
+            "softwareVersion": "2.0",
+            "description": "fancybash is a production-ready, opinionated Bash, Zsh, and PowerShell configuration for modern web developers with instant git status, custom themes, and zero bloat.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "downloadUrl": "https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.sh",
+            "codeRepository": "https://github.com/rihadjahanopu/fancybash",
+            "license": "https://opensource.org/licenses/MIT",
+            "author": {
+              "@type": "Person",
+              "name": "Rihad Jahan Opu",
+              "url": "https://github.com/rihadjahanopu"
+            }
           },
-          "downloadUrl": "https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.sh",
-          "codeRepository": "https://github.com/rihadjahanopu/fancybash",
-          "license": "https://opensource.org/licenses/MIT",
-          "author": {
-            "@type": "Person",
-            "name": "Rihad Jahan Opu",
-            "url": "https://github.com/rihadjahanopu"
+          {
+            "@type": "WebSite",
+            "@id": "https://fancybash.netlify.app/#website",
+            "url": "https://fancybash.netlify.app/",
+            "name": "fancybash",
+            "description": "The Ultimate Bash Environment for Modern Developers",
+            "inLanguage": "en-US"
           }
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://fancybash.netlify.app/#website",
-          "url": "https://fancybash.netlify.app/",
-          "name": "fancybash",
-          "description": "The Ultimate Bash Environment for Modern Developers",
-          "inLanguage": "en-US"
-        }
-      ]
-    }
+        ]
+      }
     </script>
   </head>
   <body>
@@ -440,13 +459,24 @@
               Quick <span class="gradient-text">Install</span>
             </h2>
             <p class="section-desc">
-              One command auto-detects your OS and active shell. Requires only <code>curl</code> and <code>bash</code>.
+              One command auto-detects your OS and active shell. Requires only <code>curl</code> and
+              <code>bash</code>.
             </p>
           </div>
 
-          <div class="code-block featured-install" style="margin-bottom: 1.5rem; border: 1px solid rgba(203, 166, 247, 0.4); border-radius: 12px; overflow: hidden;">
-            <div class="code-header" style="background: rgba(203, 166, 247, 0.1);">
-              <span class="code-lang" style="color: #cba6f7; font-weight: 600;">⚡ Universal Auto-Detect (Linux &amp; macOS)</span>
+          <div
+            class="code-block featured-install"
+            style="
+              margin-bottom: 1.5rem;
+              border: 1px solid rgba(203, 166, 247, 0.4);
+              border-radius: 12px;
+              overflow: hidden;
+            "
+          >
+            <div class="code-header" style="background: rgba(203, 166, 247, 0.1)">
+              <span class="code-lang" style="color: #cba6f7; font-weight: 600"
+                >⚡ Universal Auto-Detect (Linux &amp; macOS)</span
+              >
               <button
                 class="copy-btn"
                 aria-label="Copy universal install command"
@@ -648,9 +678,19 @@
                 the rest untouched.
               </p>
 
-              <div class="code-block featured-uninstall" style="margin-bottom: 1.5rem; border: 1px solid rgba(243, 139, 168, 0.4); border-radius: 12px; overflow: hidden;">
-                <div class="code-header" style="background: rgba(243, 139, 168, 0.1);">
-                  <span class="code-lang" style="color: #f38ba8; font-weight: 600;">⚡ Universal Auto-Uninstall (Linux &amp; macOS)</span>
+              <div
+                class="code-block featured-uninstall"
+                style="
+                  margin-bottom: 1.5rem;
+                  border: 1px solid rgba(243, 139, 168, 0.4);
+                  border-radius: 12px;
+                  overflow: hidden;
+                "
+              >
+                <div class="code-header" style="background: rgba(243, 139, 168, 0.1)">
+                  <span class="code-lang" style="color: #f38ba8; font-weight: 600"
+                    >⚡ Universal Auto-Uninstall (Linux &amp; macOS)</span
+                  >
                   <button
                     class="copy-btn"
                     aria-label="Copy universal uninstall command"
@@ -2099,7 +2139,9 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                   </tr>
                   <tr>
                     <td><code>pgrestore &lt;db&gt;</code></td>
-                    <td>Restore a database from file (<code>pgrestore mydb &lt; backup.sql</code>)</td>
+                    <td>
+                      Restore a database from file (<code>pgrestore mydb &lt; backup.sql</code>)
+                    </td>
                   </tr>
                   <tr>
                     <td><code>pgusers</code></td>
@@ -2296,9 +2338,6 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Check Prisma version via Bun</td>
                   </tr>
                 </tbody>
-
-
-
               </table>
             </div>
           </div>
