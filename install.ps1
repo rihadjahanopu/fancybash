@@ -8,9 +8,14 @@ $START = "# >>> fancy-powershell >>>"
 $END = "# <<< fancy-powershell <<<"
 
 # ─── Header ─────────────────────────────
-Write-Host "`n╭────────────────────────────────────╮" -ForegroundColor Cyan
-Write-Host "│  🚀   PowerShell Config Installer  │" -ForegroundColor Cyan
-Write-Host "╰────────────────────────────────────╯`n" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗" -ForegroundColor Magenta
+Write-Host "          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║" -ForegroundColor Magenta
+Write-Host "          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║" -ForegroundColor Cyan
+Write-Host "          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║" -ForegroundColor Cyan
+Write-Host "          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║" -ForegroundColor Blue
+Write-Host "          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝" -ForegroundColor Blue
+Write-Host "`n   🚀  PowerShell Config Installer`n" -ForegroundColor Cyan
 
 # ─── Check / Create Profile ──────────────
 Write-Host "🔍 Checking existing profile..." -ForegroundColor Blue
