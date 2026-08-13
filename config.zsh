@@ -2288,7 +2288,7 @@ function v {
         echo -e "\e[1;92m▶ Playing:\e[0m $(basename "$FULL_PATH")"
 
         # ✅ Zsh-এর পারফেক্ট ডিটাচড মেথড (&!)
-        ${=PLAYER} "$FULL_PATH" >/dev/null 2>&1 &!
+        ${=PLAYER_CMD} "$FULL_PATH" >/dev/null 2>&1 &!
     else
         echo "👋 Exit"
     fi

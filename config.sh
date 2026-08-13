@@ -1902,12 +1902,25 @@ function v {
     # ▶ Play Logic
     if [ -n "$SELECTED_LINE" ]; then
         # প্রথম কলাম থেকে ইনডেক্স বের করা
-        local INDEX=$(echo "$SELECTED_LINE" | awk '{print $1}')
+        local INDEX=$(echo "$SELECTED_LINE" | sed 's/\x1b\[[0-9;]*m//g' | awk '{print $1}')
+
+        if ! [[ "$INDEX" =~ ^[0-9]+$ ]]; then
+            echo "❌ Invalid selection"
+            return 1
+        fi
+
         local FULL_PATH=$(echo "$RAW_LIST" | sed -n "${INDEX}p")
 
+        if [ -z "$FULL_PATH" ] || [ ! -f "$FULL_PATH" ]; then
+            echo "❌ Video file not found"
+            return 1
+        fi
+
         echo -e "\e[1;92m▶ Playing:\e[0m $(basename "$FULL_PATH")"
-        $PLAYER "$FULL_PATH" >/dev/null 2>&1 &
-        disown
+        local -a player_args
+        read -ra player_args <<< "$PLAYER_CMD"
+        "${player_args[@]}" "$FULL_PATH" >/dev/null 2>&1 &
+        disown $! 2>/dev/null || true
     else
         echo "👋 Exit"
     fi
