@@ -1,0 +1,6 @@
+# Allow all web crawlers to access all pages
+User-agent: *
+Allow: /
+
+# Sitemap Location
+Sitemap: https://fancybash.netlify.app/sitemap.xml
