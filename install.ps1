@@ -8,13 +8,15 @@ $START = "# >>> fancy-powershell >>>"
 $END = "# <<< fancy-powershell <<<"
 
 # ─── Header ─────────────────────────────
-Write-Host ""
-Write-Host "          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗" -ForegroundColor Magenta
-Write-Host "          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║" -ForegroundColor Magenta
-Write-Host "          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║" -ForegroundColor Cyan
-Write-Host "          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║" -ForegroundColor Cyan
-Write-Host "          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║" -ForegroundColor Blue
-Write-Host "          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝" -ForegroundColor Blue
+if ($env:FANCYBASH_BANNER_SHOWN -ne '1') {
+    Write-Host ""
+    Write-Host "          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗" -ForegroundColor Magenta
+    Write-Host "          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║" -ForegroundColor Magenta
+    Write-Host "          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║" -ForegroundColor Cyan
+    Write-Host "          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║" -ForegroundColor Cyan
+    Write-Host "          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║" -ForegroundColor Blue
+    Write-Host "          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝" -ForegroundColor Blue
+}
 Write-Host "`n   🚀  PowerShell Config Installer`n" -ForegroundColor Cyan
 
 # ─── Check / Create Profile ──────────────

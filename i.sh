@@ -125,6 +125,7 @@ SCRIPT_ARGS=("$@")
 # (PPID-based re-detection inside install.sh fails because exec inherits
 #  the terminal's PPID, not i.sh's PID.)
 export FANCYBASH_SHELL="$USER_SHELL"
+export FANCYBASH_BANNER_SHOWN=1
 
 run_installer() {
     local target_script="$1"
