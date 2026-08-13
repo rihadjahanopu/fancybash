@@ -79,6 +79,7 @@ printf "${CYAN}─────────────────────�
 # ─── Run Uninstaller ─────────────────────────────────────────────────────────
 # Save original script args BEFORE the function (inside function $@ = func args)
 SCRIPT_ARGS=("$@")
+export FANCYBASH_SHELL="$USER_SHELL"
 
 run_uninstaller() {
     local target_script="$1"

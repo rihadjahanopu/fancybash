@@ -113,6 +113,11 @@ printf "${CYAN}─────────────────────�
 # Save original script args BEFORE the function (inside function $@ = func args)
 SCRIPT_ARGS=("$@")
 
+# Export detected shell so install.sh/install.zsh can display it correctly.
+# (PPID-based re-detection inside install.sh fails because exec inherits
+#  the terminal's PPID, not i.sh's PID.)
+export FANCYBASH_SHELL="$USER_SHELL"
+
 run_installer() {
     local target_script="$1"
     local local_file="$SCRIPT_DIR/$target_script"

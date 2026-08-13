@@ -83,16 +83,20 @@ show_sysinfo() {
 
     local arch=$(uname -m)
     local user=${USER:-$(whoami 2>/dev/null || echo "user")}
-    # Detect actual running shell via parent process (PPID), not $SHELL (login shell)
-    local current_shell=""
-    local _ppid_cmd
-    _ppid_cmd=$(ps -p "$PPID" -o comm= 2>/dev/null | sed 's/^-//' | xargs basename 2>/dev/null)
-    [ -z "$_ppid_cmd" ] && [ -f "/proc/$PPID/comm" ] && \
-        _ppid_cmd=$(sed 's/^-//' "/proc/$PPID/comm" 2>/dev/null)
-    case "${_ppid_cmd:-}" in
-        zsh|bash|fish|dash|sh) current_shell="$_ppid_cmd" ;;
-        *) current_shell=$(basename "${SHELL:-bash}") ;; # fallback to $SHELL
-    esac
+    # 1st: Use shell detected by i.sh (most reliable — passed via env var)
+    # 2nd: PPID detection (for direct runs without i.sh)
+    # 3rd: $SHELL fallback
+    local current_shell="${FANCYBASH_SHELL:-}"
+    if [ -z "$current_shell" ]; then
+        local _ppid_cmd
+        _ppid_cmd=$(ps -p "$PPID" -o comm= 2>/dev/null | sed 's/^-//' | xargs basename 2>/dev/null)
+        [ -z "$_ppid_cmd" ] && [ -f "/proc/$PPID/comm" ] && \
+            _ppid_cmd=$(sed 's/^-//' "/proc/$PPID/comm" 2>/dev/null)
+        case "${_ppid_cmd:-}" in
+            zsh|bash|fish|dash|sh) current_shell="$_ppid_cmd" ;;
+            *) current_shell=$(basename "${SHELL:-bash}") ;;
+        esac
+    fi
 
     echo -e "\n${BLUE}──────────────────────────────────────────────────${NC}"
     echo -e " 🖥️   ${BOLD}SYSTEM INFORMATION${NC}"
