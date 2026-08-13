@@ -5060,7 +5060,7 @@ notes() {
             fi
             [ -z "$title" ] && return 0
 
-            local file_path="$NOTE_DIR/$category/$title.md"
+            local file_path="$NOTE_DIR/$category/$title.txt"
             mkdir -p "$NOTE_DIR/$category"
 
             # ── Overwrite check ─────────────────────────────────────────────
@@ -5075,9 +5075,9 @@ notes() {
                 [[ "$overwrite" != "y" && "$overwrite" != "Y" ]] && return 0
             fi
 
-            # Write markdown header
-            printf '# %s\n' "$title" > "$file_path"
-            printf '📅 Created: %s\n---\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$file_path"
+            # Write plain-text header (no markdown — anyone can read it)
+            printf '%s\n' "$title" > "$file_path"
+            printf 'Created: %s\n%s\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$(printf -- '-%.0s' {1..40})" >> "$file_path"
 
             # ── Content input: gum write → $EDITOR ─────────────────────────
             if command -v gum >/dev/null 2>&1; then
@@ -5089,14 +5089,14 @@ notes() {
                     ${EDITOR:-nano} "$file_path"
                 else
                     local content
-                    content=$(gum write --placeholder "Type markdown content... (Ctrl+D to save)")
+                    content=$(gum write --placeholder "Type your note here... (Ctrl+D to save)")
                     printf '%s\n' "$content" >> "$file_path"
                 fi
             else
                 ${EDITOR:-nano} "$file_path"
             fi
 
-            printf '✔ Saved to [%s/%s.md]\n' "$category" "$title"
+            printf '✔ Saved to [%s/%s.txt]\n' "$category" "$title"
             ;;
 
         search|find)
@@ -5122,7 +5122,7 @@ notes() {
             match=$(grep -rnF "$query" "$NOTE_DIR" 2>/dev/null | fzf \
                 --height=60% --border \
                 --prompt="Matching Lines ➔ " \
-                --preview 'f=$(echo {} | cut -d: -f1); l=$(echo {} | cut -d: -f2); bat --color=always --highlight-line "$l" "$f" 2>/dev/null || cat "$f"')
+                --preview 'f=$(echo {} | cut -d: -f1); l=$(echo {} | cut -d: -f2); { command -v bat >/dev/null 2>&1 && bat --color=always --highlight-line "$l" "$f" 2>/dev/null; } || { command -v batcat >/dev/null 2>&1 && batcat --color=always --highlight-line "$l" "$f" 2>/dev/null; } || cat "$f"')
 
             if [ -n "$match" ]; then
                 local file
@@ -5143,26 +5143,26 @@ notes() {
             # BUG FIX: original code crashed here when fzf was not installed
             if ! command -v fzf >/dev/null 2>&1; then
                 printf '📁 Notes in %s:\n\n' "$NOTE_DIR"
-                find "$NOTE_DIR" -type f -name "*.md" 2>/dev/null | \
+                find "$NOTE_DIR" -type f -name "*.txt" 2>/dev/null | \
                     while IFS= read -r f; do
                         printf '  [%s] %s\n' \
                             "$(basename "$(dirname "$f")")" \
-                            "$(basename "$f" .md)"
+                            "$(basename "$f" .txt)"
                     done
                 return 0
             fi
 
             local selected
-            selected=$(find "$NOTE_DIR" -type f -name "*.md" 2>/dev/null | fzf \
+            selected=$(find "$NOTE_DIR" -type f -name "*.txt" 2>/dev/null | fzf \
                 --height=70% --reverse --border \
                 --prompt="🔎 Search Notes ➔ " \
-                --preview "$PREVIEW_CMD {}" \
+                --preview "$PREVIEW_CMD {} 2>/dev/null || cat {}" \
                 --preview-window=right:60%)
 
             [ -z "$selected" ] && return 0
 
             local title category note_action
-            title=$(basename "$selected" .md)
+            title=$(basename "$selected" .txt)
             category=$(basename "$(dirname "$selected")")
 
             # ── Action menu: gum → plain numbered prompt ────────────────────

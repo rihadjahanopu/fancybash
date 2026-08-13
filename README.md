@@ -523,6 +523,52 @@ uu
 
 ---
 
+### 🚀 Interactive Utilities (GUM & FZF)
+
+> These utilities use `gum` and/or `fzf` for rich interactive UIs.  
+> They degrade gracefully: **gum → fzf → plain `read` prompt** — no tool is strictly required.
+
+#### 📋 Todo Manager
+
+Tasks are saved to `~/.todo_list.txt`.
+
+| Command | Description |
+| --- | --- |
+| `todo` | Open interactive gum menu, or show numbered task list |
+| `todo add "Task"` | Add a new task directly |
+| `todo add` | Add task via interactive prompt (gum / read) |
+| `todo list` | Show all pending tasks (numbered) |
+| `todo done` | Mark done — fzf picker → gum chooser → ask for number |
+| `todo done 2` | Mark task #2 as done directly |
+| `todo clear` | Clear all tasks |
+| `todo --help` | Show usage |
+
+#### 📝 Notes Manager
+
+Notes are stored in `~/.my_notes/<Category>/<Title>.md`.
+
+| Command | Description |
+| --- | --- |
+| `notes` | Browse all notes with fzf + live preview |
+| `notes add` | Add a note — pick category, enter title, write content |
+| `notes search` | Full-text search inside all notes with fzf |
+| `notes find` | Alias for `notes search` |
+| `notes --help` | Show usage |
+
+**Viewer fallback:** `glow` → `bat` → `batcat` → `less`  
+**Preview (fzf):** `bat` → `batcat` → `glow` → `cat`  
+**Clipboard:** `wl-copy` (Wayland) → `xclip` → `xsel` → `pbcopy` (macOS)
+
+#### 🔀 Other GUM / FZF Utilities
+
+| Command | Description |
+| --- | --- |
+| `gbranch` | Fuzzy Git branch switcher (fzf / gum) |
+| `fkill` | Fuzzy interactive process killer (fzf / gum) |
+| `fcd` | Fuzzy quick directory jump (fzf / gum) |
+
+---
+
 ## 🏗️ Project Structure
 
 ```

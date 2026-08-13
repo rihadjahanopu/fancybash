@@ -1667,6 +1667,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
             >
               🔨 Utilities
             </button>
+            <button
+              class="cmd-cat-btn"
+              role="tab"
+              aria-selected="false"
+              data-cat="todo"
+              id="cmd-tab-todo"
+            >
+              📋 Todo &amp; Notes
+            </button>
           </div>
 
           <div
@@ -2429,6 +2438,145 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Clear the terminal screen</td>
                     <td></td>
                   </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            class="cmd-panel"
+            data-panel="todo"
+            role="tabpanel"
+            aria-labelledby="cmd-tab-todo"
+            hidden
+          >
+            <div class="cmd-table-wrapper">
+              <table class="cmd-table">
+                <thead>
+                  <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                  </tr>
+                </thead>
+                <tbody>
+
+                  <!-- ── Todo Manager ─────────────────────────────── -->
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="
+                        background: rgba(255,255,255,0.04);
+                        font-weight: 600;
+                        color: var(--accent, #a78bfa);
+                        padding: 0.6rem 1rem;
+                        letter-spacing: 0.03em;
+                      "
+                    >📋 Todo Manager — <code>~/.todo_list.txt</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo</code></td>
+                    <td>Open interactive gum menu, or show numbered task list</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo add &quot;task&quot;</code></td>
+                    <td>Add a new task directly as argument</td>
+                    <td><code>todo add &quot;Buy milk&quot;</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo add</code></td>
+                    <td>Add task via interactive prompt (gum / read)</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo list</code></td>
+                    <td>Show all pending tasks with line numbers</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo done</code></td>
+                    <td>Mark done — fzf picker → gum chooser → ask for number</td>
+                    <td><code>todo done 2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo clear</code></td>
+                    <td>Clear all tasks from the list</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>todo --help</code></td>
+                    <td>Show full usage reference</td>
+                    <td></td>
+                  </tr>
+
+                  <!-- ── Notes Manager ────────────────────────────── -->
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="
+                        background: rgba(255,255,255,0.04);
+                        font-weight: 600;
+                        color: var(--accent, #a78bfa);
+                        padding: 0.6rem 1rem;
+                        letter-spacing: 0.03em;
+                      "
+                    >📝 Notes Manager — <code>~/.my_notes/</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>notes</code></td>
+                    <td>Browse all notes with fzf + live preview</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>notes add</code></td>
+                    <td>Add a note — pick category, enter title, write content</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>notes search</code></td>
+                    <td>Full-text search inside all notes (fzf + grep -F)</td>
+                    <td><code>notes search &quot;docker&quot;</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>notes find</code></td>
+                    <td>Alias for <code>notes search</code></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>notes --help</code></td>
+                    <td>Show full usage reference</td>
+                    <td></td>
+                  </tr>
+
+                  <!-- ── GUM / FZF Utilities ───────────────────────── -->
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="
+                        background: rgba(255,255,255,0.04);
+                        font-weight: 600;
+                        color: var(--accent, #a78bfa);
+                        padding: 0.6rem 1rem;
+                        letter-spacing: 0.03em;
+                      "
+                    >🔀 GUM &amp; FZF Utilities</td>
+                  </tr>
+                  <tr>
+                    <td><code>gbranch</code></td>
+                    <td>Fuzzy Git branch switcher (fzf / gum)</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>fkill</code></td>
+                    <td>Fuzzy interactive process killer (fzf / gum)</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>fcd</code></td>
+                    <td>Fuzzy quick directory jump (fzf / gum)</td>
+                    <td></td>
+                  </tr>
+
                 </tbody>
               </table>
             </div>
