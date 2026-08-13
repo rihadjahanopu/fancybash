@@ -4765,5 +4765,474 @@ fcd() {
 }
 
 # =====================================================
+# 📋 TODO & NOTES UTILITIES (Bash | Linux/macOS/BSD)
+# Cross-shell safe: bash 4+ and zsh 5+
+# All bugs fixed — see ARCHITECTURE.txt for details
+# =====================================================
+
+# ---------------------------------------------------------------------------
+# Helper: Portable in-place line deletion.
+# GNU sed (Linux) uses `sed -i "Nd"`.
+# BSD sed (macOS/FreeBSD) requires `sed -i '' "Nd"`.
+# Detection: GNU sed responds to --version; BSD sed does not.
+# ---------------------------------------------------------------------------
+_fb_sed_delete_line() {
+    local n="$1" file="$2"
+    if sed --version >/dev/null 2>&1; then
+        sed -i "${n}d" "$file"
+    else
+        sed -i '' "${n}d" "$file"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: Clipboard copy — Wayland → X11/xclip → X11/xsel → macOS pbcopy.
+# Falls back gracefully with an informative error message.
+# ---------------------------------------------------------------------------
+_fb_copy_to_clipboard() {
+    local content="$1"
+    if command -v wl-copy >/dev/null 2>&1; then
+        printf '%s' "$content" | wl-copy && printf '📋 Copied (Wayland)!\n'
+    elif command -v xclip >/dev/null 2>&1; then
+        printf '%s' "$content" | xclip -selection clipboard && printf '📋 Copied (xclip/X11)!\n'
+    elif command -v xsel >/dev/null 2>&1; then
+        printf '%s' "$content" | xsel --clipboard --input && printf '📋 Copied (xsel/X11)!\n'
+    elif command -v pbcopy >/dev/null 2>&1; then
+        printf '%s' "$content" | pbcopy && printf '📋 Copied (macOS)!\n'
+    else
+        printf '❌ No clipboard tool found. Install: wl-copy, xclip, xsel, or pbcopy.\n'
+        return 1
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: Print numbered task list. Shared across todo sub-commands.
+# ---------------------------------------------------------------------------
+_fb_todo_show_list() {
+    local file="$1"
+    if [ -s "$file" ]; then
+        printf '\n--- 📋 YOUR TO-DO LIST ---\n'
+        nl -w2 -s'. ' "$file"
+        printf '\n'
+    else
+        printf '📋 No tasks pending! Super productive 🎉\n'
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# 1. TODO MANAGER
+# Usage: todo | todo add "Task" | todo list | todo done [num] | todo clear
+# Deps:  none required — fzf/gum are optional for interactive mode
+# Fixes: out-of-range number crash | sed regex injection | echo -e portability
+#        local+cmd exit code loss | inconsistent tool detection
+# ------------------------------------------------------------------------------
+todo() {
+    local TODO_FILE="$HOME/.todo_list.txt"
+    touch "$TODO_FILE"
+
+    local action="${1:-}"
+
+    case "$action" in
+
+        add)
+            shift
+            local task="${*:-}"
+            # Prompt interactively when task not passed as argument
+            if [ -z "$task" ]; then
+                if command -v gum >/dev/null 2>&1; then
+                    task=$(gum input --placeholder "Type your task here...")
+                else
+                    printf 'Task: '
+                    read -r task
+                fi
+            fi
+            if [ -n "$task" ]; then
+                printf '%s\n' "$task" >> "$TODO_FILE"
+                printf '✔ Added: "%s"\n' "$task"
+            else
+                printf '❌ Task cannot be empty!\n'
+            fi
+            ;;
+
+        done|rm)
+            shift
+            local num="${1:-}"
+
+            if [ ! -s "$TODO_FILE" ]; then
+                printf '📋 No tasks to complete!\n'
+                return 0
+            fi
+
+            local total
+            total=$(wc -l < "$TODO_FILE")
+
+            # ── Branch 1: direct line number provided ──────────────────────
+            if [[ "$num" =~ ^[0-9]+$ ]]; then
+                # BUG FIX: validate range — prevents sed crash on line 0
+                # or on a number larger than the file (both silent data-loss bugs)
+                if (( num < 1 || num > total )); then
+                    printf '❌ Invalid task number! Valid range: 1–%d\n' "$total"
+                    return 1
+                fi
+                # BUG FIX: separate local declaration from command substitution
+                # so that a failed `sed` is not swallowed by `local`'s exit-0
+                local task_text
+                task_text=$(sed -n "${num}p" "$TODO_FILE")
+                _fb_sed_delete_line "$num" "$TODO_FILE"
+                printf '🎉 Completed: "%s"\n' "$task_text"
+                return 0
+            fi
+
+            # ── Branch 2: fzf interactive selection ────────────────────────
+            if command -v fzf >/dev/null 2>&1; then
+                local selected
+                selected=$(cat -n "$TODO_FILE" | fzf \
+                    --prompt="Select task to complete ➔ " \
+                    --height=40% --reverse --border)
+                if [ -n "$selected" ]; then
+                    local line_num task_text
+                    line_num=$(printf '%s' "$selected" | awk '{print $1}')
+                    # awk strips leading whitespace+number cleanly — no sed regex needed
+                    task_text=$(printf '%s' "$selected" | awk '{$1=""; sub(/^[[:space:]]+/,""); print}')
+                    _fb_sed_delete_line "$line_num" "$TODO_FILE"
+                    printf '🎉 Completed: "%s"\n' "$task_text"
+                fi
+
+            # ── Branch 3: gum interactive selection ────────────────────────
+            elif command -v gum >/dev/null 2>&1; then
+                local task_to_remove
+                task_to_remove=$(gum choose --header="Select task to mark as Done:" < "$TODO_FILE")
+                if [ -n "$task_to_remove" ]; then
+                    # BUG FIX: grep -F (fixed-string) — immune to regex injection.
+                    # Original code used sed with user data as a regex pattern,
+                    # which crashed on tasks containing / & . * ^ $ [ etc.
+                    local match_line
+                    match_line=$(grep -Fn "$task_to_remove" "$TODO_FILE" 2>/dev/null \
+                        | head -1 | cut -d: -f1)
+                    if [ -n "$match_line" ]; then
+                        _fb_sed_delete_line "$match_line" "$TODO_FILE"
+                        printf '🎉 Completed: "%s"\n' "$task_to_remove"
+                    else
+                        printf '❌ Could not locate the task in file!\n'
+                    fi
+                fi
+
+            # ── Branch 4: no interactive tool — show numbered list ──────────
+            else
+                printf '❌ Pass a task number (e.g. todo done 1) or install fzf/gum!\n'
+                _fb_todo_show_list "$TODO_FILE"
+            fi
+            ;;
+
+        clear)
+            > "$TODO_FILE"
+            printf '🗑️  All tasks cleared!\n'
+            ;;
+
+        list|ls)
+            _fb_todo_show_list "$TODO_FILE"
+            ;;
+
+        -h|--help)
+            printf 'Usage:\n'
+            printf '  todo              – Open interactive menu / view tasks\n'
+            printf '  todo add <task>   – Add a new task\n'
+            printf '  todo list         – List all tasks\n'
+            printf '  todo done [num]   – Complete a task (interactive if no num)\n'
+            printf '  todo clear        – Clear all tasks\n'
+            ;;
+
+        "")
+            # Full gum menu when available; plain numbered list otherwise
+            if command -v gum >/dev/null 2>&1; then
+                gum style \
+                    --foreground 212 --border normal \
+                    --margin "1" --padding "1" \
+                    "✨ FANCYBASH TO-DO MANAGER ✨"
+                local MENU_CHOICE
+                MENU_CHOICE=$(gum choose \
+                    "➕ Add Task" "✅ Complete Task" \
+                    "📋 View Tasks" "🗑️  Clear All" "❌ Exit")
+                case "$MENU_CHOICE" in
+                    "➕ Add Task")      todo add ;;
+                    "✅ Complete Task") todo done ;;
+                    "📋 View Tasks")    _fb_todo_show_list "$TODO_FILE" ;;
+                    "🗑️  Clear All")
+                        if gum confirm "Are you sure you want to clear all tasks?"; then
+                            todo clear
+                        fi
+                        ;;
+                    *) return 0 ;;
+                esac
+            else
+                _fb_todo_show_list "$TODO_FILE"
+            fi
+            ;;
+
+        *)
+            printf '❌ Unknown command: %s\n' "$action"
+            printf "Run 'todo --help' for usage.\n"
+            return 1
+            ;;
+    esac
+}
+
+# ------------------------------------------------------------------------------
+# 2. NOTES MANAGER
+# Usage: notes | notes add | notes search | notes --help
+# Deps:  none required — fzf/gum/bat/glow are optional
+# Fixes: no fallback in notes add | fzf crash when missing | bat preview broken
+#        grep regex injection in search | echo -e portability | ls -d error
+# ------------------------------------------------------------------------------
+notes() {
+    local NOTE_DIR="$HOME/.my_notes"
+    mkdir -p "$NOTE_DIR/General"
+
+    local action="${1:-}"
+
+    # Pick the best available markdown/syntax previewer for fzf --preview
+    local PREVIEW_CMD
+    if command -v bat >/dev/null 2>&1; then
+        PREVIEW_CMD="bat --color=always --style=numbers,changes"
+    elif command -v batcat >/dev/null 2>&1; then
+        PREVIEW_CMD="batcat --color=always --style=numbers,changes"
+    elif command -v glow >/dev/null 2>&1; then
+        PREVIEW_CMD="glow -s dark"
+    else
+        PREVIEW_CMD="cat"
+    fi
+
+    case "$action" in
+
+        add)
+            local category=""
+
+            # ── Category selection: fzf → gum → plain read ─────────────────
+            # BUG FIX: original used `ls -d */` which errors if no dirs exist;
+            # replaced with `find -mindepth 1 -maxdepth 1 -type d`.
+            # BUG FIX: `notes add` had zero fallback when gum was absent.
+            if command -v fzf >/dev/null 2>&1; then
+                local cats
+                cats=$(find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
+                    -exec basename {} \; 2>/dev/null)
+                category=$(printf '➕ Create New Category\n%s\n' "$cats" | \
+                    grep -v '^$' | \
+                    fzf --prompt="📁 Select Category ➔ " \
+                        --height=40% --border)
+
+            elif command -v gum >/dev/null 2>&1; then
+                local cats
+                cats=$(find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
+                    -exec basename {} \; 2>/dev/null)
+                category=$(printf '➕ Create New Category\n%s\n' "$cats" | \
+                    grep -v '^$' | \
+                    gum choose --header="📁 Select Category:")
+
+            else
+                printf 'Available categories:\n'
+                find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
+                    -exec basename {} \; 2>/dev/null | nl -w2 -s'. '
+                printf 'Category name (Enter = General): '
+                read -r category
+                [ -z "$category" ] && category="General"
+            fi
+
+            [ -z "$category" ] && return 0
+
+            if [ "$category" = "➕ Create New Category" ]; then
+                if command -v gum >/dev/null 2>&1; then
+                    category=$(gum input --placeholder "New category name...")
+                else
+                    printf 'New category name: '
+                    read -r category
+                fi
+                [ -z "$category" ] && return 0
+                mkdir -p "$NOTE_DIR/$category"
+            fi
+
+            # ── Note title ──────────────────────────────────────────────────
+            local title=""
+            if command -v gum >/dev/null 2>&1; then
+                title=$(gum input --placeholder "Note Title (e.g. Docker Commands)...")
+            else
+                printf 'Note title: '
+                read -r title
+            fi
+            [ -z "$title" ] && return 0
+
+            local file_path="$NOTE_DIR/$category/$title.md"
+            mkdir -p "$NOTE_DIR/$category"
+
+            # ── Overwrite check ─────────────────────────────────────────────
+            if [ -f "$file_path" ]; then
+                local overwrite="n"
+                if command -v gum >/dev/null 2>&1; then
+                    gum confirm "Note already exists! Overwrite?" && overwrite="y"
+                else
+                    printf 'Note already exists! Overwrite? [y/N]: '
+                    read -r overwrite
+                fi
+                [[ "$overwrite" != "y" && "$overwrite" != "Y" ]] && return 0
+            fi
+
+            # Write markdown header
+            printf '# %s\n' "$title" > "$file_path"
+            printf '📅 Created: %s\n---\n\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "$file_path"
+
+            # ── Content input: gum write → $EDITOR ─────────────────────────
+            if command -v gum >/dev/null 2>&1; then
+                local mode
+                mode=$(gum choose \
+                    "📝 Use CLI Editor (${EDITOR:-nano})" \
+                    "📥 Quick Input via Gum")
+                if [[ "$mode" == *"CLI Editor"* ]]; then
+                    ${EDITOR:-nano} "$file_path"
+                else
+                    local content
+                    content=$(gum write --placeholder "Type markdown content... (Ctrl+D to save)")
+                    printf '%s\n' "$content" >> "$file_path"
+                fi
+            else
+                ${EDITOR:-nano} "$file_path"
+            fi
+
+            printf '✔ Saved to [%s/%s.md]\n' "$category" "$title"
+            ;;
+
+        search|find)
+            local query=""
+            if command -v gum >/dev/null 2>&1; then
+                query=$(gum input --placeholder "Type text to search inside notes...")
+            else
+                printf 'Search query: '
+                read -r query
+            fi
+            [ -z "$query" ] && return 0
+
+            # ── fzf-less fallback: plain grep ───────────────────────────────
+            if ! command -v fzf >/dev/null 2>&1; then
+                printf '⚠️  fzf not found — showing raw grep results:\n\n'
+                # BUG FIX: grep -F (fixed-string) prevents query being
+                # treated as a regex — avoids injection if query has . * + etc.
+                grep -rnF "$query" "$NOTE_DIR" 2>/dev/null
+                return 0
+            fi
+
+            local match
+            match=$(grep -rnF "$query" "$NOTE_DIR" 2>/dev/null | fzf \
+                --height=60% --border \
+                --prompt="Matching Lines ➔ " \
+                --preview 'f=$(echo {} | cut -d: -f1); l=$(echo {} | cut -d: -f2); bat --color=always --highlight-line "$l" "$f" 2>/dev/null || cat "$f"')
+
+            if [ -n "$match" ]; then
+                local file
+                file=$(printf '%s' "$match" | cut -d: -f1)
+                ${EDITOR:-nano} "$file"
+            fi
+            ;;
+
+        -h|--help)
+            printf 'Usage:\n'
+            printf '  notes          – Browse and preview notes interactively\n'
+            printf '  notes add      – Add a new note under a category\n'
+            printf '  notes search   – Search text inside all notes\n'
+            ;;
+
+        "")
+            # ── Plain list fallback when fzf is absent ──────────────────────
+            # BUG FIX: original code crashed here when fzf was not installed
+            if ! command -v fzf >/dev/null 2>&1; then
+                printf '📁 Notes in %s:\n\n' "$NOTE_DIR"
+                find "$NOTE_DIR" -type f -name "*.md" 2>/dev/null | \
+                    while IFS= read -r f; do
+                        printf '  [%s] %s\n' \
+                            "$(basename "$(dirname "$f")")" \
+                            "$(basename "$f" .md)"
+                    done
+                return 0
+            fi
+
+            local selected
+            selected=$(find "$NOTE_DIR" -type f -name "*.md" 2>/dev/null | fzf \
+                --height=70% --reverse --border \
+                --prompt="🔎 Search Notes ➔ " \
+                --preview "$PREVIEW_CMD {}" \
+                --preview-window=right:60%)
+
+            [ -z "$selected" ] && return 0
+
+            local title category note_action
+            title=$(basename "$selected" .md)
+            category=$(basename "$(dirname "$selected")")
+
+            # ── Action menu: gum → plain numbered prompt ────────────────────
+            if command -v gum >/dev/null 2>&1; then
+                gum style --foreground 212 --border normal \
+                    "📝 Note: $title | 📁 Category: $category"
+                note_action=$(gum choose \
+                    "👁️  Full View" "✏️  Edit Note" \
+                    "📋 Copy Content" "🗑️  Delete Note" "🔙 Cancel")
+            else
+                printf '\n📝 Note: %s | 📁 Category: %s\n\n' "$title" "$category"
+                printf '  1. 👁️  Full View\n'
+                printf '  2. ✏️  Edit Note\n'
+                printf '  3. 📋 Copy Content\n'
+                printf '  4. 🗑️  Delete Note\n'
+                printf '  5. Cancel\n\n'
+                printf 'Choose [1-5]: '
+                local choice
+                read -r choice
+                case "$choice" in
+                    1) note_action="👁️  Full View" ;;
+                    2) note_action="✏️  Edit Note" ;;
+                    3) note_action="📋 Copy Content" ;;
+                    4) note_action="🗑️  Delete Note" ;;
+                    *) return 0 ;;
+                esac
+            fi
+
+            case "$note_action" in
+                "👁️  Full View")
+                    if command -v glow >/dev/null 2>&1; then
+                        glow -p "$selected"
+                    elif command -v bat >/dev/null 2>&1; then
+                        bat "$selected"
+                    elif command -v batcat >/dev/null 2>&1; then
+                        batcat "$selected"
+                    else
+                        less "$selected"
+                    fi
+                    ;;
+                "✏️  Edit Note")
+                    ${EDITOR:-nano} "$selected"
+                    ;;
+                "📋 Copy Content")
+                    _fb_copy_to_clipboard "$(cat "$selected")"
+                    ;;
+                "🗑️  Delete Note")
+                    local confirm_del="n"
+                    if command -v gum >/dev/null 2>&1; then
+                        gum confirm "Delete '$title'?" && confirm_del="y"
+                    else
+                        printf "Delete '%s'? [y/N]: " "$title"
+                        read -r confirm_del
+                    fi
+                    if [[ "$confirm_del" == "y" || "$confirm_del" == "Y" ]]; then
+                        rm "$selected"
+                        printf '🗑️  Note deleted!\n'
+                    fi
+                    ;;
+            esac
+            ;;
+
+        *)
+            printf '❌ Unknown command: %s\n' "$action"
+            printf "Run 'notes --help' for usage.\n"
+            return 1
+            ;;
+    esac
+}
+
+# =====================================================
 # End of .bashrc
 # =====================================================
