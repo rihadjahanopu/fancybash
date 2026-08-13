@@ -110,6 +110,9 @@ printf "  ${CYAN}➜ Shell:${NC}   ${BOLD}%s${NC}\n" "$USER_SHELL"
 printf "${CYAN}──────────────────────────────────────────${NC}\n\n"
 
 # ─── 3. Delegate Installation ────────────────────────────────────────────────
+# Save original script args BEFORE the function (inside function $@ = func args)
+SCRIPT_ARGS=("$@")
+
 run_installer() {
     local target_script="$1"
     local local_file="$SCRIPT_DIR/$target_script"
@@ -118,9 +121,9 @@ run_installer() {
     if [ -f "$local_file" ]; then
         printf "  ${GREEN}✔${NC} Running local ${BOLD}%s${NC}...\n\n" "$target_script"
         if [ "$target_script" = "install.zsh" ] && command -v zsh &>/dev/null; then
-            exec zsh "$local_file" "$@"
+            exec zsh "$local_file" "${SCRIPT_ARGS[@]}"
         else
-            exec bash "$local_file" "$@"
+            exec bash "$local_file" "${SCRIPT_ARGS[@]}"
         fi
     else
         # Running remotely via curl pipe
@@ -141,9 +144,9 @@ run_installer() {
         fi
 
         if [ "$target_script" = "install.zsh" ] && command -v zsh &>/dev/null; then
-            exec zsh "$tmp_installer" "$@"
+            exec zsh "$tmp_installer" "${SCRIPT_ARGS[@]}"
         else
-            exec bash "$tmp_installer" "$@"
+            exec bash "$tmp_installer" "${SCRIPT_ARGS[@]}"
         fi
     fi
 }
