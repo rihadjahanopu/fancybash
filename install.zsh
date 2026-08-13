@@ -144,11 +144,20 @@ check_and_install_fonts() {
     printf "  ${CYAN}➜${NC} Checking system dependencies...\n"
 
     local missing_deps=()
-    for cmd in curl grep git fzf gum; do
+    for cmd in curl grep git fzf gum glow bat; do
+        if [ "$cmd" = "bat" ] && command -v batcat &>/dev/null; then
+            continue
+        fi
         if ! command -v "$cmd" &>/dev/null; then
             missing_deps+=("$cmd")
         fi
     done
+
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        if ! command -v xclip &>/dev/null && ! command -v wl-copy &>/dev/null && ! command -v xsel &>/dev/null; then
+            missing_deps+=("clipboard-tool")
+        fi
+    fi
 
     local fonts_needed=0
     if command -v fc-list &>/dev/null; then
@@ -166,7 +175,7 @@ check_and_install_fonts() {
 
     # Interactive Prompt
     echo ""
-    printf "${YELLOW}  ❯ Missing components detected.${NC}\n"
+    printf "${YELLOW}  ❯ Missing components detected (${missing_deps[*]}).${NC}\n"
     printf "    Would you like to auto-install them? [${GREEN}Y${NC}/n]: "
 
     # Read from /dev/tty safely for curl piped scripts
@@ -192,19 +201,19 @@ check_and_install_fonts() {
 
     case "$pm" in
         apt)
-            if ! command -v gum &>/dev/null; then
+            if ! command -v gum &>/dev/null || ! command -v glow &>/dev/null; then
                 $sudo_cmd mkdir -p /etc/apt/keyrings 2>/dev/null || true
                 curl -fsSL https://repo.charm.sh/apt/gpg.key | $sudo_cmd gpg --dearmor --yes -o /etc/apt/keyrings/charm.gpg 2>/dev/null || true
                 echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | $sudo_cmd tee /etc/apt/sources.list.d/charm.list >/dev/null 2>&1 || true
             fi
             $sudo_cmd apt update -qq >/dev/null 2>&1 || true
-            $sudo_cmd apt install -y curl git fzf gum fonts-noto-color-emoji fonts-firacode fonts-cascadia-code fontconfig >/dev/null 2>&1 || true
+            $sudo_cmd apt install -y curl git fzf gum glow bat xclip wl-clipboard nano fonts-noto-color-emoji fonts-firacode fonts-cascadia-code fontconfig >/dev/null 2>&1 || true
             ;;
         pacman)
-            $sudo_cmd pacman -Sy --noconfirm curl git fzf gum ttf-noto-emoji ttf-fira-code ttf-cascadia-code fontconfig >/dev/null 2>&1 || true
+            $sudo_cmd pacman -Sy --noconfirm curl git fzf gum glow bat xclip wl-clipboard nano ttf-noto-emoji ttf-fira-code ttf-cascadia-code fontconfig >/dev/null 2>&1 || true
             ;;
         dnf)
-            if ! command -v gum &>/dev/null; then
+            if ! command -v gum &>/dev/null || ! command -v glow &>/dev/null; then
                 echo '[charm]
 name=Charm
 baseurl=https://repo.charm.sh/yum/
@@ -212,13 +221,13 @@ enabled=1
 gpgcheck=1
 gpgkey=https://repo.charm.sh/yum/gpg.key' | $sudo_cmd tee /etc/yum.repos.d/charm.repo >/dev/null 2>&1 || true
             fi
-            $sudo_cmd dnf install -y curl git fzf gum google-noto-emoji-fonts fira-code-fonts cascadia-code-fonts fontconfig >/dev/null 2>&1 || true
+            $sudo_cmd dnf install -y curl git fzf gum glow bat xclip wl-clipboard nano google-noto-emoji-fonts fira-code-fonts cascadia-code-fonts fontconfig >/dev/null 2>&1 || true
             ;;
         apk)
-            $sudo_cmd apk add --no-cache curl git fzf gum font-noto-emoji font-fira-code fontconfig >/dev/null 2>&1 || true
+            $sudo_cmd apk add --no-cache curl git fzf gum glow bat xclip wl-clipboard nano font-noto-emoji font-fira-code fontconfig >/dev/null 2>&1 || true
             ;;
         brew)
-            brew install curl git fzf gum font-fira-code font-cascadia-code font-noto-emoji >/dev/null 2>&1 || true
+            brew install curl git fzf gum glow bat nano font-fira-code font-cascadia-code font-noto-emoji >/dev/null 2>&1 || true
             ;;
         *)
             printf "  ${GRAY}ℹ Package manager not recognized. Skipping.${NC}\n"

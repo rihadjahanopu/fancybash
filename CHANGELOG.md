@@ -5,6 +5,29 @@ All notable changes to **fancybash** are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).  
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] — 2026-08-13
+
+### ✨ Added & Improved
+- **Todo Manager (`todo`)**:
+  - Added 3-tier fallback hierarchy (`gum` → `fzf` → plain `read` prompt) for full interactivity or standalone execution.
+  - Portable line deletion via `_fb_sed_delete_line` supporting both GNU `sed` (Linux) and BSD `sed` (macOS).
+  - Added range validation for task index completion to prevent invalid line deletions.
+- **Notes Manager (`notes`)**:
+  - Switched default note file storage format from `.md` to **`.txt`** plain text for universal editor compatibility.
+  - Added cross-platform clipboard support supporting Wayland (`wl-copy`), X11 (`xclip`, `xsel`), and macOS (`pbcopy`).
+  - Multi-tier viewer & preview fallback pipeline (`glow` → `bat` → `batcat` → `cat` / `less`).
+- **Installer Automation (`install.sh` & `install.zsh`)**:
+  - Dynamically detects and auto-installs `notes` and `todo` dependencies (`glow`, `bat`, `xclip`, `wl-clipboard`, `fzf`, `gum`) across all major package managers (`apt`, `pacman`, `dnf`, `apk`, `brew`).
+- **Web & Documentation**:
+  - Added interactive utilities command reference section to `README.md`.
+  - Added dedicated **📋 Todo & Notes** tab and command reference table panel to `web/index.html`.
+
+### 🐛 Fixed
+- **`todo` Regex Vulnerability**: Fixed regex injection issue when completing tasks containing special characters (`/`, `&`, `.`, `*`, `[`) using `grep -Fn`.
+- **`notes` Subprocess Preview Bug**: Fixed `fzf` preview failures when `bat`/`batcat` is missing or fails in subshell execution.
+- **`notes add` Fallback**: Fixed missing fallback when `gum` is not installed during note category creation and entry.
+- **Cross-Shell Portability**: Aligned both `config.sh` (Bash) and `config.zsh` (Zsh) with identical portable syntax and verified clean parsing.
+
 ---
 
 ## [2.0.0] — 2026-06-01
