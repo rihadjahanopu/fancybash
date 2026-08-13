@@ -83,7 +83,16 @@ show_sysinfo() {
 
     local arch=$(uname -m)
     local user=${USER:-$(whoami 2>/dev/null || echo "user")}
-    local current_shell=$(basename "${SHELL:-bash}")
+    # Detect actual running shell via parent process (PPID), not $SHELL (login shell)
+    local current_shell=""
+    local _ppid_cmd
+    _ppid_cmd=$(ps -p "$PPID" -o comm= 2>/dev/null | sed 's/^-//' | xargs basename 2>/dev/null)
+    [ -z "$_ppid_cmd" ] && [ -f "/proc/$PPID/comm" ] && \
+        _ppid_cmd=$(sed 's/^-//' "/proc/$PPID/comm" 2>/dev/null)
+    case "${_ppid_cmd:-}" in
+        zsh|bash|fish|dash|sh) current_shell="$_ppid_cmd" ;;
+        *) current_shell=$(basename "${SHELL:-bash}") ;; # fallback to $SHELL
+    esac
 
     echo -e "\n${BLUE}──────────────────────────────────────────────────${NC}"
     echo -e " 🖥️   ${BOLD}SYSTEM INFORMATION${NC}"
