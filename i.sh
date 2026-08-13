@@ -54,18 +54,41 @@ esac
 printf "  ${CYAN}➜ System:${NC}  ${BOLD}%s${NC} (%s)\n" "$OS" "$DISTRO_NAME"
 
 # ─── 2. Detect Target Shell ──────────────────────────────────────────────────
-# Priority: $SHELL (user's configured login shell) → version vars → binary fallback
+# Bulletproof priority:
+#   1. Parent process (PPID) — detects the ACTUAL shell that launched this script
+#   2. $SHELL env var        — user's configured login shell (fallback)
+#   3. Binary/OS fallback    — last resort
 USER_SHELL=""
 
-# 1st: $SHELL is most reliable — reflects user's actual configured default shell
-if [ -n "${SHELL:-}" ]; then
+# ── 1st: Parent process check ─────────────────────────────────────────────────
+# $SHELL can lie (e.g. login shell is zsh but user runs: bash i.sh).
+# Checking PPID gives us the real shell that spawned this script.
+PARENT_CMD=""
+if [ -n "${PPID:-}" ]; then
+    # Try `ps` first — most portable across Linux/macOS
+    PARENT_CMD=$(ps -p "$PPID" -o comm= 2>/dev/null | sed 's/^-//' | xargs basename 2>/dev/null)
+    # Fallback: /proc filesystem (Linux only)
+    if [ -z "$PARENT_CMD" ] && [ -f "/proc/$PPID/comm" ]; then
+        PARENT_CMD=$(sed 's/^-//' "/proc/$PPID/comm" 2>/dev/null)
+    fi
+fi
+
+case "${PARENT_CMD:-}" in
+    zsh)  USER_SHELL="zsh"  ;;
+    bash) USER_SHELL="bash" ;;
+esac
+
+# ── 2nd: $SHELL env var ───────────────────────────────────────────────────────
+# Used when PPID check is inconclusive (e.g. script piped via curl | sh)
+if [ -z "$USER_SHELL" ] && [ -n "${SHELL:-}" ]; then
     case "$(basename "$SHELL")" in
-        zsh)  USER_SHELL="zsh" ;;
+        zsh)  USER_SHELL="zsh"  ;;
         bash) USER_SHELL="bash" ;;
     esac
 fi
 
-# 2nd: version vars (useful when $SHELL is unset or generic like /bin/sh)
+# ── 3rd: Version vars ─────────────────────────────────────────────────────────
+# Useful when $SHELL is unset or points to a generic /bin/sh
 if [ -z "$USER_SHELL" ]; then
     if [ -n "${ZSH_VERSION:-}" ]; then
         USER_SHELL="zsh"
@@ -74,10 +97,10 @@ if [ -z "$USER_SHELL" ]; then
     fi
 fi
 
-# 3rd: binary fallback — prefer zsh on macOS (default since Catalina), bash elsewhere
+# ── 4th: Binary / OS fallback ─────────────────────────────────────────────────
 if [ -z "$USER_SHELL" ]; then
     if command -v zsh &>/dev/null && [ "$OS" = "macOS" ]; then
-        USER_SHELL="zsh"
+        USER_SHELL="zsh"   # macOS default shell since Catalina
     else
         USER_SHELL="bash"
     fi
