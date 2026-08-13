@@ -20,16 +20,8 @@ CYAN='\033[38;2;148;226;213m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-echo -e ""
-echo -e "${PURPLE}          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗${NC}"
-echo -e "${PURPLE}          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║${NC}"
-echo -e "${CYAN}          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║${NC}"
-echo -e "${CYAN}          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║${NC}"
-echo -e "${BLUE}          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║${NC}"
-echo -e "${BLUE}          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝${NC}"
-echo -e ""
-printf "   ${BOLD}${PURPLE}⚡ fancybash Universal Installer${NC}\n"
-printf "   ${CYAN}─────────────────────────────────────────────────────────────────${NC}\n\n"
+printf "\n${BOLD}${PURPLE}⚡ fancybash Universal Installer${NC}\n"
+printf "${CYAN}──────────────────────────────────────────${NC}\n\n"
 
 # ─── 1. Detect OS & Distro ───────────────────────────────────────────────────
 OS_TYPE="$(uname -s 2>/dev/null || echo "Unknown")"
@@ -125,7 +117,6 @@ SCRIPT_ARGS=("$@")
 # (PPID-based re-detection inside install.sh fails because exec inherits
 #  the terminal's PPID, not i.sh's PID.)
 export FANCYBASH_SHELL="$USER_SHELL"
-export FANCYBASH_BANNER_SHOWN=1
 
 run_installer() {
     local target_script="$1"
