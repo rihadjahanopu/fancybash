@@ -5252,18 +5252,49 @@ _fb_sed_delete_line() {
 # ---------------------------------------------------------------------------
 _fb_copy_to_clipboard() {
     local content="$1"
-    if command -v wl-copy >/dev/null 2>&1; then
-        printf '%s' "$content" | wl-copy && printf '📋 Copied (Wayland)!\n'
-    elif command -v xclip >/dev/null 2>&1; then
-        printf '%s' "$content" | xclip -selection clipboard && printf '📋 Copied (xclip/X11)!\n'
-    elif command -v xsel >/dev/null 2>&1; then
-        printf '%s' "$content" | xsel --clipboard --input && printf '📋 Copied (xsel/X11)!\n'
-    elif command -v pbcopy >/dev/null 2>&1; then
-        printf '%s' "$content" | pbcopy && printf '📋 Copied (macOS)!\n'
-    else
-        printf '❌ No clipboard tool found. Install: wl-copy, xclip, xsel, or pbcopy.\n'
-        return 1
+
+    # Try Wayland first if WAYLAND_DISPLAY is active
+    if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null 2>&1; then
+        if printf '%s' "$content" | wl-copy 2>/dev/null; then
+            printf '📋 Copied to Wayland clipboard!\n'
+            return 0
+        fi
     fi
+
+    # Try X11 xclip
+    if command -v xclip >/dev/null 2>&1; then
+        if printf '%s' "$content" | xclip -selection clipboard 2>/dev/null; then
+            printf '📋 Copied to X11 clipboard!\n'
+            return 0
+        fi
+    fi
+
+    # Try X11 xsel
+    if command -v xsel >/dev/null 2>&1; then
+        if printf '%s' "$content" | xsel --clipboard --input 2>/dev/null; then
+            printf '📋 Copied to X11 clipboard!\n'
+            return 0
+        fi
+    fi
+
+    # Try macOS pbcopy
+    if command -v pbcopy >/dev/null 2>&1; then
+        if printf '%s' "$content" | pbcopy 2>/dev/null; then
+            printf '📋 Copied to macOS clipboard!\n'
+            return 0
+        fi
+    fi
+
+    # Fallback attempt wl-copy if WAYLAND_DISPLAY wasn't exported but server exists
+    if command -v wl-copy >/dev/null 2>&1; then
+        if printf '%s' "$content" | wl-copy 2>/dev/null; then
+            printf '📋 Copied to Wayland clipboard!\n'
+            return 0
+        fi
+    fi
+
+    printf '❌ Clipboard copy failed (no working display or clipboard tool found).\n'
+    return 1
 }
 
 # ---------------------------------------------------------------------------
