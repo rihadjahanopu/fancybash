@@ -1022,7 +1022,8 @@ function gwip {
 
     if command -v gum &>/dev/null; then
         # 2. Select Commit Type
-        TYPE=$(gum choose --height 5 \
+        TYPE=$(gum choose --height 6 \
+            "✏️  Custom..." \
             "🚧 WIP: Work in progress" \
             "✨ feat: New feature" \
             "🐛 fix: Bug fix" \
@@ -1034,8 +1035,16 @@ function gwip {
 
         [ -z "$TYPE" ] && { echo "⚠️ Commit cancelled."; return 0; }
 
-        local TYPE_PREFIX
-        TYPE_PREFIX=$(echo "$TYPE" | awk '{print $1 " " $2}')
+        local TYPE_PREFIX CUSTOM_NAME
+
+        # Handle the custom-name WIP:: case — user types the full label themselves
+        if [ "$TYPE" = "✏️  Custom..." ]; then
+            CUSTOM_NAME=$(gum input --placeholder "Type your custom commit prefix (e.g. 🚧 WIP:: login-ui)...")
+            [ -z "$CUSTOM_NAME" ] && { echo "⚠️ Commit cancelled (no name given)."; return 0; }
+            TYPE_PREFIX="$CUSTOM_NAME"
+        else
+            TYPE_PREFIX=$(echo "$TYPE" | awk '{print $1 " " $2}')
+        fi
 
         # 3. Input Commit Message
         MSG=$(gum input --placeholder "Enter commit message (Leave empty for default)...")
