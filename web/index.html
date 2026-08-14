@@ -607,7 +607,7 @@
                   <button
                     class="copy-btn"
                     aria-label="Copy PowerShell install command"
-                    data-copy="Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1)"
+                    data-copy="powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex&quot;"
                   >
                     <svg
                       width="16"
@@ -624,9 +624,13 @@
                     Copy
                   </button>
                 </div>
-                <pre><code>Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1)</code></pre>
+                <pre><code>powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex"</code></pre>
               </div>
+              <p style="margin-top: 0.5rem; font-size: 0.82rem; color: var(--text-muted, #888);">
+                💡 No file download needed — paste &amp; run in any PowerShell window. Works on PS&nbsp;5.1+ and PS&nbsp;7+.
+              </p>
             </div>
+
           </div>
 
           <div class="install-steps">

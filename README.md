@@ -124,13 +124,21 @@ zsh <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/
 
 </details>
 
-**For PowerShell (`$PROFILE`):** (Coming Soon)
+**For PowerShell (`$PROFILE`):**
 
-<!--
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex (irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1)
+powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex"
 ```
--->
+
+> 💡 No file download needed — paste and run in any PowerShell window!
+
+<details>
+<summary><strong>Alternative: Download & double-click (for beginners)</strong></summary>
+
+1. Download [`install.bat`](https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.bat) anywhere on your PC
+2. Double-click it — it **automatically downloads `install.ps1`** and runs everything
+
+</details>
 
 The installer will:
 
@@ -153,8 +161,8 @@ source ~/.bashrc
 cat config.zsh >> ~/.zshrc
 source ~/.zshrc
 
-# For PowerShell: (Coming Soon)
-# .\install.ps1
+# For PowerShell:
+.\install.bat
 ```
 
 ---
