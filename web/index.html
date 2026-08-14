@@ -816,13 +816,16 @@ sed -i '' '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc
                     <button
                       class="copy-btn"
                       aria-label="Copy uninstall PowerShell"
-                      data-copy="$p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# >>> fancy-powershell >>>.*?# <<< fancy-powershell <<<\s*', '' | Set-Content $p"
+                      data-copy="powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex&quot;"
                     >
                       Copy
                     </button>
                   </div>
-                  <pre><code>$p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# &gt;&gt;&gt; fancy-powershell &gt;&gt;&gt;.*?# &lt;&lt;&lt; fancy-powershell &lt;&lt;&lt;\s*', '' | Set-Content $p</code></pre>
+                  <pre><code>powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex&quot;</code></pre>
                 </div>
+                <p style="margin-top: 0.6rem; font-size: 0.82rem; color: var(--text-muted)">
+                  💡 No file download needed — paste and run in any PowerShell window.
+                </p>
               </div>
 
               <p class="uninstall-note">

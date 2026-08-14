@@ -208,13 +208,13 @@ curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/
 
 </details>
 
-**For PowerShell:** (Coming Soon)
+**For PowerShell (`$PROFILE`):**
 
-<!--
 ```powershell
-$p = $PROFILE; (Get-Content $p -Raw) -replace '(?s)# >>> fancy-powershell >>>.*?# <<< fancy-powershell <<<\s*', '' | Set-Content $p
+powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex"
 ```
--->
+
+> 💡 No file download needed — paste and run in any PowerShell window!
 
 > 💡 Your original config remains untouched — only the `fancybash` block wrapped in `>>> / <<<` markers is removed.
 
@@ -624,6 +624,10 @@ fancybash/
 ├── install.sh              # Bash installer — spinner, backup, idempotency guard
 ├── install.zsh             # Zsh installer — same logic, targets ~/.zshrc
 ├── install.ps1             # PowerShell installer — targets $PROFILE
+│
+├── u.sh                    # Universal uninstaller (Linux/macOS) — auto-detects shell
+├── uninstall.sh            # Bash/Zsh uninstaller — removes fancybash block
+├── uninstall.ps1           # PowerShell uninstaller — removes fancybash block from $PROFILE
 │
 ├── web/                    # Static website (fancybash.netlify.app)
 │   ├── index.html          #   Landing page (all-in-one, ~76KB)
