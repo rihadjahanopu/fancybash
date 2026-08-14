@@ -197,6 +197,88 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
   });
 });
 
+// ─── Toast Notification Helper ───────────────────────────
+function showToast(message) {
+  let toast = document.getElementById('global-cmd-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'global-cmd-toast';
+    toast.className = 'cmd-toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>${message}</span>`;
+  toast.classList.add('show');
+  
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2200);
+}
+
+// ─── Dynamic Copy Icons for Command Tables ──────────────────
+function initTableCopyButtons() {
+  const codeEls = document.querySelectorAll('.cmd-table td code');
+  codeEls.forEach(code => {
+    // Skip section header rows or empty codes
+    if (code.closest('.section-header-row')) return;
+    if (code.closest('.code-copy-inline') || code.parentElement.querySelector('.td-copy-btn')) return;
+
+    const copyText = code.dataset.copy || code.textContent.trim();
+    if (!copyText || copyText === '...') return;
+
+    // Wrap code and copy button in a inline container
+    const wrapper = document.createElement('span');
+    wrapper.className = 'code-copy-inline';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'td-copy-btn';
+    btn.setAttribute('title', `Copy "${copyText}"`);
+    btn.setAttribute('aria-label', `Copy ${copyText}`);
+    btn.innerHTML = `<svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+
+    code.parentNode.insertBefore(wrapper, code);
+    wrapper.appendChild(code);
+    wrapper.appendChild(btn);
+
+    const performCopy = async (e) => {
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(copyText);
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = copyText;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+      code.classList.add('copied-code');
+      showToast(`Copied <code>${copyText}</code> to clipboard!`);
+
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        code.classList.remove('copied-code');
+        btn.innerHTML = `<svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+      }, 1800);
+    };
+
+    btn.addEventListener('click', performCopy);
+    code.addEventListener('click', performCopy);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTableCopyButtons);
+} else {
+  initTableCopyButtons();
+}
+
 // ─── Terminal typewriter animation ────────────────────────
 const typedEl = document.getElementById('typed-text');
 const outputEl = document.getElementById('terminal-output');

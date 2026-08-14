@@ -5430,7 +5430,8 @@ ffmedia() {
             local list_file=$(mktemp)
             for f in $input_pattern; do
                 if [ -f "$f" ]; then
-                    printf "file '%s'\n" "$(realpath "$f")" >> "$list_file"
+                    local escaped_path=$(realpath "$f" | sed "s/'/'\\\\''/g")
+                    printf "file '%s'\n" "$escaped_path" >> "$list_file"
                 fi
             done
             if [ ! -s "$list_file" ]; then
@@ -5482,7 +5483,11 @@ ffmedia() {
             [[ "$spd_opt" == *"4)"* ]] && pts="0.5" && atempo="2.0"
             [[ "$spd_opt" == *"5)"* ]] && pts="0.25" && atempo="2.0,atempo=2.0"
             local out="${file%.*}_speed.${file##*.}"
-            ffmpeg -i "$file" -filter_complex "[0:v]setpts=${pts}*PTS[v];[0:a]atempo=${atempo}[a]" -map "[v]" -map "[a]" "$out"
+            if ffprobe -i "$file" -show_streams -select_streams a 2>&1 | grep -q "codec_type=audio"; then
+                ffmpeg -i "$file" -filter_complex "[0:v]setpts=${pts}*PTS[v];[0:a]atempo=${atempo}[a]" -map "[v]" -map "[a]" "$out"
+            else
+                ffmpeg -i "$file" -vf "setpts=${pts}*PTS" "$out"
+            fi
             printf '\n✅ Speed changed: %s\n' "$out"
             ;;
 
@@ -5523,7 +5528,8 @@ ffmedia() {
                 ffmpeg -i "$file" -i "$logo" -filter_complex "[1:v]scale=150:-1[logo];[0:v][logo]overlay=${overlay}" -c:a copy "$out"
             else
                 local text=$(_fb_media_input "Watermark Text" "FancyBash")
-                ffmpeg -i "$file" -vf "drawtext=text='${text}':x=w-tw-20:y=h-th-20:fontsize=36:fontcolor=white@0.8:box=1:boxcolor=black@0.4:boxborderw=5" -c:a copy "$out"
+                local safe_text=$(echo "$text" | sed "s/'/\\\\'/g")
+                ffmpeg -i "$file" -vf "drawtext=text='${safe_text}':x=w-tw-20:y=h-th-20:fontsize=36:fontcolor=white@0.8:box=1:boxcolor=black@0.4:boxborderw=5" -c:a copy "$out"
             fi
             printf '\n✅ Watermark applied: %s\n' "$out"
             ;;
@@ -5535,7 +5541,7 @@ ffmedia() {
                 local f2=$(_fb_media_select_file "Select Video 2:" "\.(mp4|mkv|mov|avi|webm)$")
                 [ -z "$f1" ] || [ -z "$f2" ] && return 0
                 local out="comparison_side_by_side.mp4"
-                ffmpeg -i "$f1" -i "$f2" -filter_complex "[0:v][1:v]hstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]" -map "[v]" -map "[a]" -c:v libx264 "$out"
+                ffmpeg -i "$f1" -i "$f2" -filter_complex "[0:v]scale=-1:720[v0];[1:v]scale=-1:720[v1];[v0][v1]hstack=inputs=2[v]" -map "[v]" -c:v libx264 "$out"
             else
                 local f1=$(_fb_media_select_file "Select Video 1 (Top-Left):" "\.(mp4|mkv|mov|avi|webm)$")
                 local f2=$(_fb_media_select_file "Select Video 2 (Top-Right):" "\.(mp4|mkv|mov|avi|webm)$")
@@ -5543,7 +5549,7 @@ ffmedia() {
                 local f4=$(_fb_media_select_file "Select Video 4 (Bottom-Right):" "\.(mp4|mkv|mov|avi|webm)$")
                 [ -z "$f1" ] || [ -z "$f2" ] || [ -z "$f3" ] || [ -z "$f4" ] && return 0
                 local out="grid_2x2.mp4"
-                ffmpeg -i "$f1" -i "$f2" -i "$f3" -i "$f4" -filter_complex "[0:v][1:v][2:v][3:v]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" -c:v libx264 "$out"
+                ffmpeg -i "$f1" -i "$f2" -i "$f3" -i "$f4" -filter_complex "[0:v]scale=640:360[v0];[1:v]scale=640:360[v1];[2:v]scale=640:360[v2];[3:v]scale=640:360[v3];[v0][v1][v2][v3]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" -c:v libx264 "$out"
             fi
             printf '\n✅ Grid video created: %s\n' "$out"
             ;;
@@ -5579,7 +5585,7 @@ ffmedia() {
                 "1) Replace original audio completely" \
                 "2) Mix new audio with existing video sound")
             local out="${vid%.*}_audio_merged.${vid##*.}"
-            if [[ "$mode" == *"1)"* ]]; then
+            if [[ "$mode" == *"1)"* ]] || ! ffprobe -i "$vid" -show_streams -select_streams a 2>&1 | grep -q "codec_type=audio"; then
                 ffmpeg -i "$vid" -i "$aud" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -shortest "$out"
             else
                 ffmpeg -i "$vid" -i "$aud" -filter_complex "[0:a][1:a]amix=inputs=2:duration=first[a]" -map 0:v -map "[a]" -c:v copy "$out"
@@ -5731,7 +5737,8 @@ ffmedia() {
             local sub=$(_fb_media_select_file "Select subtitle file (.srt/.ass):" "\.(srt|ass)$")
             [ -z "$sub" ] && return 0
             local out="${vid%.*}_subtitled.${vid##*.}"
-            ffmpeg -i "$vid" -vf "subtitles='${sub}'" -c:a copy "$out"
+            local safe_sub=$(echo "$sub" | sed "s/'/\\\\'/g" | sed "s/:/\\\\:/g")
+            ffmpeg -i "$vid" -vf "subtitles='${safe_sub}'" -c:a copy "$out"
             printf '\n✅ Subtitle burned into video: %s\n' "$out"
             ;;
 
