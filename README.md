@@ -789,17 +789,19 @@ This page has been integrated into the main `fancybash` website and can be acces
 
 > fancybash includes **The Ultimate Docker Swiss Army Knife** — a full suite of aliases and smart functions for managing containers, images, volumes, and services.
 
-### 📊 Status & Monitoring
+### 📊 Interactive Dashboard & Monitoring
 
-| Command | Description                                       |
-| ------- | ------------------------------------------------- |
-| `dps`   | List running containers (clean table format)      |
-| `dpsa`  | List **all** containers including stopped ones    |
-| `di`    | List all downloaded Docker images                 |
-| `dvl`   | List all Docker volumes                           |
-| `dnl`   | List all Docker networks                          |
-| `dsize` | Inspect total Docker disk usage                   |
-| `dtop`  | Live resource monitor — CPU, RAM, Net & Block I/O |
+| Command  | Description                                                         |
+| -------- | ------------------------------------------------------------------- |
+| `dman`   | 🐳 Docker Desktop & DevOps Terminal Edition (interactive TUI)      |
+| `dstats` | Live realtime resource dashboard (CPU, RAM, Net IO, PIDs)           |
+| `dps`    | List running containers (clean table format)                        |
+| `dpsa`   | List **all** containers including stopped ones                      |
+| `di`     | List all downloaded Docker images                                   |
+| `dvl`    | List all Docker volumes                                             |
+| `dnl`    | List all Docker networks                                            |
+| `dsize`  | Inspect total Docker disk usage                                     |
+| `dtop`   | Live resource monitor — CPU, RAM, Net & Block I/O                   |
 
 #### Sudo variants (for rootless-mode setups)
 

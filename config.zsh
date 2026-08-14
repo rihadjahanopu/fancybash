@@ -1961,6 +1961,8 @@ function keep {
 
     # ==================== DOCKER & CONTAINERS ====================
     print_category "$ICON_BUN" "DOCKER & CONTAINERS" "$YELLOW"
+    print_cmd "dman" "Docker Desktop interactive TUI manager" "dman" "$CYAN"
+    print_cmd "dstats" "Live Docker resource usage dashboard" "dstats" "$BLUE"
     print_cmd "dps" "List running containers" "" "$GREEN"
     print_cmd "dpsa" "List all containers" "" "$YELLOW"
     print_cmd "di" "Show Docker images" "" "$CYAN"
@@ -5008,11 +5010,517 @@ function dkill-force {
     fi
 }
 
+# --------------------------------------------------------------------
+# ০০০. ডকার ড্যাশবোর্ড ও অল-ইন-ওয়ান টার্মিনাল ম্যানেজার (dman & dstats)
+# --------------------------------------------------------------------
+
+# dependency check & main launcher
+unalias dman 2>/dev/null
+dman() {
+    # Dependency Check
+    if ! command -v fzf >/dev/null 2>&1 || ! command -v gum >/dev/null 2>&1; then
+        echo -e "\e[1;31mError: 'fzf' এবং 'gum' ইনস্টল করা নেই! (fzf and gum are required for dman)\e[0m"
+        return 1
+    fi
+
+    while true; do
+        clear
+        local active_context
+        active_context=$(docker context show 2>/dev/null || echo "default")
+
+        gum style \
+            --foreground 212 --border-foreground 212 --border double \
+            --align center --width 68 --margin "1 0" --padding "0 2" \
+            "🐳 DOCKER DESKTOP - DEVOPS TERMINAL EDITION" \
+            "Active Context: $active_context | Use Mouse or Arrow Keys"
+
+        local module
+        module=$(gum choose \
+            "📦 Container Manager" \
+            "🖼️ Image Manager" \
+            "💾 Volume Manager" \
+            "🌐 Network Manager" \
+            "🐙 Docker Compose Controls" \
+            "📡 Switch Docker Context (Local/VPS)" \
+            "⚡ Live Docker Events Stream" \
+            "📊 Live Resource Dashboard" \
+            "🧹 System Cleanup & Prune" \
+            "❌ Exit")
+
+        case "$module" in
+            "📦 Container Manager") _manage_containers ;;
+            "🖼️ Image Manager") _manage_images ;;
+            "💾 Volume Manager") _manage_volumes ;;
+            "🌐 Network Manager") _manage_networks ;;
+            "🐙 Docker Compose Controls") _manage_compose ;;
+            "📡 Switch Docker Context (Local/VPS)") _switch_docker_context ;;
+            "⚡ Live Docker Events Stream") _view_docker_events ;;
+            "📊 Live Resource Dashboard") dstats ;;
+            "🧹 System Cleanup & Prune") dclean ;;
+            "❌ Exit"|*) break ;;
+        esac
+    done
+}
+
+# Container Management TUI
+unalias _manage_containers 2>/dev/null
+_manage_containers() {
+    while true; do
+        clear
+        if ! docker info >/dev/null 2>&1; then
+            gum style --foreground 196 --bold "❌ Docker daemon is not running! Start it first."
+            sleep 2
+            return 1
+        fi
+
+        local cid
+        cid=$(docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}" 2>/dev/null | \
+            fzf --header-lines=1 \
+                --prompt="Select Container ❯ " \
+                --pointer="▶" \
+                --border \
+                --height=15 \
+                --preview="echo '--- [ LIVE LOGS ] ---' && docker logs --tail 25 {1} 2>/dev/null" \
+                --preview-window=right:55%:wrap | awk '{print $1}')
+
+        [ -z "$cid" ] && break
+
+        local cname
+        cname=$(docker inspect --format='{{.Name}}' "$cid" 2>/dev/null | sed 's/^\///')
+        [ -z "$cname" ] && cname="$cid"
+
+        echo ""
+        gum style --foreground 214 --bold "Selected Container: $cname ($cid)"
+
+        local action
+        action=$(gum choose \
+            "📋 View Logs (Live)" \
+            "🐚 Shell Access (Bash/Sh)" \
+            "🌐 Open Port in Browser" \
+            "📂 File Transfer (Host ⇄ Container)" \
+            "⚙️ Update Limits (CPU/RAM)" \
+            "💾 Save Container as Image (Commit)" \
+            "▶️ Start Container" \
+            "⏹️ Stop Container" \
+            "⏸️ Pause Container" \
+            "▶️ Unpause Container" \
+            "🔄 Restart Container" \
+            "🔍 Inspect Config" \
+            "🗑️ Delete Container" \
+            "🔙 Back")
+
+        case "$action" in
+            "📋 View Logs (Live)")
+                clear
+                gum style --foreground 39 "Press Ctrl+C to exit logs..."
+                docker logs -f --tail 100 "$cid"
+                ;;
+            "🐚 Shell Access (Bash/Sh)")
+                clear
+                docker exec -it "$cid" /bin/sh -c "bash || sh"
+                ;;
+            "🌐 Open Port in Browser")
+                _open_container_port "$cid"
+                ;;
+            "📂 File Transfer (Host ⇄ Container)")
+                _copy_files "$cid"
+                ;;
+            "⚙️ Update Limits (CPU/RAM)")
+                _update_container_resources "$cid"
+                ;;
+            "💾 Save Container as Image (Commit)")
+                _commit_container "$cid"
+                ;;
+            "▶️ Start Container")
+                gum spin --spinner dot --title "Starting $cname..." -- docker start "$cid"
+                ;;
+            "⏹️ Stop Container")
+                gum spin --spinner dot --title "Stopping $cname..." -- docker stop "$cid"
+                ;;
+            "⏸️ Pause Container")
+                gum spin --spinner dot --title "Pausing $cname..." -- docker pause "$cid"
+                ;;
+            "▶️ Unpause Container")
+                gum spin --spinner dot --title "Unpausing $cname..." -- docker unpause "$cid"
+                ;;
+            "🔄 Restart Container")
+                gum spin --spinner dot --title "Restarting $cname..." -- docker restart "$cid"
+                ;;
+            "🔍 Inspect Config")
+                docker inspect "$cid" | fzf --header="Inspect: $cname"
+                ;;
+            "🗑️ Delete Container")
+                if gum confirm "Permanently remove container '$cname'?"; then
+                    docker rm -f "$cid"
+                fi
+                ;;
+            "🔙 Back"|*) continue ;;
+        esac
+    done
+}
+
+# Container Sub-functions
+unalias _open_container_port 2>/dev/null
+_open_container_port() {
+    local cid=$1
+    local ports
+    ports=$(docker port "$cid" 2>/dev/null | awk '{print $3}' | awk -F: '{print $NF}' | sort -u)
+    if [ -z "$ports" ]; then
+        gum style --foreground 196 "❌ No published ports found for this container!"
+        sleep 1.5
+        return
+    fi
+    local selected_port
+    selected_port=$(echo "$ports" | gum choose --header="Select Port to Open in Browser:")
+    if [ -n "$selected_port" ]; then
+        xdg-open "http://localhost:$selected_port" 2>/dev/null || xdg-open "http://127.0.0.1:$selected_port" 2>/dev/null || open "http://localhost:$selected_port" 2>/dev/null
+    fi
+}
+
+unalias _copy_files 2>/dev/null
+_copy_files() {
+    local cid=$1
+    local direction
+    direction=$(gum choose "📥 Copy from Host to Container" "📤 Copy from Container to Host" "🔙 Cancel")
+
+    if [[ "$direction" == "📥 Copy from Host to Container" ]]; then
+        local src dest
+        src=$(gum input --placeholder "Source Path on Host (e.g., ./app.conf)")
+        dest=$(gum input --placeholder "Dest Path in Container (e.g., /etc/app.conf)")
+        if [ -n "$src" ] && [ -n "$dest" ]; then
+            if docker cp "$src" "$cid:$dest"; then
+                gum style --foreground 46 "✔ File copied successfully!"
+            else
+                gum style --foreground 196 "❌ File copy failed!"
+            fi
+            sleep 1.5
+        fi
+    elif [[ "$direction" == "📤 Copy from Container to Host" ]]; then
+        local src dest
+        src=$(gum input --placeholder "Source Path in Container (e.g., /var/log/app.log)")
+        dest=$(gum input --placeholder "Dest Path on Host (e.g., ./app.log)")
+        if [ -n "$src" ] && [ -n "$dest" ]; then
+            if docker cp "$cid:$src" "$dest"; then
+                gum style --foreground 46 "✔ File copied successfully!"
+            else
+                gum style --foreground 196 "❌ File copy failed!"
+            fi
+            sleep 1.5
+        fi
+    fi
+}
+
+unalias _update_container_resources 2>/dev/null
+_update_container_resources() {
+    local cid=$1
+    local mem cpus
+    mem=$(gum input --placeholder "Memory Limit (e.g., 512m, 2g) - Leave empty to skip")
+    cpus=$(gum input --placeholder "CPU Limit (e.g., 1.5, 2) - Leave empty to skip")
+
+    if [ -n "$mem" ] || [ -n "$cpus" ]; then
+        local opts=""
+        [ -n "$mem" ] && opts="$opts --memory=$mem"
+        [ -n "$cpus" ] && opts="$opts --cpus=$cpus"
+
+        if docker update $opts "$cid"; then
+            gum style --foreground 46 "✔ Resources updated successfully!"
+        else
+            gum style --foreground 196 "❌ Failed to update container resources!"
+        fi
+        sleep 1.5
+    fi
+}
+
+unalias _commit_container 2>/dev/null
+_commit_container() {
+    local cid=$1
+    local new_image
+    new_image=$(gum input --placeholder "New Image Name (e.g., my-custom-app:v2)")
+    if [ -n "$new_image" ]; then
+        if gum spin --spinner dot --title "Creating image from container..." -- docker commit "$cid" "$new_image"; then
+            gum style --foreground 46 "✔ Created Image: $new_image"
+        else
+            gum style --foreground 196 "❌ Failed to commit container image!"
+        fi
+        sleep 1.5
+    fi
+}
+
+# Image Management TUI
+unalias _manage_images 2>/dev/null
+_manage_images() {
+    while true; do
+        clear
+        if ! docker info >/dev/null 2>&1; then
+            gum style --foreground 196 --bold "❌ Docker daemon is not running! Start it first."
+            sleep 2
+            return 1
+        fi
+
+        gum style --foreground 39 --bold "=== DOCKER IMAGES MODULE ==="
+        local img_action
+        img_action=$(gum choose \
+            "📋 List & Inspect Local Images" \
+            "📥 Pull Image from Docker Hub" \
+            "🔨 Build Image from Local Dockerfile" \
+            "🗑️ Remove Selected Image" \
+            "🔙 Back")
+
+        case "$img_action" in
+            "📋 List & Inspect Local Images")
+                local img_id
+                img_id=$(docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}" 2>/dev/null | \
+                    fzf --header-lines=1 --prompt="Select Image ❯ " | awk '{print $3}')
+                [ -n "$img_id" ] && docker inspect "$img_id" | fzf --header="Image Inspect"
+                ;;
+            "📥 Pull Image from Docker Hub")
+                local image_name
+                image_name=$(gum input --placeholder "e.g. nginx:latest, postgres:alpine")
+                if [ -n "$image_name" ]; then
+                    gum spin --spinner globe --title "Pulling $image_name..." -- docker pull "$image_name"
+                    gum style --foreground 46 "✔ Image pulled successfully!"
+                    sleep 1.5
+                fi
+                ;;
+            "🔨 Build Image from Local Dockerfile")
+                if [ ! -f "Dockerfile" ] && [ ! -f "dockerfile" ]; then
+                    gum style --foreground 196 "❌ No Dockerfile found in current directory!"
+                    sleep 2
+                    continue
+                fi
+                local tag_name
+                tag_name=$(gum input --placeholder "Enter Tag Name (e.g. my-app:v1)")
+                if [ -n "$tag_name" ]; then
+                    docker build -t "$tag_name" .
+                    printf "\nPress Enter to continue..."
+                    read -r
+                fi
+                ;;
+            "🗑️ Remove Selected Image")
+                local img_id
+                img_id=$(docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}" 2>/dev/null | \
+                    fzf --header-lines=1 --prompt="Select Image to Delete ❯ " | awk '{print $3}')
+                if [ -n "$img_id" ]; then
+                    if gum confirm "Delete image $img_id?"; then
+                        docker rmi "$img_id"
+                        sleep 1
+                    fi
+                fi
+                ;;
+            "🔙 Back"|*) break ;;
+        esac
+    done
+}
+
+# Volume Management TUI
+unalias _manage_volumes 2>/dev/null
+_manage_volumes() {
+    while true; do
+        clear
+        if ! docker info >/dev/null 2>&1; then
+            gum style --foreground 196 --bold "❌ Docker daemon is not running! Start it first."
+            sleep 2
+            return 1
+        fi
+
+        gum style --foreground 214 --bold "=== DOCKER VOLUMES MODULE ==="
+        local vol_action
+        vol_action=$(gum choose \
+            "📋 List Volumes" \
+            "➕ Create New Volume" \
+            "🔍 Inspect Volume" \
+            "🗑️ Remove Volume" \
+            "🔙 Back")
+
+        case "$vol_action" in
+            "📋 List Volumes")
+                docker volume ls | fzf --header-lines=1 --prompt="Volumes ❯ "
+                ;;
+            "➕ Create New Volume")
+                local vol_name
+                vol_name=$(gum input --placeholder "Enter Volume Name")
+                [ -n "$vol_name" ] && docker volume create "$vol_name" && sleep 1
+                ;;
+            "🔍 Inspect Volume")
+                local vol_id
+                vol_id=$(docker volume ls -q | fzf --prompt="Select Volume ❯ ")
+                [ -n "$vol_id" ] && docker volume inspect "$vol_id" | fzf
+                ;;
+            "🗑️ Remove Volume")
+                local vol_id
+                vol_id=$(docker volume ls -q | fzf --prompt="Select Volume to Remove ❯ ")
+                if [ -n "$vol_id" ]; then
+                    if gum confirm "Remove Volume $vol_id?"; then
+                        docker volume rm "$vol_id"
+                        sleep 1
+                    fi
+                fi
+                ;;
+            "🔙 Back"|*) break ;;
+        esac
+    done
+}
+
+# Network Management TUI
+unalias _manage_networks 2>/dev/null
+_manage_networks() {
+    while true; do
+        clear
+        if ! docker info >/dev/null 2>&1; then
+            gum style --foreground 196 --bold "❌ Docker daemon is not running! Start it first."
+            sleep 2
+            return 1
+        fi
+
+        gum style --foreground 120 --bold "=== DOCKER NETWORKS MODULE ==="
+        local net_action
+        net_action=$(gum choose \
+            "📋 List Networks" \
+            "🔍 Inspect Network" \
+            "🗑️ Remove Unused Networks" \
+            "🔙 Back")
+
+        case "$net_action" in
+            "📋 List Networks")
+                docker network ls | fzf --header-lines=1
+                ;;
+            "🔍 Inspect Network")
+                local net_id
+                net_id=$(docker network ls --format "table {{.ID}}\t{{.Name}}\t{{.Driver}}" 2>/dev/null | \
+                    fzf --header-lines=1 | awk '{print $1}')
+                [ -n "$net_id" ] && docker network inspect "$net_id" | fzf
+                ;;
+            "🗑️ Remove Unused Networks")
+                if gum confirm "Prune unused networks?"; then
+                    docker network prune -f
+                    sleep 1
+                fi
+                ;;
+            "🔙 Back"|*) break ;;
+        esac
+    done
+}
+
+# Docker Compose Management TUI
+unalias _manage_compose 2>/dev/null
+_manage_compose() {
+    clear
+    if [ ! -f "docker-compose.yml" ] && [ ! -f "compose.yaml" ] && [ ! -f "docker-compose.yaml" ] && [ ! -f "compose.yml" ]; then
+        gum style --foreground 196 "❌ No docker-compose file found in current directory!"
+        sleep 2
+        return
+    fi
+
+    if ! docker info >/dev/null 2>&1; then
+        gum style --foreground 196 --bold "❌ Docker daemon is not running! Start it first."
+        sleep 2
+        return 1
+    fi
+
+    gum style --foreground 208 --bold "=== DOCKER COMPOSE MODULE ==="
+    local compose_action
+    compose_action=$(gum choose \
+        "🚀 Compose Up (-d)" \
+        "🛑 Compose Down" \
+        "🔄 Compose Restart" \
+        "📋 Compose Live Logs" \
+        "🔙 Back")
+
+    case "$compose_action" in
+        "🚀 Compose Up (-d)")
+            docker compose up -d 2>/dev/null || docker-compose up -d
+            sleep 2
+            ;;
+        "🛑 Compose Down")
+            docker compose down 2>/dev/null || docker-compose down
+            sleep 2
+            ;;
+        "🔄 Compose Restart")
+            docker compose restart 2>/dev/null || docker-compose restart
+            sleep 2
+            ;;
+        "📋 Compose Live Logs")
+            docker compose logs -f 2>/dev/null || docker-compose logs -f
+            ;;
+        *) return ;;
+    esac
+}
+
+# Docker Context Switcher
+unalias _switch_docker_context 2>/dev/null
+_switch_docker_context() {
+    clear
+    gum style --foreground 212 --bold "=== DOCKER CONTEXT SWITCHER ==="
+    local context
+    context=$(docker context ls --format "table {{.Name}}\t{{.Endpoint}}" 2>/dev/null | fzf --header-lines=1 --prompt="Select Context ❯ " | awk '{print $1}')
+    if [ -n "$context" ]; then
+        if docker context use "$context"; then
+            gum style --foreground 46 "✔ Switched to Context: $context"
+        else
+            gum style --foreground 196 "❌ Failed to switch context to: $context"
+        fi
+        sleep 1.5
+    fi
+}
+
+# Docker Events Stream
+unalias _view_docker_events 2>/dev/null
+_view_docker_events() {
+    clear
+    if ! docker info >/dev/null 2>&1; then
+        gum style --foreground 196 --bold "❌ Docker daemon is not running! Start it first."
+        sleep 2
+        return 1
+    fi
+    gum style --foreground 39 "Press Ctrl+C to exit Docker Events Stream..."
+    docker events --format 'Type: {{.Type}} | Action: {{.Action}} | Actor: {{.Actor.Attributes.name}} ({{.Time}})'
+}
+
+# Realtime Resource Monitor
+unalias dstats 2>/dev/null
+dstats() {
+    clear
+    if ! docker info >/dev/null 2>&1; then
+        echo -e "\e[1;31m❌ Docker daemon is not running! Start it first with 'dstart'.\e[0m"
+        sleep 2
+        return 1
+    fi
+    if command -v gum >/dev/null 2>&1; then
+        gum style --foreground 39 "Press Ctrl+C to exit Resource Dashboard..."
+    else
+        echo -e "\e[1;36mPress Ctrl+C to exit Resource Dashboard...\e[0m"
+    fi
+    watch -n 1 -c "docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}'"
+}
+
+# আলটিমেট সিস্টেম ক্লিনআপ (অব্যবহৃত ক্যাশ, কন্টেইনার, ভলিউম ও ইমেজ ডিলিট করে জিবি জিবি জায়গা খালি করা)
 unalias dclean 2>/dev/null
-function dclean {
-    echo -e "\e[1;31m🧹 Performing deep clean of all unused Docker resources...\e[0m"
-    docker system prune -a --volumes -f
-    echo -e "\e[1;32m✨ System optimization complete!\e[0m"
+dclean() {
+    clear
+    if ! docker info >/dev/null 2>&1; then
+        echo -e "\e[1;31m❌ Docker daemon is not running! Start it first with 'dstart'.\e[0m"
+        sleep 2
+        return 1
+    fi
+    if command -v gum >/dev/null 2>&1; then
+        if gum confirm "Warning: This will delete ALL stopped containers, unused images, and dangling volumes!"; then
+            gum spin --spinner monkey --title "Pruning Docker System..." -- docker system prune -a --volumes -f
+            gum style --foreground 46 "✔ Full Cleanup Complete!"
+            sleep 1.5
+        fi
+    else
+        echo -e "\e[1;31m⚠️ Warning: This will delete ALL stopped containers, unused images, and dangling volumes!\e[0m"
+        printf "Are you sure? (y/N): "
+        read -r confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            echo -e "\e[1;31m🧹 Performing deep clean of all unused Docker resources...\e[0m"
+            docker system prune -a --volumes -f
+            echo -e "\e[1;32m✨ Full Cleanup Complete!\e[0m"
+            sleep 1.5
+        else
+            echo "Operation cancelled."
+        fi
+    fi
 }
 
 # --------------------------------------------------------------------
