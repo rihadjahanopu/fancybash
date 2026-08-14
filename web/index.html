@@ -601,33 +601,54 @@
               </div>
             </div>
             <div class="tab-panel" role="tabpanel" id="tab-ps" aria-labelledby="tab-btn-ps" hidden>
+
+              <!-- Universal smart installer (i.ps1) — featured -->
+              <p style="margin: 0 0 0.5rem; padding: 0.55rem 0.9rem; background: rgba(137,180,250,0.08); border-left: 3px solid var(--accent, #89b4fa); border-radius: 6px; font-size: 0.83rem; color: var(--text-muted)">
+                🤖 <strong>Universal smart installer</strong> — auto-detects whether you're in PowerShell or CMD and handles both correctly.
+              </p>
               <div class="code-block" id="code-ps">
                 <div class="code-header">
                   <span class="code-lang">powershell</span>
                   <button
                     class="copy-btn"
-                    aria-label="Copy PowerShell install command"
-                    data-copy="powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex&quot;"
+                    aria-label="Copy universal PowerShell install command"
+                    data-copy="irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 | iex"
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      aria-hidden="true"
-                    >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                     Copy
                   </button>
                 </div>
-                <pre><code>powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex"</code></pre>
+                <pre><code>irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 | iex</code></pre>
               </div>
-              <p style="margin-top: 0.5rem; font-size: 0.82rem; color: var(--text-muted, #888);">
-                💡 No file download needed — paste &amp; run in any PowerShell window. Works on PS&nbsp;5.1+ and PS&nbsp;7+.
+
+              <!-- Context-specific fallback commands -->
+              <details style="margin-top: 0.9rem">
+                <summary style="cursor:pointer; font-size:0.83rem; color:var(--text-muted); user-select:none">
+                  ▸ Or use a context-specific command
+                </summary>
+                <div style="margin-top: 0.75rem">
+                  <p style="margin: 0 0 0.35rem; font-size: 0.79rem; font-weight:600; color:var(--text-muted)">
+                    ⌨️ From <strong>CMD</strong> / <strong>Win+R Run dialog</strong>:
+                  </p>
+                  <div class="code-block" style="margin-bottom:0.8rem">
+                    <div class="code-header">
+                      <span class="code-lang">cmd</span>
+                      <button
+                        class="copy-btn"
+                        aria-label="Copy PowerShell install command from CMD"
+                        data-copy="powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 | iex&quot;"
+                      >Copy</button>
+                    </div>
+                    <pre><code>powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 | iex&quot;</code></pre>
+                  </div>
+                </div>
+              </details>
+
+              <p style="margin-top: 0.6rem; font-size: 0.82rem; color: var(--text-muted, #888);">
+                💡 No file download needed — paste &amp; run. Works on PS&nbsp;5.1+ and PS&nbsp;7+.
               </p>
             </div>
 
@@ -810,12 +831,38 @@ sed -i '' '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc
                 aria-labelledby="utab-btn-ps"
                 hidden
               >
-                <div class="code-block">
+                <p style="margin: 0 0 0.75rem; padding: 0.6rem 0.9rem; background: rgba(243,139,168,0.08); border-left: 3px solid #f38ba8; border-radius: 6px; font-size: 0.83rem; color: var(--text-muted)">
+                  ⚠️ <strong>Run only ONE command below</strong> — choose based on where you are:
+                </p>
+
+                <!-- Inside PowerShell terminal -->
+                <p style="margin: 0 0 0.4rem; font-size: 0.8rem; font-weight: 600; color: var(--text-muted)">
+                  🖥️ Inside <strong>PowerShell</strong> terminal:
+                </p>
+                <div class="code-block" style="margin-bottom: 1rem">
                   <div class="code-header">
                     <span class="code-lang">powershell</span>
                     <button
                       class="copy-btn"
-                      aria-label="Copy uninstall PowerShell"
+                      aria-label="Copy uninstall PowerShell direct"
+                      data-copy="irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <pre><code>irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex</code></pre>
+                </div>
+
+                <!-- From CMD / Run dialog -->
+                <p style="margin: 0 0 0.4rem; font-size: 0.8rem; font-weight: 600; color: var(--text-muted)">
+                  ⌨️ From <strong>CMD</strong> or <strong>Win+R Run dialog</strong>:
+                </p>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">cmd</span>
+                    <button
+                      class="copy-btn"
+                      aria-label="Copy uninstall PowerShell from CMD"
                       data-copy="powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex&quot;"
                     >
                       Copy
@@ -823,9 +870,6 @@ sed -i '' '/# &gt;&gt;&gt; fancy-zshrc &gt;&gt;&gt;/,/# &lt;&lt;&lt; fancy-zshrc
                   </div>
                   <pre><code>powershell -c &quot;irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex&quot;</code></pre>
                 </div>
-                <p style="margin-top: 0.6rem; font-size: 0.82rem; color: var(--text-muted)">
-                  💡 No file download needed — paste and run in any PowerShell window.
-                </p>
               </div>
 
               <p class="uninstall-note">

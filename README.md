@@ -126,14 +126,26 @@ zsh <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/
 
 **For PowerShell (`$PROFILE`):**
 
+> 🤖 **Universal smart installer — auto-detects if you're in PowerShell or CMD:**
+
 ```powershell
-powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex"
+irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 | iex
 ```
 
-> 💡 No file download needed — paste and run in any PowerShell window!
+<details>
+<summary><strong>Or use context-specific commands:</strong></summary>
+
+<br>
+
+| Where you're running | Command to use |
+|---|---|
+| Inside **PowerShell** terminal | `irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 \| iex` |
+| From **CMD** / **Run dialog (Win+R)** | `powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 \| iex"` |
+
+</details>
 
 <details>
-<summary><strong>Alternative: Download & double-click (for beginners)</strong></summary>
+<summary><strong>Alternative: Download &amp; double-click (for beginners)</strong></summary>
 
 1. Download [`install.bat`](https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.bat) anywhere on your PC
 2. Double-click it — it **automatically downloads `install.ps1`** and runs everything
@@ -210,11 +222,12 @@ curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/
 
 **For PowerShell (`$PROFILE`):**
 
-```powershell
-powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 | iex"
-```
+> ⚠️ **Run only ONE of these — do NOT run `powershell -c` inside a PowerShell window!**
 
-> 💡 No file download needed — paste and run in any PowerShell window!
+| Where you're running | Command to use |
+|---|---|
+| Inside **PowerShell** terminal | `irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 \| iex` |
+| From **CMD** / **Run dialog (Win+R)** | `powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 \| iex"` |
 
 > 💡 Your original config remains untouched — only the `fancybash` block wrapped in `>>> / <<<` markers is removed.
 
@@ -624,6 +637,7 @@ fancybash/
 ├── install.sh              # Bash installer — spinner, backup, idempotency guard
 ├── install.zsh             # Zsh installer — same logic, targets ~/.zshrc
 ├── install.ps1             # PowerShell installer — targets $PROFILE
+├── i.ps1                   # Universal Windows installer — auto-detects PS terminal vs CMD
 │
 ├── u.sh                    # Universal uninstaller (Linux/macOS) — auto-detects shell
 ├── uninstall.sh            # Bash/Zsh uninstaller — removes fancybash block

@@ -3,10 +3,16 @@
 #   Author: [Rihad Jahan Opu]
 #   Supports: Windows PowerShell 5.1+, PowerShell Core 7+
 #
-#   ── One-liner (runs directly, no download needed): ───────────────────────
+#   ── Run from INSIDE PowerShell terminal (recommended): ─────────────────────
+#   irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex
+#
+#   ── Run from CMD / Win+R Run dialog: ────────────────────────────────────────
 #   powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex"
 #
-#   ── Or double-click install.bat (auto-downloads this file): ──────────────
+#   ⚠️  Do NOT use 'powershell -c' while already inside a PowerShell window.
+#       That causes an 'Access is denied' / NativeCommandFailed error.
+#
+#   ── Or double-click install.bat (auto-downloads this file): ─────────────────
 #   https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.bat
 # ==============================================================================
 
