@@ -517,6 +517,7 @@ fancybash defines two types of terminal extensions:
   │ Syntax highlight   │  N/A     │  plugin  │  N/A     │  zsh     │
   │ Autosuggestions    │  N/A     │  plugin  │  N/A     │  zsh     │
   │ Tab completion     │  Full    │  Full    │  WIP     │  Full    │
+  │ ffmedia (FFmpeg)   │  Full    │  Full    │  WIP     │  Full    │
   └────────────────────┴──────────┴──────────┴──────────┴──────────┘
 
   Full = Fully supported  |  Partial = Tool-dependent  |  WIP = Planned

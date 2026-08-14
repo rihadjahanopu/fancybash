@@ -5,6 +5,15 @@ All notable changes to **fancybash** are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).  
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] — 2026-08-14
+
+### ✨ Added & Improved
+- **FFmpeg Multimedia Suite (`ffmedia`)**:
+  - Added an interactive 24-in-1 FFmpeg powerhouse (`ffmedia`, `ffstudio`, `fftool`, `fancy_ffmpeg`).
+  - Features 5 comprehensive categories: Video Editing & Size Management, Audio Engineering & Processing, Image/GIF & Thumbnail Utility, Screen Recording & Subtitles, Privacy Metadata & Bulk Automation.
+  - Implemented 3-tier interactive UI hierarchy (`gum` → `fzf` → terminal prompts) for smooth file picking and option selection.
+  - Dynamic dependency detection and auto-installer integration via `_fb_ensure_dep ffmpeg`.
+
 ## [2.1.0] — 2026-08-13
 
 ### ✨ Added & Improved

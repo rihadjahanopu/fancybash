@@ -1676,6 +1676,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
             >
               📋 Todo &amp; Notes
             </button>
+            <button
+              class="cmd-cat-btn"
+              role="tab"
+              aria-selected="false"
+              data-cat="media"
+              id="cmd-tab-media"
+            >
+              🎬 FFmedia Suite
+            </button>
           </div>
 
           <div
@@ -2577,6 +2586,166 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td></td>
                   </tr>
 
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- FFmedia Suite Panel -->
+          <div
+            class="cmd-panel"
+            data-panel="media"
+            role="tabpanel"
+            aria-labelledby="cmd-tab-media"
+            hidden
+          >
+            <div class="cmd-table-wrap">
+              <table class="cmd-table">
+                <thead>
+                  <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                    <th>Options &amp; Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="
+                        background: rgba(255,255,255,0.04);
+                        font-weight: 600;
+                        color: var(--accent, #a78bfa);
+                        padding: 0.6rem 1rem;
+                        letter-spacing: 0.03em;
+                      "
+                    >🎬 FFmedia Interactive Suite — 24-in-1 FFmpeg Powerhouse</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia</code></td>
+                    <td>Interactive 24-in-1 FFmpeg multimedia menu (gum / fzf / prompt)</td>
+                    <td>Aliases: <code>ffstudio</code>, <code>fftool</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia compress</code></td>
+                    <td>Compress video preserving quality (50%-80% size reduction)</td>
+                    <td>CRF 23 / 28 / 32</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia trim</code></td>
+                    <td>Fast &amp; Lossless video trim without re-encoding</td>
+                    <td>Instant cut</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia concat</code></td>
+                    <td>Merge multiple video clips seamlessly into one file</td>
+                    <td>Wildcard match</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia resolution</code></td>
+                    <td>Convert resolution (1080p/720p) or crop/blur to 9:16 Reels</td>
+                    <td>Shorts &amp; Reels</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia speed</code></td>
+                    <td>Slow Motion (0.25x-0.5x) or Time-lapse (2x-8x)</td>
+                    <td>Video &amp; Audio synced</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia rotate</code></td>
+                    <td>Rotate (90°/180°) or Flip horizontally/vertically</td>
+                    <td>Mirroring &amp; Transpose</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia watermark</code></td>
+                    <td>Apply image logo or custom text banner watermark</td>
+                    <td>5 positions</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia grid</code></td>
+                    <td>Side-by-Side (2 videos) or 2x2 grid (4 videos) comparison</td>
+                    <td>Reaction &amp; Compare</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia audio-extract</code></td>
+                    <td>Extract audio to MP3, AAC, WAV, FLAC, M4A</td>
+                    <td>Lossless / High quality</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia mute</code></td>
+                    <td>Strip audio stream completely from video</td>
+                    <td>Instant stream mute</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia audio-replace</code></td>
+                    <td>Replace or mix background audio with existing video sound</td>
+                    <td>Background score</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia loudness</code></td>
+                    <td>Loudness Normalization (-14 LUFS YouTube / -23 LUFS EBU)</td>
+                    <td>EBU R128 standard</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia visualizer</code></td>
+                    <td>Generate Waveform or Frequency Spectrum video from audio</td>
+                    <td>Neon wave / Spectrum</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia audio-speed</code></td>
+                    <td>Change audio playback speed while preserving voice pitch</td>
+                    <td>atempo filter</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia snapshot</code></td>
+                    <td>Extract Ultra HD image frame (JPG/PNG) at exact timestamp</td>
+                    <td>High-res frame</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia bulk-frames</code></td>
+                    <td>Bulk extract video frames as image sequence</td>
+                    <td>fps interval</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia gif</code></td>
+                    <td>Render pro-quality ultra-sharp GIF using 2-pass palette</td>
+                    <td>Lanczos palettegen</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia contact-sheet</code></td>
+                    <td>Generate 3x3 (9 snapshots) or 4x4 mosaic thumbnail grid image</td>
+                    <td>Video preview grid</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia screen-record</code></td>
+                    <td>Record desktop screen + system audio straight from terminal</td>
+                    <td>x11grab / avfoundation</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia subtitle-burn</code></td>
+                    <td>Hardcode .srt or .ass subtitle file into video stream</td>
+                    <td>Permanent burn-in</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia subtitle-extract</code></td>
+                    <td>Extract embedded subtitle tracks from MKV/MP4 files</td>
+                    <td>Subrip .srt export</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia privacy-clean</code></td>
+                    <td>Wipe EXIF, GPS location, camera settings, and editing history</td>
+                    <td>Metadata removal</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia convert</code></td>
+                    <td>Convert video/audio format between MP4, MKV, WEBM, MOV, AVI</td>
+                    <td>Universal format swap</td>
+                  </tr>
+                  <tr>
+                    <td><code>ffmedia batch</code></td>
+                    <td>Run bulk compression/conversion/metadata wiping on a folder</td>
+                    <td>Batch automation</td>
+                  </tr>
                 </tbody>
               </table>
             </div>

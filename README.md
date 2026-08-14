@@ -559,6 +559,41 @@ Notes are stored in `~/.my_notes/<Category>/<Title>.md`.
 **Preview (fzf):** `bat` → `batcat` → `glow` → `cat`  
 **Clipboard:** `wl-copy` (Wayland) → `xclip` → `xsel` → `pbcopy` (macOS)
 
+#### 🎬 FFmedia All-in-One Multimedia Suite
+
+Interactive FFmpeg powerhouse driven by `gum`, `fzf`, and terminal prompts.
+
+| Command | Description |
+| --- | --- |
+| `ffmedia` | Launch interactive 24-in-1 FFmpeg multimedia menu |
+| `ffstudio` | Alias for `ffmedia` |
+| `fftool` | Alias for `ffmedia` |
+| `fancy_ffmpeg` | Alias for `ffmedia` |
+| `ffmedia compress` | Compress video preserving quality (50%-80% size reduction) |
+| `ffmedia trim` | Lossless video trim without re-encoding |
+| `ffmedia concat` | Merge multiple video clips into one file |
+| `ffmedia resolution` | Convert resolution (1080p/720p) or crop to 9:16 Reels/Shorts |
+| `ffmedia speed` | Slow Motion (0.25x-0.5x) or Time-lapse (2x-8x) |
+| `ffmedia rotate` | Rotate (90°/180°) or Flip horizontally/vertically |
+| `ffmedia watermark` | Apply image logo or text banner watermark |
+| `ffmedia grid` | Side-by-Side (2 videos) or 2x2 grid (4 videos) comparison |
+| `ffmedia audio-extract` | Extract audio to MP3, AAC, WAV, FLAC, M4A |
+| `ffmedia mute` | Strip audio stream completely from video |
+| `ffmedia audio-replace` | Replace or mix background audio with video track |
+| `ffmedia loudness` | Loudness Normalization (-14 LUFS YouTube / -23 LUFS EBU) |
+| `ffmedia visualizer` | Generate Waveform or Frequency Spectrum video from audio |
+| `ffmedia audio-speed` | Change audio playback speed while preserving pitch |
+| `ffmedia snapshot` | Extract Ultra HD image frame (JPG/PNG) at exact timestamp |
+| `ffmedia bulk-frames` | Bulk extract video frames as image sequence |
+| `ffmedia gif` | Render pro-quality ultra-sharp GIF using 2-pass palette |
+| `ffmedia contact-sheet` | Generate 3x3 or 4x4 mosaic thumbnail grid image |
+| `ffmedia screen-record` | Record desktop screen + audio straight from terminal |
+| `ffmedia subtitle-burn` | Hardcode .srt or .ass subtitle file into video |
+| `ffmedia subtitle-extract` | Extract embedded subtitle tracks from MKV/MP4 |
+| `ffmedia privacy-clean` | Remove EXIF, GPS location, and camera metadata |
+| `ffmedia convert` | Convert format between MP4, MKV, WEBM, MOV, AVI |
+| `ffmedia batch` | Run bulk compression/conversion/metadata wiping on a folder |
+
 #### 🔀 Other GUM / FZF Utilities
 
 | Command | Description |

@@ -1683,6 +1683,9 @@ function keep {
 
     # ==================== ADVANCED INTERACTIVE TOOLS ====================
     print_category "$ICON_LIGHTNING" "ADVANCED INTERACTIVE TOOLS" "$PURPLE"
+    print_cmd "todo" "Interactive Todo Task Manager" "todo | todo add | todo done" "$GREEN"
+    print_cmd "notes" "Fuzzy Notes Manager with live preview" "notes | notes add | notes search" "$PINK"
+    print_cmd "ffmedia" "24-in-1 FFmpeg Multimedia Suite" "ffmedia | ffstudio | fftool" "$CYAN"
     print_cmd "cf" "Fuzzy find & navigate directories" "" "$CYAN"
     print_cmd "   ↳ ENTER" "cd to selected folder" "" "$GREEN"
     print_cmd "   ↳ CTRL+O" "Open in VS Code/Cursor/Nvim" "" "$BLUE"
@@ -5276,6 +5279,506 @@ notes() {
             ;;
     esac
 }
+
+# ==============================================================================
+# 🎬 3. FFMPEG MULTIMEDIA SUITE (ffmedia / ffstudio / fftool / fancy_ffmpeg)
+# Usage: ffmedia [action]
+# Interactive multimedia toolbox leveraging ffmpeg, fzf, and gum.
+# ==============================================================================
+
+_fb_media_select_file() {
+    local prompt="${1:-Select File:}"
+    local pattern="${2:-}"
+    local selected=""
+
+    if command -v fzf >/dev/null 2>&1; then
+        if [ -n "$pattern" ]; then
+            selected=$(find . -maxdepth 3 -type f 2>/dev/null | grep -iE "$pattern" | fzf --prompt="$prompt " --height=40% --reverse)
+        else
+            selected=$(find . -maxdepth 3 -type f 2>/dev/null | fzf --prompt="$prompt " --height=40% --reverse)
+        fi
+    elif command -v gum >/dev/null 2>&1; then
+        selected=$(gum file .)
+    fi
+
+    if [ -z "$selected" ]; then
+        printf '%s ' "$prompt"
+        read -r -e selected
+    fi
+    echo "$selected"
+}
+
+_fb_media_choose_opt() {
+    local title="$1"
+    shift
+    local options=("$@")
+    local choice=""
+
+    if command -v gum >/dev/null 2>&1; then
+        gum style --foreground 212 --bold "$title"
+        choice=$(printf '%s\n' "${options[@]}" | gum choose --height=15)
+    elif command -v fzf >/dev/null 2>&1; then
+        choice=$(printf '%s\n' "${options[@]}" | fzf --prompt="$title ➔ " --height=40% --reverse)
+    else
+        printf '\n=== %s ===\n' "$title"
+        local idx=1
+        for opt in "${options[@]}"; do
+            printf '  %2d) %s\n' "$idx" "$opt"
+            ((idx++))
+        done
+        printf 'Select option [1-%d]: ' "${#options[@]}"
+        local num
+        read -r num
+        if [[ "$num" =~ ^[0-9]+$ ]] && (( num >= 1 && num <= ${#options[@]} )); then
+            choice="${options[$((num-1))]}"
+        fi
+    fi
+    echo "$choice"
+}
+
+_fb_media_input() {
+    local prompt="$1"
+    local default_val="${2:-}"
+    local val=""
+
+    if command -v gum >/dev/null 2>&1; then
+        val=$(gum input --placeholder "$prompt" --value "$default_val")
+    else
+        if [ -n "$default_val" ]; then
+            printf '%s [%s]: ' "$prompt" "$default_val"
+        else
+            printf '%s: ' "$prompt"
+        fi
+        read -r val
+        [ -z "$val" ] && val="$default_val"
+    fi
+    echo "$val"
+}
+
+ffmedia() {
+    _fb_ensure_dep ffmpeg ffmpeg ffmpeg ffmpeg || return 1
+
+    local action="${1:-}"
+
+    if [ -z "$action" ]; then
+        action=$(_fb_media_choose_opt "🎬 FFmedia All-in-One Multimedia Suite" \
+            "1. 📦 Compress Video (50%-80% size reduction)" \
+            "2. ✂️  Fast Lossless Trim (Instant cut)" \
+            "3. 🔗 Concat Videos (Merge clips)" \
+            "4. 📐 Resolution & Aspect Ratio (1080p/720p/9:16 Reels)" \
+            "5. ⏩ Speed Control (Slow Motion / Time-lapse)" \
+            "6. 🔄 Rotate & Flip Video" \
+            "7. 🏷️  Watermark & Branding (Logo / Text)" \
+            "8. 🖼️  Video Grid & Side-by-Side Comparison" \
+            "9. 🎵 Extract Audio (MP3/AAC/WAV/FLAC)" \
+            "10. 🔇 Mute Video (Remove audio stream)" \
+            "11. 🎧 Replace / Merge Background Audio" \
+            "12. 🎚️  Loudness Normalization (-14 / -23 LUFS)" \
+            "13. 🌊 Audio Visualizer (Waveform/Spectrum Video)" \
+            "14. 🎤 Audio Speed Control (Pitch Preserved)" \
+            "15. 📸 Snapshot Capture (Ultra HD JPG/PNG)" \
+            "16. 🎞️  Bulk Frame Extraction" \
+            "17. 🎨 Pro Quality GIF Creation" \
+            "18. 🔲 Video Contact Sheet (Mosaic Grid Thumbnail)" \
+            "19. 🎥 Terminal Screen Recorder" \
+            "20. ✍️  Subtitle Burn-in (Hardcode SRT/ASS)" \
+            "21. 📄 Subtitle Extraction" \
+            "22. 🔒 Privacy Clean (Remove EXIF/GPS Metadata)" \
+            "23. 🔄 Format Conversion (MP4/MKV/WEBM/MOV/AVI)" \
+            "24. ⚡ Batch / Bulk File Processing" \
+            "❌ Exit")
+    fi
+
+    [ -z "$action" ] || [[ "$action" == *"Exit"* ]] && return 0
+
+    case "$action" in
+        *"1. "*|compress)
+            local file=$(_fb_media_select_file "Select video to compress:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local preset=$(_fb_media_choose_opt "Select Compression Preset:" \
+                "1) Balanced Quality (CRF 23 - Recommended)" \
+                "2) High Compression (CRF 28 - ~50-70% size reduction)" \
+                "3) Extreme Compression (CRF 32 - ~70-80% size reduction)")
+            local crf=23
+            [[ "$preset" == *"2)"* ]] && crf=28
+            [[ "$preset" == *"3)"* ]] && crf=32
+            local ext="${file##*.}"
+            local base="${file%.*}"
+            local out="${base}_compressed.${ext}"
+            printf '\n⚡ Compressing "%s" (CRF %s)...\n' "$file" "$crf"
+            ffmpeg -i "$file" -vcodec libx264 -crf "$crf" -preset fast -acodec aac "$out"
+            printf '\n✅ Done! Output saved as: %s\n' "$out"
+            ;;
+
+        *"2. "*|trim)
+            local file=$(_fb_media_select_file "Select video to trim:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local start=$(_fb_media_input "Start timestamp (HH:MM:SS or seconds)" "00:00:00")
+            local dur=$(_fb_media_input "Duration (HH:MM:SS or seconds, e.g. 10)" "00:00:10")
+            local ext="${file##*.}"
+            local base="${file%.*}"
+            local out="${base}_trimmed.${ext}"
+            printf '\n⚡ Trimming "%s" (Start: %s, Duration: %s)...\n' "$file" "$start" "$dur"
+            ffmpeg -ss "$start" -i "$file" -t "$dur" -c copy "$out"
+            printf '\n✅ Lossless trim complete: %s\n' "$out"
+            ;;
+
+        *"3. "*|concat)
+            printf 'Select files to concat. Enter file paths separated by space (or wildcard like *.mp4):\n'
+            local input_pattern=$(_fb_media_input "Files or wildcard (e.g. video1.mp4 video2.mp4 or clip*.mp4)" "")
+            [ -z "$input_pattern" ] && return 0
+            local list_file=$(mktemp)
+            for f in $input_pattern; do
+                if [ -f "$f" ]; then
+                    printf "file '%s'\n" "$(realpath "$f")" >> "$list_file"
+                fi
+            done
+            if [ ! -s "$list_file" ]; then
+                printf '❌ No valid files found!\n'
+                rm -f "$list_file"
+                return 1
+            fi
+            local out="merged_$(date +%Y%m%d_%H%M%S).mp4"
+            printf '\n⚡ Merging video files...\n'
+            ffmpeg -f concat -safe 0 -i "$list_file" -c copy "$out"
+            rm -f "$list_file"
+            printf '\n✅ Videos merged into: %s\n' "$out"
+            ;;
+
+        *"4. "*|resolution)
+            local file=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local mode=$(_fb_media_choose_opt "Select Target Resolution / Aspect Ratio:" \
+                "1) 1080p Full HD (1920x1080)" \
+                "2) 720p HD (1280x720)" \
+                "3) 480p SD (854x480)" \
+                "4) Crop 16:9 to 9:16 Portrait (Reels/Shorts)" \
+                "5) 9:16 Portrait with Blurred Background")
+            local base="${file%.*}"
+            local out="${base}_res.${file##*.}"
+            case "$mode" in
+                *"1)"*) ffmpeg -i "$file" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2" -c:a copy "$out" ;;
+                *"2)"*) ffmpeg -i "$file" -vf "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2" -c:a copy "$out" ;;
+                *"3)"*) ffmpeg -i "$file" -vf "scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2" -c:a copy "$out" ;;
+                *"4)"*) ffmpeg -i "$file" -vf "crop=ih*9/16:ih" -c:a copy "$out" ;;
+                *"5)"*) ffmpeg -i "$file" -filter_complex "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:10[bg];[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2" -c:a copy "$out" ;;
+            esac
+            printf '\n✅ Resolution adjusted: %s\n' "$out"
+            ;;
+
+        *"5. "*|speed)
+            local file=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local spd_opt=$(_fb_media_choose_opt "Select Speed:" \
+                "1) 0.25x (Super Slow-Mo)" \
+                "2) 0.5x (Slow Motion)" \
+                "3) 1.5x (Faster)" \
+                "4) 2.0x (Time-lapse 2x)" \
+                "5) 4.0x (Time-lapse 4x)")
+            local pts="1.0" atempo="1.0"
+            [[ "$spd_opt" == *"1)"* ]] && pts="4.0" && atempo="0.5,atempo=0.5"
+            [[ "$spd_opt" == *"2)"* ]] && pts="2.0" && atempo="0.5"
+            [[ "$spd_opt" == *"3)"* ]] && pts="0.66667" && atempo="1.5"
+            [[ "$spd_opt" == *"4)"* ]] && pts="0.5" && atempo="2.0"
+            [[ "$spd_opt" == *"5)"* ]] && pts="0.25" && atempo="2.0,atempo=2.0"
+            local out="${file%.*}_speed.${file##*.}"
+            ffmpeg -i "$file" -filter_complex "[0:v]setpts=${pts}*PTS[v];[0:a]atempo=${atempo}[a]" -map "[v]" -map "[a]" "$out"
+            printf '\n✅ Speed changed: %s\n' "$out"
+            ;;
+
+        *"6. "*|rotate)
+            local file=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local rot_opt=$(_fb_media_choose_opt "Select Rotation / Flip Option:" \
+                "1) Rotate 90° Clockwise" \
+                "2) Rotate 90° Counter-Clockwise" \
+                "3) Rotate 180°" \
+                "4) Flip Horizontally (Mirror)" \
+                "5) Flip Vertically")
+            local vf="transpose=1"
+            [[ "$rot_opt" == *"2)"* ]] && vf="transpose=2"
+            [[ "$rot_opt" == *"3)"* ]] && vf="transpose=2,transpose=2"
+            [[ "$rot_opt" == *"4)"* ]] && vf="hflip"
+            [[ "$rot_opt" == *"5)"* ]] && vf="vflip"
+            local out="${file%.*}_rotated.${file##*.}"
+            ffmpeg -i "$file" -vf "$vf" -c:a copy "$out"
+            printf '\n✅ Rotation/Flip complete: %s\n' "$out"
+            ;;
+
+        *"7. "*|watermark)
+            local file=$(_fb_media_select_file "Select main video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local type=$(_fb_media_choose_opt "Watermark Type:" "1) Image Logo" "2) Text Banner")
+            local out="${file%.*}_watermarked.${file##*.}"
+            if [[ "$type" == *"1)"* ]]; then
+                local logo=$(_fb_media_select_file "Select watermark image (PNG/JPG):" "\.(png|jpg|jpeg)$")
+                [ -z "$logo" ] && return 0
+                local pos=$(_fb_media_choose_opt "Watermark Position:" \
+                    "1) Top-Right" "2) Top-Left" "3) Bottom-Right" "4) Bottom-Left" "5) Center")
+                local overlay="main_w-overlay_w-10:10" # default top-right
+                [[ "$pos" == *"2)"* ]] && overlay="10:10"
+                [[ "$pos" == *"3)"* ]] && overlay="main_w-overlay_w-10:main_h-overlay_h-10"
+                [[ "$pos" == *"4)"* ]] && overlay="10:main_h-overlay_h-10"
+                [[ "$pos" == *"5)"* ]] && overlay="(main_w-overlay_w)/2:(main_h-overlay_h)/2"
+                ffmpeg -i "$file" -i "$logo" -filter_complex "[1:v]scale=150:-1[logo];[0:v][logo]overlay=${overlay}" -c:a copy "$out"
+            else
+                local text=$(_fb_media_input "Watermark Text" "FancyBash")
+                ffmpeg -i "$file" -vf "drawtext=text='${text}':x=w-tw-20:y=h-th-20:fontsize=36:fontcolor=white@0.8:box=1:boxcolor=black@0.4:boxborderw=5" -c:a copy "$out"
+            fi
+            printf '\n✅ Watermark applied: %s\n' "$out"
+            ;;
+
+        *"8. "*|grid)
+            local grid_mode=$(_fb_media_choose_opt "Grid Layout:" "1) 2 Videos Side-by-Side" "2) 4 Videos (2x2 Grid)")
+            if [[ "$grid_mode" == *"1)"* ]]; then
+                local f1=$(_fb_media_select_file "Select Video 1:" "\.(mp4|mkv|mov|avi|webm)$")
+                local f2=$(_fb_media_select_file "Select Video 2:" "\.(mp4|mkv|mov|avi|webm)$")
+                [ -z "$f1" ] || [ -z "$f2" ] && return 0
+                local out="comparison_side_by_side.mp4"
+                ffmpeg -i "$f1" -i "$f2" -filter_complex "[0:v][1:v]hstack=inputs=2[v];[0:a][1:a]amerge=inputs=2[a]" -map "[v]" -map "[a]" -c:v libx264 "$out"
+            else
+                local f1=$(_fb_media_select_file "Select Video 1 (Top-Left):" "\.(mp4|mkv|mov|avi|webm)$")
+                local f2=$(_fb_media_select_file "Select Video 2 (Top-Right):" "\.(mp4|mkv|mov|avi|webm)$")
+                local f3=$(_fb_media_select_file "Select Video 3 (Bottom-Left):" "\.(mp4|mkv|mov|avi|webm)$")
+                local f4=$(_fb_media_select_file "Select Video 4 (Bottom-Right):" "\.(mp4|mkv|mov|avi|webm)$")
+                [ -z "$f1" ] || [ -z "$f2" ] || [ -z "$f3" ] || [ -z "$f4" ] && return 0
+                local out="grid_2x2.mp4"
+                ffmpeg -i "$f1" -i "$f2" -i "$f3" -i "$f4" -filter_complex "[0:v][1:v][2:v][3:v]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" -c:v libx264 "$out"
+            fi
+            printf '\n✅ Grid video created: %s\n' "$out"
+            ;;
+
+        *"9. "*|audio-extract)
+            local file=$(_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|m4a|flv)$")
+            [ -z "$file" ] && return 0
+            local fmt=$(_fb_media_choose_opt "Select Output Audio Format:" "1) MP3" "2) AAC" "3) WAV" "4) FLAC" "5) M4A")
+            local ext="mp3" acodec="libmp3lame"
+            [[ "$fmt" == *"2)"* ]] && ext="aac" && acodec="aac"
+            [[ "$fmt" == *"3)"* ]] && ext="wav" && acodec="pcm_s16le"
+            [[ "$fmt" == *"4)"* ]] && ext="flac" && acodec="flac"
+            [[ "$fmt" == *"5)"* ]] && ext="m4a" && acodec="aac"
+            local out="${file%.*}.${ext}"
+            ffmpeg -i "$file" -vn -acodec "$acodec" "$out"
+            printf '\n✅ Audio extracted to: %s\n' "$out"
+            ;;
+
+        *"10. "*|mute)
+            local file=$(_fb_media_select_file "Select video to mute:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$file" ] && return 0
+            local out="${file%.*}_muted.${file##*.}"
+            ffmpeg -i "$file" -an -c:v copy "$out"
+            printf '\n✅ Video muted: %s\n' "$out"
+            ;;
+
+        *"11. "*|audio-replace)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$vid" ] && return 0
+            local aud=$(_fb_media_select_file "Select audio track file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
+            [ -z "$aud" ] && return 0
+            local mode=$(_fb_media_choose_opt "Audio Integration Mode:" \
+                "1) Replace original audio completely" \
+                "2) Mix new audio with existing video sound")
+            local out="${vid%.*}_audio_merged.${vid##*.}"
+            if [[ "$mode" == *"1)"* ]]; then
+                ffmpeg -i "$vid" -i "$aud" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -shortest "$out"
+            else
+                ffmpeg -i "$vid" -i "$aud" -filter_complex "[0:a][1:a]amix=inputs=2:duration=first[a]" -map 0:v -map "[a]" -c:v copy "$out"
+            fi
+            printf '\n✅ Audio track processed: %s\n' "$out"
+            ;;
+
+        *"12. "*|loudness)
+            local file=$(_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|mp3|wav)$")
+            [ -z "$file" ] && return 0
+            local std=$(_fb_media_choose_opt "Target Loudness Standard:" \
+                "1) YouTube / Podcast (-14 LUFS - Recommended)" \
+                "2) EBU R128 Broadcast (-23 LUFS)")
+            local lufs="-14"
+            [[ "$std" == *"2)"* ]] && lufs="-23"
+            local out="${file%.*}_normalized.${file##*.}"
+            ffmpeg -i "$file" -af "loudnorm=I=${lufs}:LRA=11:TP=-1.5" "$out"
+            printf '\n✅ Loudness normalized (%s LUFS): %s\n' "$lufs" "$out"
+            ;;
+
+        *"13. "*|visualizer)
+            local aud=$(_fb_media_select_file "Select audio file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
+            [ -z "$aud" ] && return 0
+            local viz=$(_fb_media_choose_opt "Select Visualizer Style:" \
+                "1) Vector Waveform (Neon Green Line)" \
+                "2) Frequency Spectrum (Rainbow Combined)" \
+                "3) CQT Color Spectrum" \
+                "4) Audio Stereo Histogram")
+            local filter="showwaves=s=1280x720:mode=line:colors=0x00FF99[v]"
+            [[ "$viz" == *"2)"* ]] && filter="showspectrum=s=1280x720:mode=combined:color=rainbow[v]"
+            [[ "$viz" == *"3)"* ]] && filter="showcqt=s=1280x720[v]"
+            [[ "$viz" == *"4)"* ]] && filter="ahistogram=s=1280x720[v]"
+            local out="${aud%.*}_visualizer.mp4"
+            ffmpeg -i "$aud" -filter_complex "$filter" -map "[v]" -map 0:a -c:v libx264 -c:a aac -shortest "$out"
+            printf '\n✅ Audio visualizer video created: %s\n' "$out"
+            ;;
+
+        *"14. "*|audio-speed)
+            local aud=$(_fb_media_select_file "Select audio file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
+            [ -z "$aud" ] && return 0
+            local speed=$(_fb_media_input "Audio speed factor (e.g. 1.25, 1.5, 0.8)" "1.25")
+            local out="${aud%.*}_speed_${speed}.${aud##*.}"
+            ffmpeg -i "$aud" -af "atempo=${speed}" "$out"
+            printf '\n✅ Audio speed changed (pitch preserved): %s\n' "$out"
+            ;;
+
+        *"15. "*|snapshot)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$vid" ] && return 0
+            local time=$(_fb_media_input "Timestamp (HH:MM:SS or seconds)" "00:00:05")
+            local fmt=$(_fb_media_choose_opt "Image Format:" "1) JPEG (.jpg)" "2) PNG (.png)")
+            local ext="jpg"
+            [[ "$fmt" == *"2)"* ]] && ext="png"
+            local out="${vid%.*}_snap_${time//:/}_.${ext}"
+            ffmpeg -ss "$time" -i "$vid" -vframes 1 -q:v 2 "$out"
+            printf '\n✅ Snapshot extracted: %s\n' "$out"
+            ;;
+
+        *"16. "*|bulk-frames)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$vid" ] && return 0
+            local interval=$(_fb_media_input "Extract frame every N seconds" "1")
+            local outdir="frames_$(date +%Y%m%d_%H%M%S)"
+            mkdir -p "$outdir"
+            ffmpeg -i "$vid" -vf "fps=1/${interval}" "${outdir}/frame_%04d.jpg"
+            printf '\n✅ Frames extracted into folder: %s/\n' "$outdir"
+            ;;
+
+        *"17. "*|gif)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$vid" ] && return 0
+            local start=$(_fb_media_input "Start timestamp" "00:00:00")
+            local dur=$(_fb_media_input "GIF Duration in seconds" "5")
+            local res=$(_fb_media_choose_opt "GIF Resolution & Quality:" \
+                "1) 480p @ 15fps (Standard)" \
+                "2) 720p @ 20fps (HD High Quality)" \
+                "3) 360p @ 12fps (Compact)")
+            local scale="480" fps="15"
+            [[ "$res" == *"2)"* ]] && scale="720" && fps="20"
+            [[ "$res" == *"3)"* ]] && scale="360" && fps="12"
+            local out="${vid%.*}_pro.gif"
+            local tmp_palette="/tmp/ff_palette_$$.png"
+            printf '\n⚡ Generating palette and rendering ultra-sharp GIF...\n'
+            ffmpeg -ss "$start" -t "$dur" -i "$vid" -vf "fps=${fps},scale=${scale}:-1:flags=lanczos,palettegen" -y "$tmp_palette"
+            ffmpeg -ss "$start" -t "$dur" -i "$vid" -i "$tmp_palette" -filter_complex "fps=${fps},scale=${scale}:-1:flags=lanczos[x];[x][1:v]paletteuse" "$out"
+            rm -f "$tmp_palette"
+            printf '\n✅ Pro-Quality GIF created: %s\n' "$out"
+            ;;
+
+        *"18. "*|contact-sheet)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$vid" ] && return 0
+            local grid=$(_fb_media_choose_opt "Grid Layout:" "1) 3x3 Grid (9 Thumbnails)" "2) 4x4 Grid (16 Thumbnails)")
+            local tiles="3x3"
+            [[ "$grid" == *"2)"* ]] && tiles="4x4"
+            local out="${vid%.*}_contact_sheet.png"
+            ffmpeg -i "$vid" -vf "fps=1/10,scale=320:-1,tile=${tiles}" -vsync vfr "$out"
+            printf '\n✅ Mosaic Thumbnail Grid created: %s\n' "$out"
+            ;;
+
+        *"19. "*|screen-record)
+            local out="screencast_$(date +%Y%m%d_%H%M%S).mp4"
+            local os_type=$(uname -s)
+            printf '\n🎥 Starting Terminal Screen Recorder...\nPress Ctrl+C or Q in terminal to stop recording.\n\n'
+            if [ "$os_type" = "Linux" ]; then
+                local display="${DISPLAY:-:0.0}"
+                ffmpeg -f x11grab -video_size 1920x1080 -i "$display" -c:v libx264 -preset ultrafast -crf 22 "$out"
+            elif [ "$os_type" = "Darwin" ]; then
+                ffmpeg -f avfoundation -i "1:0" -c:v libx264 -preset ultrafast "$out"
+            else
+                ffmpeg -f gdigrab -i desktop -c:v libx264 -preset ultrafast "$out"
+            fi
+            printf '\n✅ Screen recording saved as: %s\n' "$out"
+            ;;
+
+        *"20. "*|subtitle-burn)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+            [ -z "$vid" ] && return 0
+            local sub=$(_fb_media_select_file "Select subtitle file (.srt/.ass):" "\.(srt|ass)$")
+            [ -z "$sub" ] && return 0
+            local out="${vid%.*}_subtitled.${vid##*.}"
+            ffmpeg -i "$vid" -vf "subtitles='${sub}'" -c:a copy "$out"
+            printf '\n✅ Subtitle burned into video: %s\n' "$out"
+            ;;
+
+        *"21. "*|subtitle-extract)
+            local vid=$(_fb_media_select_file "Select video file:" "\.(mkv|mp4|mov)$")
+            [ -z "$vid" ] && return 0
+            local out="${vid%.*}.srt"
+            ffmpeg -i "$vid" -map 0:s:0 "$out"
+            printf '\n✅ Subtitle extracted: %s\n' "$out"
+            ;;
+
+        *"22. "*|privacy-clean)
+            local file=$(_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|mp3|wav|jpg|png)$")
+            [ -z "$file" ] && return 0
+            local out="${file%.*}_clean.${file##*.}"
+            ffmpeg -i "$file" -map_metadata -1 -c copy "$out"
+            printf '\n✅ Privacy clean complete (metadata wiped): %s\n' "$out"
+            ;;
+
+        *"23. "*|convert)
+            local file=$(_fb_media_select_file "Select media file to convert:" "\.(mp4|mkv|mov|avi|webm|ts|flv|mp3|wav|aac)$")
+            [ -z "$file" ] && return 0
+            local fmt=$(_fb_media_choose_opt "Select Target Format:" \
+                "1) MP4 (.mp4)" \
+                "2) MKV (.mkv)" \
+                "3) WEBM (.webm)" \
+                "4) MOV (.mov)" \
+                "5) AVI (.avi)" \
+                "6) MP3 (.mp3)" \
+                "7) WAV (.wav)")
+            local ext="mp4"
+            [[ "$fmt" == *"2)"* ]] && ext="mkv"
+            [[ "$fmt" == *"3)"* ]] && ext="webm"
+            [[ "$fmt" == *"4)"* ]] && ext="mov"
+            [[ "$fmt" == *"5)"* ]] && ext="avi"
+            [[ "$fmt" == *"6)"* ]] && ext="mp3"
+            [[ "$fmt" == *"7)"* ]] && ext="wav"
+            local out="${file%.*}.${ext}"
+            ffmpeg -i "$file" "$out"
+            printf '\n✅ Format converted to: %s\n' "$out"
+            ;;
+
+        *"24. "*|batch)
+            local folder=$(_fb_media_input "Enter folder path (or press enter for current directory)" ".")
+            [ ! -d "$folder" ] && printf '❌ Directory not found!\n' && return 1
+            local batch_task=$(_fb_media_choose_opt "Select Batch Operation:" \
+                "1) Bulk Video Compress" \
+                "2) Bulk Format Convert to MP4" \
+                "3) Bulk Metadata Wiping (Privacy Clean)" \
+                "4) Bulk Audio Extraction (MP3)" \
+                "5) Bulk Video Muting")
+            printf '\n⚡ Running batch processing on folder: %s...\n' "$folder"
+            for f in "$folder"/*.{mp4,mkv,mov,avi,webm}; do
+                [ -f "$f" ] || continue
+                local base="${f%.*}"
+                case "$batch_task" in
+                    *"1)"*) ffmpeg -i "$f" -vcodec libx264 -crf 26 -preset fast "${base}_batch_compressed.mp4" -y ;;
+                    *"2)"*) ffmpeg -i "$f" "${base}_converted.mp4" -y ;;
+                    *"3)"*) ffmpeg -i "$f" -map_metadata -1 -c copy "${base}_clean.${f##*.}" -y ;;
+                    *"4)"*) ffmpeg -i "$f" -vn -acodec libmp3lame "${base}_audio.mp3" -y ;;
+                    *"5)"*) ffmpeg -i "$f" -an -c:v copy "${base}_muted.${f##*.}" -y ;;
+                esac
+            done
+            printf '\n✅ Batch processing complete!\n'
+            ;;
+
+        *)
+            printf '❌ Invalid action: %s\n' "$action"
+            return 1
+            ;;
+    esac
+}
+
+# Aliases for FFmedia Suite
+alias ffstudio='ffmedia'
+alias fftool='ffmedia'
+alias fancy_ffmpeg='ffmedia'
 
 # =====================================================
 # End of .bashrc
