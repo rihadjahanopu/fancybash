@@ -1743,20 +1743,17 @@ function pmsd  { npx prisma db seed $args }
 function pmf   { npx prisma format $args }
 function pmv   { npx prisma version $args }
 
+# --- Bun Prisma Long-form Aliases (bpm*) ---
 function bpm   { bunx prisma $args }
 function bpmini{ bunx prisma init $args }
 function bpmg  { bunx prisma generate $args }
-function bpms  { bunx prisma studio $args }
-function bpmd  { bunx prisma migrate dev $args }
-function bpmdn { bunx prisma migrate dev --name $args }
-function bpmr  { bunx prisma migrate reset $args }
-function bpmdp { bunx prisma migrate deploy $args }
 function bpmst { bunx prisma migrate status $args }
-function bpmp  { bunx prisma db push $args }
+function bpmmp { bunx prisma db push $args }
 function bpml  { bunx prisma db pull $args }
 function bpmsd { bunx prisma db seed $args }
 function bpmf  { bunx prisma format $args }
 function bpmv  { bunx prisma version $args }
+
 
 # --- Docker Shortcuts ---
 function d        { docker $args }
