@@ -224,7 +224,7 @@ function initTableCopyButtons() {
     if (code.closest('.code-copy-inline') || code.parentElement.querySelector('.td-copy-btn')) return;
 
     const copyText = code.dataset.copy || code.textContent.trim();
-    if (!copyText || copyText === '...') return;
+    if (!copyText) return;
 
     // Wrap code and copy button in a inline container
     const wrapper = document.createElement('span');

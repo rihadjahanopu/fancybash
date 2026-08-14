@@ -1719,20 +1719,52 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Jump to <code>~/Development</code></td>
                   </tr>
                   <tr>
-                    <td><code>fr / ba / fu</code></td>
-                    <td>Jump to Frontend / Backend / Fullstack folder</td>
+                    <td><code>fr</code></td>
+                    <td>Jump to Frontend folder</td>
                   </tr>
                   <tr>
-                    <td><code>fig / ar / de</code></td>
-                    <td>Jump to Figma / Archive / Dev folders</td>
+                    <td><code>ba</code></td>
+                    <td>Jump to Backend folder</td>
                   </tr>
                   <tr>
-                    <td><code>des / doc / dow</code></td>
-                    <td>Jump to Desktop / Documents / Downloads</td>
+                    <td><code>fu</code></td>
+                    <td>Jump to Fullstack folder</td>
                   </tr>
                   <tr>
-                    <td><code>pic / vid / mus</code></td>
-                    <td>Jump to Pictures / Videos / Music</td>
+                    <td><code>fig</code></td>
+                    <td>Jump to Figma folder</td>
+                  </tr>
+                  <tr>
+                    <td><code>ar</code></td>
+                    <td>Jump to Archive folder</td>
+                  </tr>
+                  <tr>
+                    <td><code>de</code></td>
+                    <td>Jump to Dev folder</td>
+                  </tr>
+                  <tr>
+                    <td><code>des</code></td>
+                    <td>Jump to Desktop</td>
+                  </tr>
+                  <tr>
+                    <td><code>doc</code></td>
+                    <td>Jump to Documents</td>
+                  </tr>
+                  <tr>
+                    <td><code>dow</code></td>
+                    <td>Jump to Downloads</td>
+                  </tr>
+                  <tr>
+                    <td><code>pic</code></td>
+                    <td>Jump to Pictures</td>
+                  </tr>
+                  <tr>
+                    <td><code>vid</code></td>
+                    <td>Jump to Videos</td>
+                  </tr>
+                  <tr>
+                    <td><code>mus</code></td>
+                    <td>Jump to Music</td>
                   </tr>
                   <tr>
                     <td><code>rd</code></td>
@@ -1841,8 +1873,12 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Commit with message</td>
                   </tr>
                   <tr>
-                    <td><code>gps / gpl</code></td>
-                    <td>Push / Pull from remote</td>
+                    <td><code>gps</code></td>
+                    <td>Push to remote</td>
+                  </tr>
+                  <tr>
+                    <td><code>gpl</code></td>
+                    <td>Pull from remote</td>
                   </tr>
                   <tr>
                     <td><code>gl</code></td>
@@ -1861,7 +1897,7 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>View diff</td>
                   </tr>
                   <tr>
-                    <td><code>gwip "msg"</code></td>
+                    <td><code>gwip</code></td>
                     <td>Quick WIP commit + auto push to current branch</td>
                   </tr>
                   <tr>
@@ -2012,28 +2048,56 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><code>dps / dpsa</code></td>
-                    <td>List running / all containers (clean table format)</td>
+                    <td><code>dps</code></td>
+                    <td>List running containers (clean table format)</td>
                   </tr>
                   <tr>
-                    <td><code>di / dvl / dnl</code></td>
-                    <td>List all images / volumes / networks</td>
+                    <td><code>dpsa</code></td>
+                    <td>List all containers (clean table format)</td>
                   </tr>
                   <tr>
-                    <td><code>dsize / dtop</code></td>
-                    <td>Monitor Docker disk space / container stats</td>
+                    <td><code>di</code></td>
+                    <td>List all images</td>
                   </tr>
                   <tr>
-                    <td><code>dstop / dkill</code></td>
-                    <td>Stop / force kill a container</td>
+                    <td><code>dvl</code></td>
+                    <td>List all volumes</td>
                   </tr>
                   <tr>
-                    <td><code>drm / drmi</code></td>
-                    <td>Remove container / remove image</td>
+                    <td><code>dnl</code></td>
+                    <td>List all networks</td>
                   </tr>
                   <tr>
-                    <td><code>dstopall / drmall</code></td>
-                    <td>Stop all / remove all containers</td>
+                    <td><code>dsize</code></td>
+                    <td>Monitor Docker disk space</td>
+                  </tr>
+                  <tr>
+                    <td><code>dtop</code></td>
+                    <td>Monitor container stats</td>
+                  </tr>
+                  <tr>
+                    <td><code>dstop</code></td>
+                    <td>Stop a container</td>
+                  </tr>
+                  <tr>
+                    <td><code>dkill</code></td>
+                    <td>Force kill a container</td>
+                  </tr>
+                  <tr>
+                    <td><code>drm</code></td>
+                    <td>Remove container</td>
+                  </tr>
+                  <tr>
+                    <td><code>drmi</code></td>
+                    <td>Remove image</td>
+                  </tr>
+                  <tr>
+                    <td><code>dstopall</code></td>
+                    <td>Stop all containers</td>
+                  </tr>
+                  <tr>
+                    <td><code>drmall</code></td>
+                    <td>Remove all containers</td>
                   </tr>
                   <tr>
                     <td><code>dsh &lt;name&gt;</code></td>
@@ -2044,12 +2108,20 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Live tail container logs</td>
                   </tr>
                   <tr>
-                    <td><code>dbuild / dbuild-nocache</code></td>
-                    <td>Build image / build without cache</td>
+                    <td><code>dbuild</code></td>
+                    <td>Build Docker image</td>
                   </tr>
                   <tr>
-                    <td><code>dcup / dcdn</code></td>
-                    <td>Docker Compose up -d / down</td>
+                    <td><code>dbuild-nocache</code></td>
+                    <td>Build image without cache</td>
+                  </tr>
+                  <tr>
+                    <td><code>dcup</code></td>
+                    <td>Docker Compose up -d</td>
+                  </tr>
+                  <tr>
+                    <td><code>dcdn</code></td>
+                    <td>Docker Compose down</td>
                   </tr>
                   <tr>
                     <td><code>dtest-*</code></td>
@@ -2468,19 +2540,20 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                   </tr>
                 </thead>
                 <tbody>
-
                   <!-- ── Todo Manager ─────────────────────────────── -->
                   <tr>
                     <td
                       colspan="3"
                       style="
-                        background: rgba(255,255,255,0.04);
+                        background: rgba(255, 255, 255, 0.04);
                         font-weight: 600;
                         color: var(--accent, #a78bfa);
                         padding: 0.6rem 1rem;
                         letter-spacing: 0.03em;
                       "
-                    >📋 Todo Manager — <code>~/.todo_list.txt</code></td>
+                    >
+                      📋 Todo Manager — <code>~/.todo_list.txt</code>
+                    </td>
                   </tr>
                   <tr>
                     <td><code>todo</code></td>
@@ -2523,13 +2596,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td
                       colspan="3"
                       style="
-                        background: rgba(255,255,255,0.04);
+                        background: rgba(255, 255, 255, 0.04);
                         font-weight: 600;
                         color: var(--accent, #a78bfa);
                         padding: 0.6rem 1rem;
                         letter-spacing: 0.03em;
                       "
-                    >📝 Notes Manager — <code>~/.my_notes/</code></td>
+                    >
+                      📝 Notes Manager — <code>~/.my_notes/</code>
+                    </td>
                   </tr>
                   <tr>
                     <td><code>notes</code></td>
@@ -2562,13 +2637,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td
                       colspan="3"
                       style="
-                        background: rgba(255,255,255,0.04);
+                        background: rgba(255, 255, 255, 0.04);
                         font-weight: 600;
                         color: var(--accent, #a78bfa);
                         padding: 0.6rem 1rem;
                         letter-spacing: 0.03em;
                       "
-                    >🔀 GUM &amp; FZF Utilities</td>
+                    >
+                      🔀 GUM &amp; FZF Utilities
+                    </td>
                   </tr>
                   <tr>
                     <td><code>gbranch</code></td>
@@ -2585,7 +2662,6 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td>Fuzzy quick directory jump (fzf / gum)</td>
                     <td></td>
                   </tr>
-
                 </tbody>
               </table>
             </div>
@@ -2613,13 +2689,15 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh</code></pre>
                     <td
                       colspan="3"
                       style="
-                        background: rgba(255,255,255,0.04);
+                        background: rgba(255, 255, 255, 0.04);
                         font-weight: 600;
                         color: var(--accent, #a78bfa);
                         padding: 0.6rem 1rem;
                         letter-spacing: 0.03em;
                       "
-                    >🎬 FFmedia Interactive Suite — 24-in-1 FFmpeg Powerhouse</td>
+                    >
+                      🎬 FFmedia Interactive Suite — 24-in-1 FFmpeg Powerhouse
+                    </td>
                   </tr>
                   <tr>
                     <td><code>ffmedia</code></td>
