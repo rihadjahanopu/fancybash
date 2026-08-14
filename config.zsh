@@ -6090,10 +6090,11 @@ ffmedia() {
             local vid=$(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
             local interval=$(_fb_media_input "Extract frame every N seconds" "1")
-            local outdir="frames_$(date +%Y%m%d_%H%M%S)"
+            local base=$(basename "${vid%.*}")
+            local outdir="${base}_frames"
             mkdir -p "$outdir"
             ffmpeg -i "$vid" -vf "fps=1/${interval}" "${outdir}/frame_%04d.jpg"
-            printf '\n✅ Frames extracted into folder: %s/\n' "$outdir"
+            printf '\n✅ Frames extracted into video folder: %s/\n' "$outdir"
             ;;
 
         *"17. "*|gif)
@@ -6131,14 +6132,43 @@ ffmedia() {
         *"19. "*|screen-record)
             local out="screencast_$(date +%Y%m%d_%H%M%S).mp4"
             local os_type=$(uname -s)
-            printf '\n🎥 Starting Terminal Screen Recorder...\nPress Ctrl+C or Q in terminal to stop recording.\n\n'
+            local audio_opt=$(_fb_media_choose_opt "Select Screen Record Mode:" \
+                "1) Full Screen Video + System Audio (Mic/Speaker)" \
+                "2) Full Screen Video Only (Silent)")
+
+            printf '\n🎥 Starting Terminal Screen Recorder...\n'
+            printf '📌 Press "q" or Ctrl+C in this terminal to stop recording.\n\n'
+
             if [ "$os_type" = "Linux" ]; then
                 local display="${DISPLAY:-:0.0}"
-                ffmpeg -f x11grab -video_size 1920x1080 -i "$display" -c:v libx264 -preset ultrafast -crf 22 "$out"
+                local res=""
+                if command -v xrandr >/dev/null 2>&1; then
+                    res=$(xrandr 2>/dev/null | grep '*' | awk '{print $1}' | head -n1)
+                elif command -v xdpyinfo >/dev/null 2>&1; then
+                    res=$(xdpyinfo 2>/dev/null | grep 'dimensions:' | awk '{print $2}')
+                fi
+                [ -z "$res" ] && res="1920x1080"
+
+                if [[ "$audio_opt" == *"1)"* ]] && (command -v pactl >/dev/null 2>&1 || command -v pulseaudio >/dev/null 2>&1); then
+                    ffmpeg -f x11grab -video_size "$res" -i "$display" -f pulse -i default -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac "$out"
+                else
+                    ffmpeg -f x11grab -video_size "$res" -i "$display" -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out"
+                fi
             elif [ "$os_type" = "Darwin" ]; then
-                ffmpeg -f avfoundation -i "1:0" -c:v libx264 -preset ultrafast "$out"
+                if [[ "$audio_opt" == *"1)"* ]]; then
+                    ffmpeg -f avfoundation -i "0:0" -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac "$out" 2>/dev/null || \
+                    ffmpeg -f avfoundation -i "1:0" -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac "$out"
+                else
+                    ffmpeg -f avfoundation -i "0" -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out" 2>/dev/null || \
+                    ffmpeg -f avfoundation -i "1" -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out"
+                fi
             else
-                ffmpeg -f gdigrab -i desktop -c:v libx264 -preset ultrafast "$out"
+                if [[ "$audio_opt" == *"1)"* ]]; then
+                    ffmpeg -f gdigrab -i desktop -f dshow -i audio="Microphone" -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac "$out" 2>/dev/null || \
+                    ffmpeg -f gdigrab -i desktop -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out"
+                else
+                    ffmpeg -f gdigrab -i desktop -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out"
+                fi
             fi
             printf '\n✅ Screen recording saved as: %s\n' "$out"
             ;;
