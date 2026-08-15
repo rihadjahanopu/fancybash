@@ -1,7 +1,7 @@
 @echo off
 :: ==============================================================================
 ::  F A N C Y B A S H  •  Windows Launcher (install.bat)
-::  Just download THIS ONE FILE and double-click — everything else is automatic!
+::  Just download THIS ONE FILE and double-click - everything else is automatic!
 ::  Bulletproof: auto-downloads install.ps1, handles all PowerShell versions.
 :: ==============================================================================
 
@@ -17,7 +17,7 @@ echo    F A N C Y B A S H  ^|  Windows Launcher
 echo  ==========================================
 echo.
 
-:: ─── Step 1: Find PowerShell ──────────────────────────────────────────────────
+:: --- Step 1: Find PowerShell --------------------------------------------------
 set "PS_EXE="
 where pwsh >nul 2>&1
 if %ERRORLEVEL% == 0 (
@@ -38,7 +38,7 @@ echo.
 pause
 exit /b 1
 
-:: ─── Step 2: Download install.ps1 if not present ─────────────────────────────
+:: --- Step 2: Download install.ps1 if not present -----------------------------
 :check_ps1
 if exist "%PS1_FILE%" (
     echo [OK] install.ps1 found locally.
@@ -89,7 +89,7 @@ if not exist "%PS1_FILE%" (
     exit /b 1
 )
 
-:: Basic size check — file should be at least 1KB
+:: Basic size check - file should be at least 1KB
 for %%A in ("%PS1_FILE%") do set "FILE_SIZE=%%~zA"
 if !FILE_SIZE! LSS 1000 (
     echo [ERROR] Downloaded file seems corrupted ^(too small: !FILE_SIZE! bytes^).
@@ -100,7 +100,7 @@ if !FILE_SIZE! LSS 1000 (
 )
 echo [OK] File validated ^(!FILE_SIZE! bytes^).
 
-:: ─── Step 3: Run install.ps1 with ExecutionPolicy Bypass ─────────────────────
+:: --- Step 3: Run install.ps1 with ExecutionPolicy Bypass ---------------------
 :run
 echo.
 echo [INFO] Starting FancyBash installer...

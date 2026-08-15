@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 #   ULTRA-THIN COMPACT PRO WINDOWS POWERSHELL ENVIRONMENT
 #   Author: [Rihad Jahan Opu]
 #   Version: 2.0.0 Complete Multi-Platform Edition

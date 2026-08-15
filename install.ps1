@@ -1,29 +1,29 @@
-# ==============================================================================
+﻿# ==============================================================================
 #   F A N C Y B A S H  •  PowerShell Config Installer (install.ps1)
 #   Author: [Rihad Jahan Opu]
 #   Supports: Windows PowerShell 5.1+, PowerShell Core 7+
 #
-#   ── Run from INSIDE PowerShell terminal (recommended): ─────────────────────
+#   -- Run from INSIDE PowerShell terminal (recommended): ---------------------
 #   irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex
 #
-#   ── Run from CMD / Win+R Run dialog: ────────────────────────────────────────
+#   -- Run from CMD / Win+R Run dialog: ----------------------------------------
 #   powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.ps1 | iex"
 #
 #   ⚠️  Do NOT use 'powershell -c' while already inside a PowerShell window.
 #       That causes an 'Access is denied' / NativeCommandFailed error.
 #
-#   ── Or double-click install.bat (auto-downloads this file): ─────────────────
+#   -- Or double-click install.bat (auto-downloads this file): -----------------
 #   https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.bat
 # ==============================================================================
 
-# ─── GUARD 1: PowerShell Version Check ────────────────────────────────────────
+# --- GUARD 1: PowerShell Version Check ----------------------------------------
 if ($PSVersionTable.PSVersion.Major -lt 5) {
     Write-Host "❌ PowerShell 5.1 or higher is required." -ForegroundColor Red
     Write-Host "   Please update: https://aka.ms/wmf5download" -ForegroundColor Yellow
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
-# ─── GUARD 2: TLS 1.2 Force (required for GitHub on older Windows) ────────────
+# --- GUARD 2: TLS 1.2 Force (required for GitHub on older Windows) ------------
 try {
     [Net.ServicePointManager]::SecurityProtocol = (
         [Net.SecurityProtocolType]::Tls12 -bor
@@ -32,7 +32,7 @@ try {
     )
 } catch { <# PS7 handles this automatically, ignore #> }
 
-# ─── GUARD 3: Self-Bypass (only when run as a file, not via irm | iex) ────────
+# --- GUARD 3: Self-Bypass (only when run as a file, not via irm | iex) --------
 # When piped via:  irm ... | iex   → $MyInvocation.MyCommand.Path is empty → skip
 # When run as file → re-launch with ExecutionPolicy Bypass to avoid policy errors
 $_scriptPath = $MyInvocation.MyCommand.Path
@@ -44,12 +44,12 @@ if ($_scriptPath -and ($currentPolicy -eq 'Restricted' -or $currentPolicy -eq 'A
     } else {
         & powershell -NoProfile -ExecutionPolicy Bypass -File $_scriptPath @args
     }
-    exit
+    if ($MyInvocation.MyCommand.Path) { exit } else { return }
 }
 
 $ErrorActionPreference = "Continue"
 
-# ─── URLs: Primary (GitHub Raw) + CDN Fallback (jsDelivr) ────────────────────
+# --- URLs: Primary (GitHub Raw) + CDN Fallback (jsDelivr) --------------------
 $INSTALLER_URLS = @(
     "https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/config.ps1",
     "https://cdn.jsdelivr.net/gh/rihadjahanopu/fancybash@main/config.ps1"
@@ -57,20 +57,20 @@ $INSTALLER_URLS = @(
 $START = "# >>> fancy-powershell >>>"
 $END   = "# <<< fancy-powershell <<<"
 
-# ─── GUARD 4: $PROFILE Sanity Check ──────────────────────────────────────────
+# --- GUARD 4: $PROFILE Sanity Check ------------------------------------------
 if (-not $PROFILE) {
     Write-Host "❌ `$PROFILE variable is not set. Are you in a valid PowerShell session?" -ForegroundColor Red
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 $PROFILE_PATH = $PROFILE
 
-# ─── Colors & Formatting ──────────────────────────────────────────────────────
+# --- Colors & Formatting ------------------------------------------------------
 $ESC  = [char]27
 $RED  = "$ESC[1;31m"; $GRN  = "$ESC[1;32m"; $YLW  = "$ESC[1;33m"
 $BLU  = "$ESC[1;34m"; $PUR  = "$ESC[1;35m"; $CYN  = "$ESC[1;36m"
 $BOLD = "$ESC[1m";    $DIM  = "$ESC[2m";    $NC   = "$ESC[0m"
 
-# ─── Helper: Robust Download with Retry + CDN Fallback ───────────────────────
+# --- Helper: Robust Download with Retry + CDN Fallback -----------------------
 function Get-RemoteContent {
     param([string[]]$Urls, [int]$MaxRetries = 3, [int]$TimeoutSec = 20)
     foreach ($url in $Urls) {
@@ -91,7 +91,7 @@ function Get-RemoteContent {
     return $null
 }
 
-# ─── Progress Bar Helper ──────────────────────────────────────────────────────
+# --- Progress Bar Helper ------------------------------------------------------
 function Show-ProgressBar {
     param([int]$Current, [int]$Total = 6, [string]$StepName = "")
     $width = 30
@@ -99,36 +99,36 @@ function Show-ProgressBar {
     $done  = [math]::Round(($width * $Current) / $Total)
     $bar   = "█" * $done + "░" * ($width - $done)
     Write-Host ""
-    Write-Host ("${BLU}Progress:${NC} [${GRN}$bar${NC}] ${CYN}${pct}%${NC}  Step $Current/$Total — $StepName")
+    Write-Host ("${BLU}Progress:${NC} [${GRN}$bar${NC}] ${CYN}${pct}%${NC}  Step $Current/$Total - $StepName")
 }
 
-# ─── Header Banner ────────────────────────────────────────────────────────────
+# --- Header Banner ------------------------------------------------------------
 function Show-Header {
     Clear-Host
     Write-Host ""
     Write-Host "${PUR}          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗${NC}"
-    Write-Host "${PUR}          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║${NC}"
-    Write-Host "${CYN}          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║${NC}"
-    Write-Host "${CYN}          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║${NC}"
-    Write-Host "${BLU}          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║${NC}"
+    Write-Host "${PUR}          ██=════╝██=══██╗████╗  ██║██=════╝╚██╗ ██=╝██=══██╗██=══██╗██=════╝██║  ██║${NC}"
+    Write-Host "${CYN}          █████╗  ███████║██=██╗ ██║██║      ╚████=╝ ██████=╝███████║███████╗███████║${NC}"
+    Write-Host "${CYN}          ██=══╝  ██=══██║██║╚██╗██║██║       ╚██=╝  ██=══██╗██=══██║╚════██║██=══██║${NC}"
+    Write-Host "${BLU}          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████=╝██║  ██║███████║██║  ██║${NC}"
     Write-Host "${BLU}          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝${NC}"
     Write-Host ""
     Write-Host "   ✨ ${BOLD}${CYN}F A N C Y B A S H${NC}  •  ${BOLD}PowerShell Environment Installer${NC}"
     Write-Host ""
 }
 
-# ─── System Info Card ─────────────────────────────────────────────────────────
+# --- System Info Card ---------------------------------------------------------
 function Show-SysInfo {
     $osName = if ($PSVersionTable.OS) { $PSVersionTable.OS } else { "Windows ($env:OS)" }
-    Write-Host "${BLU}──────────────────────────────────────────────────${NC}"
+    Write-Host "${BLU}--------------------------------------------------${NC}"
     Write-Host " 🖥️  ${BOLD}SYSTEM INFORMATION${NC}"
-    Write-Host "${BLU}──────────────────────────────────────────────────${NC}"
+    Write-Host "${BLU}--------------------------------------------------${NC}"
     Write-Host "  💻  ${BOLD}OS:${NC}      ${CYN}$osName${NC}"
     Write-Host "  👤  ${BOLD}User:${NC}    ${CYN}$env:USERNAME${NC}"
     Write-Host "  🐚  ${BOLD}Shell:${NC}   ${CYN}PowerShell v$($PSVersionTable.PSVersion)${NC}"
     Write-Host "  ⚙️   ${BOLD}Arch:${NC}    ${CYN}$env:PROCESSOR_ARCHITECTURE${NC}"
     Write-Host "  🔒  ${BOLD}Policy:${NC}  ${CYN}$(Get-ExecutionPolicy)${NC}"
-    Write-Host "${BLU}──────────────────────────────────────────────────${NC}`n"
+    Write-Host "${BLU}--------------------------------------------------${NC}`n"
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -137,13 +137,13 @@ function Show-SysInfo {
 Show-Header
 Show-SysInfo
 
-# ─── STEP 1: Environment & Policy Info ────────────────────────────────────────
+# --- STEP 1: Environment & Policy Info ----------------------------------------
 Show-ProgressBar -Current 1 -Total 6 -StepName "Environment Check"
-Write-Host "  ${GRN}✔ PowerShell v$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) — supported.${NC}"
+Write-Host "  ${GRN}✔ PowerShell v$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) - supported.${NC}"
 Write-Host "  ${GRN}✔ TLS 1.2 enforced for secure downloads.${NC}"
 Write-Host "  ${GRN}✔ Running with ExecutionPolicy Bypass.${NC}"
 
-# ─── STEP 2: Dependency Check & Auto-Install ──────────────────────────────────
+# --- STEP 2: Dependency Check & Auto-Install ----------------------------------
 Show-ProgressBar -Current 2 -Total 6 -StepName "Checking Dependencies"
 $missing = @('git','fzf','gum','glow','bat','zoxide') | Where-Object {
     -not (Get-Command $_ -ErrorAction SilentlyContinue)
@@ -176,7 +176,7 @@ if ($missing.Count -gt 0) {
     Write-Host "  ${GRN}✔ All recommended tools are installed!${NC}"
 }
 
-# ─── STEP 3: Profile Directory & Backup ──────────────────────────────────────
+# --- STEP 3: Profile Directory & Backup --------------------------------------
 Show-ProgressBar -Current 3 -Total 6 -StepName "Profile Backup"
 $ProfileDir = Split-Path $PROFILE_PATH -Parent
 
@@ -187,7 +187,7 @@ try {
     }
 } catch {
     Write-Host "  ${RED}❌ Cannot create profile directory: $($_.Exception.Message)${NC}"
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
 $backupFile = ""
@@ -202,21 +202,21 @@ try {
     }
 } catch {
     Write-Host "  ${RED}❌ Backup failed: $($_.Exception.Message)${NC}"
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
-# ─── STEP 4: Remove Existing Fancybash Block ──────────────────────────────────
+# --- STEP 4: Remove Existing Fancybash Block ----------------------------------
 Show-ProgressBar -Current 4 -Total 6 -StepName "Cleaning Old Install"
 try {
     $profileContent = Get-Content $PROFILE_PATH -Raw -ErrorAction SilentlyContinue
     if ($profileContent -and $profileContent.Contains($START)) {
-        Write-Host "  ${YLW}⚠️  Existing block found — removing cleanly...${NC}"
+        Write-Host "  ${YLW}⚠️  Existing block found - removing cleanly...${NC}"
         $regex = "(?s)\r?\n?" + [regex]::Escape($START) + ".*?" + [regex]::Escape($END)
         $profileContent = [regex]::Replace($profileContent, $regex, "")
         $profileContent | Out-File $PROFILE_PATH -Encoding utf8 -ErrorAction Stop
         Write-Host "  ${GRN}✔ Old configuration removed.${NC}"
     } else {
-        Write-Host "  ${GRN}✔ Profile is clean — ready for install.${NC}"
+        Write-Host "  ${GRN}✔ Profile is clean - ready for install.${NC}"
     }
 } catch {
     Write-Host "  ${RED}❌ Failed to clean profile: $($_.Exception.Message)${NC}"
@@ -225,10 +225,10 @@ try {
         Copy-Item $backupFile $PROFILE_PATH -Force
         Write-Host "  ${YLW}↩️  Restored from backup.${NC}"
     }
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
-# ─── STEP 5: Download config.ps1 (with retry + CDN fallback) ─────────────────
+# --- STEP 5: Download config.ps1 (with retry + CDN fallback) -----------------
 Show-ProgressBar -Current 5 -Total 6 -StepName "Fetching Configuration"
 $configContent = $null
 
@@ -250,22 +250,22 @@ if (-not $configContent -or [string]::IsNullOrWhiteSpace($configContent)) {
         Copy-Item $backupFile $PROFILE_PATH -Force
         Write-Host "  ${YLW}↩️  Profile restored from backup.${NC}"
     }
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
-# HTML guard — detect GitHub 404 page or Cloudflare error page
+# HTML guard - detect GitHub 404 page or Cloudflare error page
 if ($configContent -match '(?i)<!doctype|<html|cloudflare|Access denied') {
     Write-Host "  ${RED}❌ Received HTML instead of PowerShell script. Possible 404 or network block.${NC}"
     if ($backupFile -and (Test-Path $backupFile)) {
         Copy-Item $backupFile $PROFILE_PATH -Force
         Write-Host "  ${YLW}↩️  Profile restored from backup.${NC}"
     }
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
-Write-Host "  ${GRN}✔ Config validated — $(($configContent | Measure-Object -Character).Characters) bytes received.${NC}"
+Write-Host "  ${GRN}✔ Config validated - $(($configContent | Measure-Object -Character).Characters) bytes received.${NC}"
 
-# ─── STEP 6: Write to $PROFILE & Reload ───────────────────────────────────────
+# --- STEP 6: Write to $PROFILE & Reload ---------------------------------------
 Show-ProgressBar -Current 6 -Total 6 -StepName "Writing & Reloading"
 
 $newBlock = @"
@@ -286,7 +286,7 @@ try {
         Copy-Item $backupFile $PROFILE_PATH -Force
         Write-Host "  ${YLW}↩️  Profile restored from backup.${NC}"
     }
-    exit 1
+    if ($MyInvocation.MyCommand.Path) { exit 1 } else { return }
 }
 
 # Reload profile
@@ -299,7 +299,7 @@ try {
     Write-Host "     Run manually: ${CYN}. `$PROFILE${NC}"
 }
 
-# ─── Final Summary ─────────────────────────────────────────────────────────────
+# --- Final Summary -------------------------------------------------------------
 Write-Host ""
 Write-Host "${CYN}══════════════════════════════════════════════════${NC}"
 Write-Host "   🚀  ${BOLD}INSTALLATION COMPLETE!${NC}"
