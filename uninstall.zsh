@@ -1,8 +1,10 @@
 #!/usr/bin/env zsh
 
 # ─── fancybash Zsh Uninstaller ────────────────────────────────────────────────
-# Bulletproof zsh-native uninstaller.
+# Bulletproof zsh-native universal uninstaller.
 # • Removes fancybash blocks from ~/.zshrc, ~/.bashrc, ~/.config/fish/config.fish
+# • Shell-specific scripts (zsh/bash/fish) share the same scope — only the
+#   runtime language differs. Use whichever matches your active shell.
 # • Safe sed escaping for special regex chars in markers
 # • Atomic sed-via-tmpfile on Linux (avoids in-place truncation race)
 # • Backs up each file before editing
@@ -194,7 +196,7 @@ remove_block() {
     fi
 }
 
-# ─── Perform Removal ──────────────────────────────────────────────────────────
+# ─── Perform Removal (all shells) ────────────────────────────────────────────
 remove_block "$HOME/.zshrc"                    "# >>> fancy-zshrc >>>"  "# <<< fancy-zshrc <<<"  "Zsh"
 remove_block "$HOME/.bashrc"                   "# >>> fancy-bashrc >>>" "# <<< fancy-bashrc <<<" "Bash"
 remove_block "$HOME/.config/fish/config.fish" "# >>> fancy-fishrc >>>" "# <<< fancy-fishrc <<<" "Fish"
