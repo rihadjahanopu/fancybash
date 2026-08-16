@@ -99,7 +99,7 @@ One file. One install. Zero drama.
 
 ### Universal One-Line Install (Recommended)
 
-Auto-detects your OS (Linux/macOS) and active shell (Bash/Zsh/PowerShell) automatically:
+Auto-detects your OS (Linux/macOS) and active shell (Bash/Zsh/Fish/PowerShell) automatically:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.sh | bash
@@ -120,6 +120,12 @@ bash <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs
 
 ```zsh
 zsh <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.zsh)
+```
+
+**For Fish (`config.fish`):**
+
+```fish
+fish <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/install.fish)
 ```
 
 </details>

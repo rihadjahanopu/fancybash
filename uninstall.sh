@@ -87,6 +87,7 @@ remove_block() {
 # ─── Perform Removal ──────────────────────────────────────────────────────────
 remove_block "$HOME/.bashrc" "# >>> fancy-bashrc >>>" "# <<< fancy-bashrc <<<" "Bash"
 remove_block "$HOME/.zshrc" "# >>> fancy-zshrc >>>" "# <<< fancy-zshrc <<<" "Zsh"
+remove_block "$HOME/.config/fish/config.fish" "# >>> fancy-fishrc >>>" "# <<< fancy-fishrc <<<" "Fish"
 
 printf "${CYAN}──────────────────────────────────────────${NC}\n"
 
@@ -95,9 +96,11 @@ if [ "$removed_any" = true ]; then
     printf "   To apply changes to your current session, run:\n\n"
     if [ -n "${ZSH_VERSION:-}" ] || [ "${SHELL:-}" = "*/zsh" ]; then
         printf "   ${BOLD}source ~/.zshrc${NC}\n\n"
+    elif [ -n "${FISH_VERSION:-}" ] || [ "${SHELL:-}" = "*/fish" ]; then
+        printf "   ${BOLD}source ~/.config/fish/config.fish${NC}\n\n"
     else
         printf "   ${BOLD}source ~/.bashrc${NC}\n\n"
     fi
 else
-    printf "${CYAN}ℹ No fancybash installation blocks were found in ~/.bashrc or ~/.zshrc.${NC}\n\n"
+    printf "${CYAN}ℹ No fancybash installation blocks were found in ~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish.${NC}\n\n"
 fi

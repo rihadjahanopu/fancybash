@@ -47,7 +47,7 @@ with a smart prompt, hundreds of productivity aliases, and interactive helper
 functions — without requiring any external plugin manager.
 
   Target Users  : Web developers (Node.js, Bun, Docker, Git workflows)
-  Target Shells : Bash 4+ · Zsh 5+ · PowerShell 7+ (PS in progress)
+  Target Shells : Bash 4+ · Zsh 5+ · PowerShell 7+ · Fish 3+
   Target OS     : Ubuntu/Debian · Fedora/RHEL · Arch Linux · macOS · Alpine
   Install Method: One-line curl | Manual clone-and-source
   Philosophy    : "One file. One install. Zero drama."
@@ -502,23 +502,23 @@ fancybash defines two types of terminal extensions:
 9. CROSS-PLATFORM COMPATIBILITY MATRIX
 ================================================================================
 
-  ┌────────────────────┬──────────┬──────────┬──────────┬──────────┐
-  │ Feature            │  Bash    │  Zsh     │ Pwsh     │  macOS   │
-  ├────────────────────┼──────────┼──────────┼──────────┼──────────┤
-  │ Prompt system      │  Full    │  Full    │  WIP     │  Full    │
-  │ Navigation aliases │  Full    │  Full    │  WIP     │  Full    │
-  │ Git shortcuts      │  Full    │  Full    │  WIP     │  Full    │
-  │ NPM/Bun aliases    │  Full    │  Full    │  WIP     │  Full    │
-  │ Docker suite       │  Full    │  Full    │  N/A     │  Full    │
-  │ System maintenance │  Full    │  Full    │  WIP     │  Partial │
-  │ uup/uu (fzf menu)  │  apt+    │  apt+    │  N/A     │  N/A     │
-  │ cpu_temp()         │  sensors │  sensors │  N/A     │  N/A     │
-  │ pending_updates()  │  multi   │  multi   │  N/A     │  N/A     │
-  │ Syntax highlight   │  N/A     │  plugin  │  N/A     │  zsh     │
-  │ Autosuggestions    │  N/A     │  plugin  │  N/A     │  zsh     │
-  │ Tab completion     │  Full    │  Full    │  WIP     │  Full    │
-  │ ffmedia (FFmpeg)   │  Full    │  Full    │  WIP     │  Full    │
-  └────────────────────┴──────────┴──────────┴──────────┴──────────┘
+  ┌────────────────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
+  │ Feature            │  Bash    │  Zsh     │  Fish    │ Pwsh     │  macOS   │
+  ├────────────────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+  │ Prompt system      │  Full    │  Full    │  Full    │  WIP     │  Full    │
+  │ Navigation aliases │  Full    │  Full    │  Full    │  WIP     │  Full    │
+  │ Git shortcuts      │  Full    │  Full    │  Full    │  WIP     │  Full    │
+  │ NPM/Bun aliases    │  Full    │  Full    │  Full    │  WIP     │  Full    │
+  │ Docker suite       │  Full    │  Full    │  Full    │  N/A     │  Full    │
+  │ System maintenance │  Full    │  Full    │  Full    │  WIP     │  Partial │
+  │ uup/uu (fzf menu)  │  apt+    │  apt+    │  apt+    │  N/A     │  N/A     │
+  │ cpu_temp()         │  sensors │  sensors │  sensors │  N/A     │  N/A     │
+  │ pending_updates()  │  multi   │  multi   │  multi   │  N/A     │  N/A     │
+  │ Syntax highlight   │  N/A     │  plugin  │  Builtin │  N/A     │  zsh     │
+  │ Autosuggestions    │  N/A     │  plugin  │  Builtin │  N/A     │  zsh     │
+  │ Tab completion     │  Full    │  Full    │  Full    │  WIP     │  Full    │
+  │ ffmedia (FFmpeg)   │  Full    │  Full    │  Full    │  WIP     │  Full    │
+  └────────────────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
 
   Full = Fully supported  |  Partial = Tool-dependent  |  WIP = Planned
 

@@ -76,6 +76,7 @@ fi
 case "${PARENT_CMD:-}" in
     zsh)  USER_SHELL="zsh"  ;;
     bash) USER_SHELL="bash" ;;
+    fish) USER_SHELL="fish" ;;
 esac
 
 # ── 2nd: $SHELL env var ───────────────────────────────────────────────────────
@@ -84,6 +85,7 @@ if [ -z "$USER_SHELL" ] && [ -n "${SHELL:-}" ]; then
     case "$(basename "$SHELL")" in
         zsh)  USER_SHELL="zsh"  ;;
         bash) USER_SHELL="bash" ;;
+        fish) USER_SHELL="fish" ;;
     esac
 fi
 
@@ -94,6 +96,8 @@ if [ -z "$USER_SHELL" ]; then
         USER_SHELL="zsh"
     elif [ -n "${BASH_VERSION:-}" ]; then
         USER_SHELL="bash"
+    elif [ -n "${FISH_VERSION:-}" ]; then
+        USER_SHELL="fish"
     fi
 fi
 
@@ -127,6 +131,8 @@ run_installer() {
         printf "  ${GREEN}✔${NC} Running local ${BOLD}%s${NC}...\n\n" "$target_script"
         if [ "$target_script" = "install.zsh" ] && command -v zsh &>/dev/null; then
             exec zsh "$local_file" "${SCRIPT_ARGS[@]}"
+        elif [ "$target_script" = "install.fish" ] && command -v fish &>/dev/null; then
+            exec fish "$local_file" "${SCRIPT_ARGS[@]}"
         else
             exec bash "$local_file" "${SCRIPT_ARGS[@]}"
         fi
@@ -150,6 +156,8 @@ run_installer() {
 
         if [ "$target_script" = "install.zsh" ] && command -v zsh &>/dev/null; then
             exec zsh "$tmp_installer" "${SCRIPT_ARGS[@]}"
+        elif [ "$target_script" = "install.fish" ] && command -v fish &>/dev/null; then
+            exec fish "$tmp_installer" "${SCRIPT_ARGS[@]}"
         else
             exec bash "$tmp_installer" "${SCRIPT_ARGS[@]}"
         fi
@@ -159,6 +167,9 @@ run_installer() {
 case "$USER_SHELL" in
     zsh)
         run_installer "install.zsh" "$@"
+        ;;
+    fish)
+        run_installer "install.fish" "$@"
         ;;
     bash)
         run_installer "install.sh" "$@"
