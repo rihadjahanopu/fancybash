@@ -50,9 +50,9 @@ end
 # Central Dynamic Dependency Auto-Installer
 function _fb_ensure_dep
     set -l cmd "$argv[1]"
-    set -l apt_pkg "${2:-$cmd}"
-    set -l pac_pkg "${3:-$cmd}"
-    set -l dnf_pkg "${4:-$cmd}"
+    set -l apt_pkg "(if test -n "$argv[2]"; echo "$argv[2]"; else; echo "$cmd"; end)"
+    set -l pac_pkg "(if test -n "$argv[3]"; echo "$argv[3]"; else; echo "$cmd"; end)"
+    set -l dnf_pkg "(if test -n "$argv[4]"; echo "$argv[4]"; else; echo "$cmd"; end)"
 
     if command -v "$cmd" >/dev/null 2>&1
         return 0
@@ -93,11 +93,11 @@ function parse_git_branch
     set -l branch (git branch --show-current 2>/dev/null)
     if test -z "$branch"
         branch=(git rev-parse --short HEAD 2>/dev/null)
-        [[ -n "$branch" ]] && branch="➦ $branch"
+        test -n "$branch" && branch="➦ $branch"
     end
-    [[ -z "$branch" ]] && return
+    test -z "$branch" && return
     set -l dirty ""
-    [[ -n (git status --porcelain --untracked-files=no 2>/dev/null) ]] && dirty=" ❗"
+    test -n (git status --porcelain --untracked-files=no 2>/dev/null) && dirty=" ❗"
     echo "$branch$dirty"
 end
 
@@ -116,21 +116,21 @@ function sys_info
     set -l mem_total (awk '/MemTotal/ {print $argv[2]}' /proc/meminfo 2>/dev/null)
     set -l mem_avail (awk '/MemAvailable/ {print $argv[2]}' /proc/meminfo 2>/dev/null)
         if test -n "$mem_total" && -n "$mem_avail"
-    set -l mem_used $(((mem_total - mem_avail) / 1024))
-    set -l mem_total_mb $((mem_total / 1024))
+    set -l mem_used (((mem_total - mem_avail) / 1024))
+    set -l mem_total_mb ((mem_total / 1024))
             echo "🧠 ${mem_used}M/${mem_total_mb}M"
             return
         end
     end
     if command -v free >/dev/null 2>&1
     set -l RAM (free -h 2>/dev/null | awk '/^Mem/ {print $argv[3] "/" $argv[2]}')
-        [[ -n "$RAM" ]] && echo "🧠 ${RAM}"
+        test -n "$RAM" && echo "🧠 ${RAM}"
     end
 end
 
 functions -e battery_info 2>/dev/null
 function battery_info
-    [[ -f /sys/class/power_supply/BAT0/capacity ]] && echo "🔋(cat /sys/class/power_supply/BAT0/capacity)%"
+    test -f /sys/class/power_supply/BAT0/capacity && echo "🔋(cat /sys/class/power_supply/BAT0/capacity)%"
 end
 
 functions -e kernel_version 2>/dev/null
@@ -143,9 +143,9 @@ function cpu_temp
     set -l temp ""
     if test -f /sys/class/thermal/thermal_zone0/temp
     set -l raw (cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
-        [[ -n "$raw" && "$raw" -gt 0 ]] && temp=$((raw / 1000))
+        test -n "$raw" && "$raw" -gt 0 && temp=((raw / 1000))
     end
-    if [[ -z "$temp" ]] && command -v sensors >/dev/null 2>&1
+    if test -z "$temp" && command -v sensors >/dev/null 2>&1
         temp=(sensors 2>/dev/null | grep -iE 'Package id 0|Core 0|temp1' | head -n1 | grep -oP '\+\K[0-9.]+' | head -n1 | cut -d. -f1)
     end
     if test -n "$temp"
@@ -168,7 +168,7 @@ function folder_size
     else
         size=(du -sh . 2>/dev/null | cut -f1)
     end
-    [[ -n "$size" ]] && echo "📂 ${size}" || echo "📂 ~"
+    test -n "$size" && echo "📂 ${size}" || echo "📂 ~"
 end
 
 functions -e disk_usage 2>/dev/null
@@ -182,12 +182,12 @@ function load_avg
 end
 
 # এটি কাজ করার জন্য আপনার config.fish এর একদম শুরুতে এই ২ লাইন থাকতে হবে:
-function timer_start timer=${timer:-$SECONDS}; }
+function timer_start timer=(if test -n "$timer"; echo "$timer"; else; echo "$SECONDS"; end); }
 trap 'timer_start' DEBUG
 
 functions -e get_duration 2>/dev/null
 function get_duration
-    set -l delta $((SECONDS - timer))
+    set -l delta ((SECONDS - timer))
     if test $delta -ge 1
         echo " ⏱️ ${delta}s"
     end
@@ -213,7 +213,7 @@ function pending_updates
 
     # ৩. ডেবিয়ান/উবুন্টু/ডিপিন (Deepin) এর জন্য চেক
     else if test -f /var/lib/update-notifier/updates-available
-        updates=$(cat /var/lib/update-notifier/updates-available | grep -Po '^[0-9]+(?= updates? can be installed)' | head -n1)
+        set updates (cat /var/lib/update-notifier/updates-available | grep -Po '^[0-9]+(?= updates? can be installed)' | head -n1)
 
     # ৪. অল্টারনেটিভ ডেবিয়ান পদ্ধতি (যদি ফাইল না থাকে)
     else if command -v apt-get >/dev/null 2>&1
@@ -274,26 +274,26 @@ function ii
     command -v yarn >/dev/null 2>&1 && has_yarn=1
 
     echo "🚀 Select Package Manager:"
-    [[ $has_bun -eq 1 ]] && echo "1) 🥐 Bun (Fast)" || echo "1) 🥐 Bun (Not installed)"
-    [[ $has_npm -eq 1 ]] && echo "2) 📦 NPM (Standard)" || echo "2) 📦 NPM (Not installed)"
-    [[ $has_pnpm -eq 1 ]] && echo "3) 🟡 PNPM (Strict)" || echo "3) 🟡 PNPM (Not installed)"
-    [[ $has_yarn -eq 1 ]] && echo "4) 🧶 Yarn (Classic)" || echo "4) 🧶 Yarn (Not installed)"
+    test $has_bun -eq 1 && echo "1) 🥐 Bun (Fast)" || echo "1) 🥐 Bun (Not installed)"
+    test $has_npm -eq 1 && echo "2) 📦 NPM (Standard)" || echo "2) 📦 NPM (Not installed)"
+    test $has_pnpm -eq 1 && echo "3) 🟡 PNPM (Strict)" || echo "3) 🟡 PNPM (Not installed)"
+    test $has_yarn -eq 1 && echo "4) 🧶 Yarn (Classic)" || echo "4) 🧶 Yarn (Not installed)"
     read -P "Enter choice [1-4]: " choice
 
     switch $choice
-        case 1) [[ $has_bun -eq 1 ]] && bun init -y || {
+        case 1) test $has_bun -eq 1 && bun init -y || {
             echo "❌ Bun not found!"
             return 1
         } ;;
-        case 2) [[ $has_npm -eq 1 ]] && npm init -y || {
+        case 2) test $has_npm -eq 1 && npm init -y || {
             echo "❌ NPM not found!"
             return 1
         } ;;
-        case 3) [[ $has_pnpm -eq 1 ]] && pnpm init || {
+        case 3) test $has_pnpm -eq 1 && pnpm init || {
             echo "❌ PNPM not found!"
             return 1
         } ;;
-        case 4) [[ $has_yarn -eq 1 ]] && yarn init -y || {
+        case 4) test $has_yarn -eq 1 && yarn init -y || {
             echo "❌ Yarn not found!"
             return 1
         } ;;
@@ -346,7 +346,7 @@ function _ui_patch_tsconfig
 
     else
         # No config file found — check if JS project and create jsconfig.json
-        if [[ -f "package.json" ]] && ! grep -q '"typescript"' package.json 2>/dev/null
+        if test -f "package.json" && ! grep -q '"typescript"' package.json 2>/dev/null
             echo "  note: JavaScript project detected — creating jsconfig.json with @/* alias..."
             node -e "
         const fs = require('fs');
@@ -574,7 +574,7 @@ function vite
                 if ! bun add tailwindcss @tailwindcss/vite
                     echo "❌ Install failed with Bun."
                     read -P "Try with --force? (y/n): " force
-                    [[ "$force" == "y" ]] && bun add tailwindcss @tailwindcss/vite --force
+                    test "$force" = "y" && bun add tailwindcss @tailwindcss/vite --force
                 end
             end
         case 2
@@ -583,7 +583,7 @@ function vite
                 if ! npm install tailwindcss @tailwindcss/vite
                     echo "❌ Install failed with NPM (Peer Dependency Conflict likely)."
                     read -P "Try with --legacy-peer-deps? (y/n): " legacy
-                    [[ "$legacy" == "y" ]] && npm install tailwindcss @tailwindcss/vite --legacy-peer-deps
+                    test "$legacy" = "y" && npm install tailwindcss @tailwindcss/vite --legacy-peer-deps
                 end
             end
         case *
@@ -626,7 +626,7 @@ function css
 
     # Auto-detect package manager
     set -l pm "npm"
-    [[ -f bun.lockb ]] && pm="bun"
+    test -f bun.lockb && pm="bun"
 
     echo "📦 Installing Tailwind via $pm..."
     if test "$pm" == "bun"
@@ -686,7 +686,7 @@ end
 # Secret Key Generator (Usage: gen 32)
 functions -e gen 2>/dev/null
 function gen
-    set -l len "${1:-24}"
+    set -l len "(if test -n "$argv[1]"; echo "$argv[1]"; else; echo "24"; end)"
     echo -e "🔑 Base64: \033[1;32m(openssl rand -base64 "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
     echo -e "🔑 Hex:    \033[1;36m(openssl rand -hex "$len" 2>/dev/null | cut -c1-"$len")\033[0m"
 end
@@ -709,7 +709,7 @@ functions -e fh 2>/dev/null
 function fh
     _fb_ensure_dep fzf fzf fzf fzf || return 1
     set -l cmd (history | awk '{$argv[1]=""; print $0}' | fzf --reverse +s)
-    [[ -n "$cmd" ]] && eval "$cmd"
+    test -n "$cmd" && eval "$cmd"
 end
 
 # Dynamic Auto-installing Wrappers for Modern CLI Tools
@@ -733,7 +733,7 @@ functions -e z 2>/dev/null
 function z
     if ! command -v zoxide >/dev/null 2>&1
         _fb_ensure_dep zoxide zoxide zoxide zoxide || return 1
-        eval "(zoxide init ${SHELL_NAME:-bash})"
+        eval "(zoxide init (if test -n "$SHELL_NAME"; echo "$SHELL_NAME"; else; echo "bash"; end))"
     end
     zoxide "$@"
 end
@@ -792,7 +792,7 @@ function gwip
 
     if command -v gum >/dev/null 2>&1
         # 2. Select Commit Type
-        TYPE=$(gum choose --height 6 \
+        set TYPE (gum choose --height 6 \
             "✏️  Custom..." \
             "🚧 WIP: Work in progress" \
             "✨ feat: New feature" \
@@ -809,7 +809,7 @@ function gwip
 
         # Handle the custom-name WIP:: case — user types the full label themselves
         if test "$TYPE" = "✏️  Custom..."
-            CUSTOM_NAME=$(gum input --placeholder "Type your custom commit prefix (e.g. 🚧 WIP:: login-ui)...")
+            set CUSTOM_NAME (gum input --placeholder "Type your custom commit prefix (e.g. 🚧 WIP:: login-ui)...")
             [ -z "$CUSTOM_NAME" ] && { echo "⚠️ Commit cancelled (no name given)."; return 0; }
             TYPE_PREFIX="$CUSTOM_NAME"
         else
@@ -817,7 +817,7 @@ function gwip
         end
 
         # 3. Input Commit Message
-        MSG=$(gum input --placeholder "Enter commit message (Leave empty for default)...")
+        set MSG (gum input --placeholder "Enter commit message (Leave empty for default)...")
 
         if test -z "$MSG"
             FULL_MSG="$TYPE_PREFIX: Save point ((date +'%Y-%m-%d %H:%M'))"
@@ -848,7 +848,7 @@ function gwip
         # Fallback if gum is not installed
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
         read -r -p "📝 Enter commit message [Enter for default]: " msg
-    set -l final_msg "${msg:-Work in progress (Save Point)}"
+    set -l final_msg "(if test -n "$msg"; echo "$msg"; else; echo "Work in progress (Save Point)"; end)"
         git commit -m "🚧 WIP: $final_msg"
 
     set -l cur_branch
@@ -916,8 +916,8 @@ function shred_animation
         tput civis 2>/dev/null || true
 
         while kill -0 "$PID" 2>/dev/null; do
-    set -l filled $((i % 21))
-    set -l empty $((20 - filled))
+    set -l filled ((i % 21))
+    set -l empty ((20 - filled))
     set -l bar ""
     set -l j
             for j in (seq 1 $filled); set bar "$bar"█""; end
@@ -947,11 +947,11 @@ function format_name
     # --- Data Collection ---
     if command -v snap >/dev/null 2>&1
         while read -r pkg ver rev dev notes; do
-            [[ "$pkg" =~ ^(Name|core|snapd|bare|gtk|gnome|kf5|qt) ]] && continue
+            test "$pkg" =~ ^(Name|core|snapd|bare|gtk|gnome|kf5|qt) && continue
     set -l name (format_name "$pkg")
     set -l size (du -sh /var/lib/snapd/snaps/"${pkg}"_*.snap 2>/dev/null | tail -1 | awk '{print $argv[1]}')
     set -l inst_date (snap info "$pkg" 2>/dev/null | grep "installed:" | awk '{print $argv[2]}')
-            APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$name" "snap" "$ver" "${size:-N/A}" "${inst_date:-N/A}" "$pkg")"$'\n'
+            APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$name" "snap" "$ver" "(if test -n "$size"; echo "$size"; else; echo "N/A"; end)" "(if test -n "$inst_date"; echo "$inst_date"; else; echo "N/A"; end)" "$pkg")"$'\n'
             ((idx++))
         end
     end
@@ -960,26 +960,26 @@ function format_name
         while IFS=$'\t' read -r id name ver; do
     set -l clean_n (format_name "$name")
     set -l fp_path "/var/lib/flatpak/app/$id"
-            [[ ! -d "$fp_path" ]] && fp_path="$HOME/.local/share/flatpak/app/$id"
+            test ! -d "$fp_path" && fp_path="$HOME/.local/share/flatpak/app/$id"
     set -l size (du -sh "$fp_path" 2>/dev/null | awk '{print $argv[1]}')
     set -l inst_date (stat -c %y "$fp_path" 2>/dev/null | awk '{print $argv[1]}')
-            APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$clean_n" "flatpak" "$ver" "${size:-~MB}" "$inst_date" "$id")"$'\n'
+            APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$clean_n" "flatpak" "$ver" "(if test -n "$size"; echo "$size"; else; echo "~MB"; end)" "$inst_date" "$id")"$'\n'
             ((idx++))
         end
     end
 
     while IFS= read -r -d '' path; do
-    set -l name $(format_name "(basename "$path")")
+    set -l name (format_name "(basename "$path")")
     set -l size (du -sh "$path" 2>/dev/null | awk '{print $argv[1]}')
     set -l inst_date (stat -c %y "$path" 2>/dev/null | awk '{print $argv[1]}')
-        APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$name" "appimage" "Local" "${size:-N/A}" "${inst_date:-N/A}" "$path")"$'\n'
+        APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$name" "appimage" "Local" "(if test -n "$size"; echo "$size"; else; echo "N/A"; end)" "(if test -n "$inst_date"; echo "$inst_date"; else; echo "N/A"; end)" "$path")"$'\n'
         ((idx++))
     end
 
     switch $PKG_MGR
         case apt
             while IFS=' ' read -r pkg ver; do
-                [[ "$pkg" =~ ^(linux-|grub|systemd|lib|python|gir1) ]] && continue
+                test "$pkg" =~ ^(linux-|grub|systemd|lib|python|gir1) && continue
     set -l name (format_name "$pkg")
     set -l size_kb (dpkg-query -W -f='${Installed-Size}\n' "$pkg" 2>/dev/null)
     set -l size "N/A"
@@ -996,14 +996,14 @@ function format_name
             end
         case pacman
             while IFS=' ' read -r pkg ver; do
-                [[ "$pkg" =~ ^(linux|grub|systemd|lib) ]] && continue
+                test "$pkg" =~ ^(linux|grub|systemd|lib) && continue
     set -l name (format_name "$pkg")
                 APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$name" "pacman" "${ver:0:10}" "N/A" "N/A" "$pkg")"$'\n'
                 ((idx++))
             end
         case dnf
             while IFS=' ' read -r pkg ver; do
-                [[ "$pkg" =~ ^(kernel|grub|systemd|lib) ]] && continue
+                test "$pkg" =~ ^(kernel|grub|systemd|lib) && continue
     set -l name (format_name "$pkg")
                 APPS_RAW+="(printf "%-4s | %-18s | %-10s | %-12s | %-8s | %-10s | %s\n" "$idx" "$name" "dnf" "${ver:0:10}" "N/A" "N/A" "$pkg")"$'\n'
                 ((idx++))
@@ -1011,13 +1011,13 @@ function format_name
     end
 
     APPS_RAW="${APPS_RAW%$'\n'}"
-    [[ -z "$APPS_RAW" ]] && {
+    test -z "$APPS_RAW" && {
         echo -e "${YLW}No applications found.${NC}"
         return
     end
 
     set -l SELECTED
-    SELECTED=$(echo "$APPS_RAW" | fzf \
+    set SELECTED (echo "$APPS_RAW" | fzf \
         --ansi --multi --layout=reverse --border=rounded \
         --prompt="🎯 Asset Target: " \
         --delimiter=' \| ' --with-nth=1,2,3 \
@@ -1040,7 +1040,7 @@ function format_name
             printf " ${RED} [TAB] Select  [ENTER] Purge ${NC}"
         ')
 
-    [[ -z "$SELECTED" ]] && {
+    test -z "$SELECTED" && {
         echo -e "${YLW}No selection made.${NC}"
         return
     end
@@ -1053,7 +1053,7 @@ function format_name
     echo -e "${CYN}└──────────────────────────────────────────┘${NC}"
 
     read -r -p "Are you sure you want to proceed? (y/N): " confirm
-    [[ ! "$confirm" =~ ^[Yy]$ ]] && {
+    test ! "$confirm" =~ ^[Yy]$ && {
         echo -e "${RED}Aborted.${NC}"
         return
     end
@@ -1063,18 +1063,18 @@ function format_name
     end
 
     set -l OLD_SET "+m"
-    [[ $- == *m* ]] && OLD_SET="-m"
+    test $- = *m* && OLD_SET="-m"
     set +m
 
     set -l failed_apps ""
 
     while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
+        test -z "$line" && continue
     set -l pkg_display (echo "$line" | awk -F ' \\| ' '{print $argv[2]}' | xargs)
     set -l src_type (echo "$line" | awk -F ' \\| ' '{print $argv[3]}' | xargs)
     set -l orig_id (echo "$line" | awk -F ' \\| ' '{print $argv[7]}' | xargs)
 
-        [[ -z "$src_type" || -z "$orig_id" ]] && continue
+        test -z "$src_type" || -z "$orig_id" && continue
 
         # CRITICAL FIX: Run in background and capture PID properly
         (
@@ -1095,7 +1095,7 @@ function format_name
                         exit_code=1
                     end
     set -l appimage_name (basename "$orig_id" .AppImage 2>/dev/null)
-                    [[ -n "$appimage_name" ]] && {
+                    test -n "$appimage_name" && {
                         rm -f ~/.local/share/applications/appimagekit_*"${appimage_name}"*.desktop 2>/dev/null
                         rm -f ~/.local/share/applications/"${appimage_name}".desktop 2>/dev/null
                         rm -rf ~/.local/share/icons/hicolor/*/apps/appimagekit_*"${appimage_name}"* 2>/dev/null
@@ -1104,44 +1104,44 @@ function format_name
                 case apt
                     sudo apt purge -y "$orig_id" >/dev/null 2>&1 || exit_code=1
                     if test "$orig_id" =~ ^[a-z0-9-]+$ ]] && [[ ! "$orig_id" =~ ^(python|lib|systemd|xorg|gtk|gnome|kde|qt)
-                        [[ -d ~/.config/"$orig_id" ]] && rm -rf ~/.config/"$orig_id" 2>/dev/null
-                        [[ -d ~/.cache/"$orig_id" ]] && rm -rf ~/.cache/"$orig_id" 2>/dev/null
-                        [[ -d ~/.local/share/"$orig_id" ]] && rm -rf ~/.local/share/"$orig_id" 2>/dev/null
+                        test -d ~/.config/"$orig_id" && rm -rf ~/.config/"$orig_id" 2>/dev/null
+                        test -d ~/.cache/"$orig_id" && rm -rf ~/.cache/"$orig_id" 2>/dev/null
+                        test -d ~/.local/share/"$orig_id" && rm -rf ~/.local/share/"$orig_id" 2>/dev/null
     set -l base_name (echo "$orig_id" | sed 's/-desktop//g; s/-stable//g; s/-git//g; s/-bin//g')
                         if test "$base_name" != "$orig_id"
-                            [[ -d ~/.config/"$base_name" ]] && rm -rf ~/.config/"$base_name" 2>/dev/null
-                            [[ -d ~/.cache/"$base_name" ]] && rm -rf ~/.cache/"$base_name" 2>/dev/null
-                            [[ -d ~/.local/share/"$base_name" ]] && rm -rf ~/.local/share/"$base_name" 2>/dev/null
+                            test -d ~/.config/"$base_name" && rm -rf ~/.config/"$base_name" 2>/dev/null
+                            test -d ~/.cache/"$base_name" && rm -rf ~/.cache/"$base_name" 2>/dev/null
+                            test -d ~/.local/share/"$base_name" && rm -rf ~/.local/share/"$base_name" 2>/dev/null
                         end
-                        [[ -d ~/."${base_name}" ]] && rm -rf ~/."${base_name}" 2>/dev/null
+                        test -d ~/."${base_name}" && rm -rf ~/."${base_name}" 2>/dev/null
                     end
                 case pacman
                     sudo pacman -Rns --noconfirm "$orig_id" >/dev/null 2>&1 || exit_code=1
                     if test "$orig_id" =~ ^[a-z0-9-]+$ ]] && [[ ! "$orig_id" =~ ^(python|lib|systemd|xorg|gtk|gnome|kde|qt)
-                        [[ -d ~/.config/"$orig_id" ]] && rm -rf ~/.config/"$orig_id" 2>/dev/null
-                        [[ -d ~/.cache/"$orig_id" ]] && rm -rf ~/.cache/"$orig_id" 2>/dev/null
-                        [[ -d ~/.local/share/"$orig_id" ]] && rm -rf ~/.local/share/"$orig_id" 2>/dev/null
+                        test -d ~/.config/"$orig_id" && rm -rf ~/.config/"$orig_id" 2>/dev/null
+                        test -d ~/.cache/"$orig_id" && rm -rf ~/.cache/"$orig_id" 2>/dev/null
+                        test -d ~/.local/share/"$orig_id" && rm -rf ~/.local/share/"$orig_id" 2>/dev/null
     set -l base_name (echo "$orig_id" | sed 's/-desktop//g; s/-stable//g; s/-git//g; s/-bin//g')
                         if test "$base_name" != "$orig_id"
-                            [[ -d ~/.config/"$base_name" ]] && rm -rf ~/.config/"$base_name" 2>/dev/null
-                            [[ -d ~/.cache/"$base_name" ]] && rm -rf ~/.cache/"$base_name" 2>/dev/null
-                            [[ -d ~/.local/share/"$base_name" ]] && rm -rf ~/.local/share/"$base_name" 2>/dev/null
+                            test -d ~/.config/"$base_name" && rm -rf ~/.config/"$base_name" 2>/dev/null
+                            test -d ~/.cache/"$base_name" && rm -rf ~/.cache/"$base_name" 2>/dev/null
+                            test -d ~/.local/share/"$base_name" && rm -rf ~/.local/share/"$base_name" 2>/dev/null
                         end
-                        [[ -d ~/."${base_name}" ]] && rm -rf ~/."${base_name}" 2>/dev/null
+                        test -d ~/."${base_name}" && rm -rf ~/."${base_name}" 2>/dev/null
                     end
                 case dnf
                     sudo dnf remove -y "$orig_id" >/dev/null 2>&1 || exit_code=1
                     if test "$orig_id" =~ ^[a-z0-9-]+$ ]] && [[ ! "$orig_id" =~ ^(python|lib|systemd|xorg|gtk|gnome|kde|qt)
-                        [[ -d ~/.config/"$orig_id" ]] && rm -rf ~/.config/"$orig_id" 2>/dev/null
-                        [[ -d ~/.cache/"$orig_id" ]] && rm -rf ~/.cache/"$orig_id" 2>/dev/null
-                        [[ -d ~/.local/share/"$orig_id" ]] && rm -rf ~/.local/share/"$orig_id" 2>/dev/null
+                        test -d ~/.config/"$orig_id" && rm -rf ~/.config/"$orig_id" 2>/dev/null
+                        test -d ~/.cache/"$orig_id" && rm -rf ~/.cache/"$orig_id" 2>/dev/null
+                        test -d ~/.local/share/"$orig_id" && rm -rf ~/.local/share/"$orig_id" 2>/dev/null
     set -l base_name (echo "$orig_id" | sed 's/-desktop//g; s/-stable//g; s/-git//g; s/-bin//g')
                         if test "$base_name" != "$orig_id"
-                            [[ -d ~/.config/"$base_name" ]] && rm -rf ~/.config/"$base_name" 2>/dev/null
-                            [[ -d ~/.cache/"$base_name" ]] && rm -rf ~/.cache/"$base_name" 2>/dev/null
-                            [[ -d ~/.local/share/"$base_name" ]] && rm -rf ~/.local/share/"$base_name" 2>/dev/null
+                            test -d ~/.config/"$base_name" && rm -rf ~/.config/"$base_name" 2>/dev/null
+                            test -d ~/.cache/"$base_name" && rm -rf ~/.cache/"$base_name" 2>/dev/null
+                            test -d ~/.local/share/"$base_name" && rm -rf ~/.local/share/"$base_name" 2>/dev/null
                         end
-                        [[ -d ~/."${base_name}" ]] && rm -rf ~/."${base_name}" 2>/dev/null
+                        test -d ~/."${base_name}" && rm -rf ~/."${base_name}" 2>/dev/null
                     end
             end
             exit $exit_code
@@ -1159,7 +1159,7 @@ function format_name
 
     set "$OLD_SET"
 
-    [[ -n "$failed_apps" ]] && echo -e "\n${RED}Failed: ${failed_apps%, }${NC}"
+    test -n "$failed_apps" && echo -e "\n${RED}Failed: ${failed_apps%, }${NC}"
 
     # --- Turbo Clean ---
     echo -e "\n${CYN}➜ Initializing Turbo Clean Protocol...${NC}\n"
@@ -1167,7 +1167,7 @@ function format_name
     if command -v snap >/dev/null 2>&1
         echo -ne "${YLW}➜ Purging old Snap revisions...${NC} "
         LANG=en_US.UTF-8 snap list --all 2>/dev/null | awk '/disabled/{print $argv[1], $argv[3]}' | while read -r snapname revision; do
-            [[ -n "$snapname" && -n "$revision" ]] && sudo snap remove "$snapname" --revision="$revision" >/dev/null 2>&1
+            test -n "$snapname" && -n "$revision" && sudo snap remove "$snapname" --revision="$revision" >/dev/null 2>&1
         end
         echo -e "${GRN}OK${NC}"
     end
@@ -1197,7 +1197,7 @@ function format_name
         case pacman
     set -l orphans
             orphans=(pacman -Qtdq 2>/dev/null)
-            [[ -n "$orphans" ]] && sudo pacman -Rns --noconfirm $orphans >/dev/null 2>&1
+            test -n "$orphans" && sudo pacman -Rns --noconfirm $orphans >/dev/null 2>&1
             sudo pacman -Sc --noconfirm >/dev/null 2>&1
         case dnf
             sudo dnf autoremove -y >/dev/null 2>&1
@@ -1208,7 +1208,7 @@ function format_name
     sync
     sleep 1
     set -l END_KB (df -k / | awk 'NR==2 {print $argv[4]}')
-    set -l SAVED_MB $(((START_KB - END_KB) / 1024))
+    set -l SAVED_MB (((START_KB - END_KB) / 1024))
 
     echo -e "\n${GRN}✅ Cleanup Successful!${NC}"
     if ((SAVED_MB > 0))
@@ -1274,7 +1274,7 @@ function uup
     )
 
     # Fixed FZF Color Typo (#9ece6a)
-    set -l SELECTED_TASKS $(printf "%s\n" "${tasks[@]}" | fzf \
+    set -l SELECTED_TASKS (printf "%s\n" "$tasks" | fzf \
         --ansi --multi --height=18 --layout=reverse --border=rounded \
         --prompt="⚡ Action: " --header="[TAB] Select | [ENTER] Execute" \
         --color='bg+:#292e42,hl:#bb9af7,prompt:#7dcfff,pointer:#f7768e,marker:#9ece6a' \
@@ -1298,7 +1298,7 @@ function uup
 
     # --- Execute All Logic ---
     if test "$SELECTED_TASKS" == *"0. ALL_MAINTENANCE_TASKS"*
-        SELECTED_TASKS=(printf "%s\n" "${tasks[@]}")
+        SELECTED_TASKS=(printf "%s\n" "$tasks")
     end
 
     # 1. OS Core
@@ -1321,7 +1321,7 @@ function uup
             echo -e "  ${YLW}⚠ Snap is not installed on this system. Skipping...${NC}"
         else
     set -l sc (snap refresh --list 2>/dev/null)
-            [[ -n "$sc" && "$sc" != *"up to date"* ]] && sudo snap refresh || echo -e "  ${BLU}ℹ Snaps are up-to-date.${NC}"
+            test -n "$sc" && "$sc" != *"up to date"* && sudo snap refresh || echo -e "  ${BLU}ℹ Snaps are up-to-date.${NC}"
         end
     end
 
@@ -1358,7 +1358,7 @@ function uup
     if test "$SELECTED_TASKS" == *"5. Node.js_LTS_Sync"*
         echo -e "\n${BOLD}${PUR}🟢 [5/7] Syncing Node.js (LTS Version)...${NC}"
         echo ""
-    set -l NVM_PATH "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+    set -l NVM_PATH "(if test -n "$NVM_DIR"; echo "$NVM_DIR"; else; echo "$HOME/.nvm"; end)/nvm.sh"
         if test -f "$NVM_PATH"
             source "$NVM_PATH"
             nvm install --lts --reinstall-packages-from=node
@@ -1387,7 +1387,7 @@ function uup
         # OS Native Clean
         switch $PKG_MGR
             case apt) sudo apt autoremove -y && sudo apt autoclean ;;
-            case pacman) sudo pacman -Rns $(pacman -Qtdq) --noconfirm 2>/dev/null || echo -e "  ${BLU}ℹ No orphans.${NC}" ;;
+            case pacman) sudo pacman -Rns (pacman -Qtdq) --noconfirm 2>/dev/null || echo -e "  ${BLU}ℹ No orphans.${NC}" ;;
             case dnf) sudo dnf autoremove -y ;;
             case brew) brew cleanup ;;
         end
@@ -1429,40 +1429,40 @@ end
 functions -e keep 2>/dev/null
 function keep
     # Modern Color Palette
-    RESET='\033[0m'
-    BOLD='\033[1m'
-    DIM='\033[2m'
+    set -l RESET '\033[0m'
+    set -l BOLD '\033[1m'
+    set -l DIM '\033[2m'
 
     # Primary Colors
-    CYAN='\033[38;5;51m'    # Electric Cyan
-    PINK='\033[38;5;213m'   # Hot Pink
-    PURPLE='\033[38;5;141m' # Soft Purple
-    GREEN='\033[38;5;82m'   # Neon Green
-    YELLOW='\033[38;5;220m' # Gold Yellow
-    ORANGE='\033[38;5;208m' # Orange
-    BLUE='\033[38;5;75m'    # Sky Blue
-    RED='\033[38;5;203m'    # Soft Red
-    WHITE='\033[38;5;255m'  # Pure White
-    GRAY='\033[38;5;245m'   # Gray
+    set -l CYAN '\033[38;5;51m'    # Electric Cyan
+    set -l PINK '\033[38;5;213m'   # Hot Pink
+    set -l PURPLE '\033[38;5;141m' # Soft Purple
+    set -l GREEN '\033[38;5;82m'   # Neon Green
+    set -l YELLOW '\033[38;5;220m' # Gold Yellow
+    set -l ORANGE '\033[38;5;208m' # Orange
+    set -l BLUE '\033[38;5;75m'    # Sky Blue
+    set -l RED '\033[38;5;203m'    # Soft Red
+    set -l WHITE '\033[38;5;255m'  # Pure White
+    set -l GRAY '\033[38;5;245m'   # Gray
 
     # Background Colors
-    BG_DARK='\033[48;5;234m' # Dark background
-    BG_CARD='\033[48;5;236m' # Card background
+    set -l BG_DARK '\033[48;5;234m' # Dark background
+    set -l BG_CARD '\033[48;5;236m' # Card background
 
     # Icons
-    ICON_ROCKET='🚀'
-    ICON_FOLDER='📂'
-    ICON_FILE='📄'
-    ICON_GEAR='⚙️'
-    ICON_PACKAGE='📦'
-    ICON_BUN='🥐'
-    ICON_GIT='🌿'
-    ICON_LIGHTNING='⚡'
-    ICON_TERMINAL='💻'
-    ICON_WARNING='⚠️'
-    ICON_STAR='✨'
-    ICON_SEARCH='🔍'
-    ICON_PRISMA='💎'
+    set -l ICON_ROCKET '🚀'
+    set -l ICON_FOLDER '📂'
+    set -l ICON_FILE '📄'
+    set -l ICON_GEAR '⚙️'
+    set -l ICON_PACKAGE '📦'
+    set -l ICON_BUN '🥐'
+    set -l ICON_GIT '🌿'
+    set -l ICON_LIGHTNING '⚡'
+    set -l ICON_TERMINAL '💻'
+    set -l ICON_WARNING '⚠️'
+    set -l ICON_STAR '✨'
+    set -l ICON_SEARCH '🔍'
+    set -l ICON_PRISMA '💎'
 
     # Clear screen for clean look
     clear
@@ -1470,16 +1470,16 @@ function keep
     # Header with gradient effect
 
     echo -e "${CYAN} ╔══════════════════════════════════════════════════════════════════════════╗${RESET}"
-    echo -e "${CYAN} ║${RESET}  ${BOLD}${PINK}${ICON_ROCKET}  MASTER COMMAND CENTER ${RESET}${CYAN}│${RESET} ${GRAY}Developer Rihad's Ultimate Bash Environment${RESET}      ${CYAN} ${RESET}"
+    echo -e "${CYAN} ║${RESET}  ${BOLD}${PINK}${ICON_ROCKET}  MASTER COMMAND CENTER ${RESET}${CYAN}│${RESET} ${GRAY}Developer Rihad's Ultimate Fish Environment${RESET}      ${CYAN} ${RESET}"
     echo -e "${CYAN} ╚══════════════════════════════════════════════════════════════════════════╝${RESET}"
-    echo -e "${GRAY}  v2.0 • Modern Terminal UX • (date +'%B %d, %Y')${RESET}\n"
+    echo -e "${GRAY}  v2.0 • Modern Terminal UX • "(date +'%B %d, %Y')"${RESET}\n"
 
     # Function to print category headers
     functions -e print_category 2>/dev/null
-function print_category
-    set -l icon $argv[1]
-    set -l title $argv[2]
-    set -l color $argv[3]
+    function print_category
+        set -l icon $argv[1]
+        set -l title $argv[2]
+        set -l color $argv[3]
         echo -e "\n  ${color}┌─────────────────────────────────────────────────────────────────────┐${RESET}"
         echo -e "  ${color}│${RESET} ${BOLD}${icon}  ${title}${RESET}${color}                                    ${RESET}"
         echo -e "  ${color}└─────────────────────────────────────────────────────────────────────┘${RESET}"
@@ -1487,11 +1487,11 @@ function print_category
 
     # Function to print command row
     functions -e print_cmd 2>/dev/null
-function print_cmd
-    set -l cmd $argv[1]
-    set -l desc $argv[2]
-    set -l example $argv[3]
-    set -l cmd_color $argv[4]
+    function print_cmd
+        set -l cmd $argv[1]
+        set -l desc $argv[2]
+        set -l example $argv[3]
+        set -l cmd_color $argv[4]
 
         if test -z "$example"
             printf "     ${BOLD}${cmd_color}%-12s${RESET} ${GRAY}│${RESET} %s\n" "$cmd" "$desc"
@@ -1502,11 +1502,11 @@ function print_cmd
 
     # Function to print alias row
     functions -e print_alias 2>/dev/null
-function print_alias
-    set -l alias $argv[1]
-    set -l equals $argv[2]
-    set -l full $argv[3]
-    set -l color $argv[4]
+    function print_alias
+        set -l alias $argv[1]
+        set -l equals $argv[2]
+        set -l full $argv[3]
+        set -l color $argv[4]
         printf "     ${BOLD}${color}%-6s${RESET} ${GRAY}%s${RESET} ${DIM}%s${RESET}\n" "$alias" "$equals" "$full"
     end
 
@@ -1519,6 +1519,7 @@ function print_alias
     print_cmd "fr / ba / fu" "Frontend / Backend / Fullstack" "" "$GREEN"
     print_cmd "fig / ar / de" "Figma / Archive / Dev folders" "" "$GREEN"
     print_cmd "des / doc / dow" "Desktop / Documents / Downloads" "" "$GREEN"
+    print_cmd "bv / ch / gp" "Brave / Chrome / Photos Downloads" "" "$GREEN"
 
     # ==================== FILE OPERATIONS ====================
     print_category "$ICON_FILE" "FILE & FOLDER MANAGEMENT" "$PINK"
@@ -1757,7 +1758,7 @@ function run
     # File list (.js and .ts)
     files=((ls *.js *.ts 2>/dev/null))
 
-    if test ${#files[@]} -eq 0
+    if test (count $files) -eq 0
         echo -e "${RED}󱓇 No .js or .ts files found!${NC}"
         return 1
     end
@@ -1768,7 +1769,7 @@ function run
     echo -e "${CYAN}╰──────────────────────────────────────────╯${NC}"
 
     # List Display with Icons
-    for i in "${!files[@]}"; do
+    for i in "(seq (count $files))"; do
         ext="${files[$i]##*.}"
 
         # Icon selection based on extension
@@ -1779,7 +1780,7 @@ function run
         end
 
         # Beautifully aligned row
-        printf "${CYAN}  [%2d]${NC}  %b  %-30s\n" "$((i + 1))" "$icon" "${files[$i]}"
+        printf "${CYAN}  [%2d]${NC}  %b  %-30s\n" "((i + 1))" "$icon" "${files[$i]}"
     end
 
     echo -e "${CYAN}────────────────────────────────────────────${NC}"
@@ -1789,8 +1790,8 @@ function run
     read -P "❯ " choice
 
     # File selection validation
-    if test $choice -gt 0 && $choice -le ${#files[@]}
-        selected_file=${files[$((choice - 1))]}
+    if test $choice -gt 0 && $choice -le (count $files)
+        selected_file=${files[((choice - 1))]}
 
         echo -e "\n${GREEN}✔ Selected:${NC} ${BOLD}$selected_file${NC}"
         echo -e "${CYAN}────────────────────────────────────────────${NC}"
@@ -1834,7 +1835,7 @@ end
 
 functions -e v 2>/dev/null
 function v
-    set -l TARGET "${1:-$PWD}"
+    set -l TARGET "(if test -n "$argv[1]"; echo "$argv[1]"; else; echo "$PWD"; end)"
 
     # 🎥 Smart Player Detection (fastest first)
     set -l PLAYER_CMD
@@ -1861,7 +1862,7 @@ function v
         # Use read array to handle multi-word player commands (e.g., "flatpak run org.videolan.VLC")
         local -a player_args
         read -ra player_args <<< "$PLAYER_CMD"
-        "${player_args[@]}" "$TARGET" >/dev/null 2>&1 &
+        "$player_args" "$TARGET" >/dev/null 2>&1 &
         disown $! 2>/dev/null || true
         return 0
     end
@@ -1869,7 +1870,7 @@ function v
     # 🔍 Find Videos inside directory
     set -l DIR "$TARGET"
     set -l RAW_LIST
-    RAW_LIST=$(find "$DIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.webm" -o -iname "*.flv" -o -iname "*.m4v" \) 2>/dev/null | sort)
+    set RAW_LIST (find "$DIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.mov" -o -iname "*.webm" -o -iname "*.flv" -o -iname "*.m4v" \) 2>/dev/null | sort)
 
     [ -z "$RAW_LIST" ] && echo "❌ No videos found" && return 1
 
@@ -1877,7 +1878,7 @@ function v
     set -l HEADER_STR (printf "\e[1;34m%-5s \e[1;33m%-20s \e[1;35m%-s\e[0m" "IDX" "FOLDER" "VIDEO NAME")
 
     set -l SELECTED_LINE
-    SELECTED_LINE=$(echo "$RAW_LIST" | awk -F/ '{
+    set SELECTED_LINE (echo "$RAW_LIST" | awk -F/ '{
         idx = NR;
         folder = (NF-1);
         filename = $NF;
@@ -1907,7 +1908,7 @@ function v
         # প্রথম কলাম থেকে ইনডেক্স বের করা
     set -l INDEX (echo "$SELECTED_LINE" | sed 's/\x1b\[[0-9;]*m//g' | awk '{print $argv[1]}')
 
-        if ! [[ "$INDEX" =~ ^[0-9]+$ ]]
+        if ! test "$INDEX" =~ ^[0-9]+$
             echo "❌ Invalid selection"
             return 1
         end
@@ -1922,7 +1923,7 @@ function v
         echo -e "\e[1;92m▶ Playing:\e[0m (basename "$FULL_PATH")"
         local -a player_args
         read -ra player_args <<< "$PLAYER_CMD"
-        "${player_args[@]}" "$FULL_PATH" >/dev/null 2>&1 &
+        "$player_args" "$FULL_PATH" >/dev/null 2>&1 &
         disown $! 2>/dev/null || true
     else
         echo "👋 Exit"
@@ -2029,8 +2030,8 @@ function _detect_distro
     set -l DISTRO_NAME "${distro_info##*|}"
 
     # Fallback if parsing failed
-    [[ -z "$DISTRO_ID" ]] && DISTRO_ID="unknown"
-    [[ -z "$DISTRO_NAME" ]] && DISTRO_NAME="Unknown"
+    test -z "$DISTRO_ID" && DISTRO_ID="unknown"
+    test -z "$DISTRO_NAME" && DISTRO_NAME="Unknown"
 
     echo -e "${CYAN}╔════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║${NC}   🚀 System Optimizer v3.0         ${CYAN}║${NC}"
@@ -2099,31 +2100,31 @@ function _pkg_install
         switch $pkg_manager
             case apt
                 sudo apt-get update -qq &&
-                    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs[@]}"
+                    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$pkgs"
                 exit_code=$?
             case dnf
-                sudo dnf install -y --setopt=install_weak_deps=False "${pkgs[@]}"
+                sudo dnf install -y --setopt=install_weak_deps=False "$pkgs"
                 exit_code=$?
             case yum
-                sudo yum install -y "${pkgs[@]}"
+                sudo yum install -y "$pkgs"
                 exit_code=$?
             case pacman
-                sudo pacman -Sy --noconfirm --needed "${pkgs[@]}"
+                sudo pacman -Sy --noconfirm --needed "$pkgs"
                 exit_code=$?
             case zypper
-                sudo zypper --non-interactive install --no-recommends "${pkgs[@]}"
+                sudo zypper --non-interactive install --no-recommends "$pkgs"
                 exit_code=$?
             case apk
-                sudo apk add --no-cache "${pkgs[@]}"
+                sudo apk add --no-cache "$pkgs"
                 exit_code=$?
             case xbps
-                sudo xbps-install -y "${pkgs[@]}"
+                sudo xbps-install -y "$pkgs"
                 exit_code=$?
             case emerge
-                sudo emerge -av "${pkgs[@]}"
+                sudo emerge -av "$pkgs"
                 exit_code=$?
             case nix
-                sudo nix-env -iA "${pkgs[@]/#/nixpkgs.}"
+                sudo nix-env -iA $pkgs
                 exit_code=$?
         end
 
@@ -2149,8 +2150,8 @@ function _refresh_env
         )
 
     set -l new_path ""
-        for p in "${paths[@]}"; do
-            [[ -d "$p" ]] && new_path="${new_path:+$new_path:}$p"
+        for p in "$paths"; do
+            test -d "$p" && new_path="${new_path:+$new_path:}$p"
         end
 
         # Preserve existing PATH entries not in our list
@@ -2168,7 +2169,7 @@ set -gx PATH "$new_path"
         hash -r 2>/dev/null || true
 
         # Source bashrc if exists (for new completions)
-        [[ -f "$HOME/.bashrc" ]] && source "$HOME/.bashrc" 2>/dev/null || true
+        test -f "$HOME/.bashrc" && source "$HOME/.bashrc" 2>/dev/null || true
     end
 
     # ==============================
@@ -2223,8 +2224,8 @@ function _configure_fzf
         # Verify fzf is available
         if ! command -v fzf >/dev/null 2>&1
             # Manual PATH addition
-            [[ -f "${HOME}/.fzf/bin/fzf" ]] && export PATH="${HOME}/.fzf/bin:$PATH"
-            [[ -f "/usr/bin/fzf" ]] && export PATH="/usr/bin:$PATH"
+            test -f "${HOME}/.fzf/bin/fzf" ; and set -gx PATH "${HOME}/.fzf/bin:$PATH"
+            test -f "/usr/bin/fzf" ; and set -gx PATH "/usr/bin:$PATH"
         end
 
         # Setup shell integration
@@ -2233,7 +2234,7 @@ function _configure_fzf
 
         # Find fzf shell files
         for d in "/usr/share/doc/fzf/examples" "/usr/share/fzf" "/usr/share/fzf/shell" "${HOME}/.fzf/shell"; do
-            [[ -f "$d/completion.bash" ]] && fzf_shell="$d" && break
+            test -f "$d/completion.bash" && fzf_shell="$d" && break
         end
 
         if test -n "$fzf_shell" ]] && [[ -f "$bashrc"
@@ -2249,8 +2250,8 @@ function _configure_fzf
         end
 
         # Load immediately
-        [[ -n "$fzf_shell" ]] && source "$fzf_shell/completion.bash" 2>/dev/null || true
-        [[ -n "$fzf_shell" ]] && source "$fzf_shell/key-bindings.bash" 2>/dev/null || true
+        test -n "$fzf_shell" && source "$fzf_shell/completion.bash" 2>/dev/null || true
+        test -n "$fzf_shell" && source "$fzf_shell/key-bindings.bash" 2>/dev/null || true
 
         # Final verification
         if command -v fzf >/dev/null 2>&1
@@ -2267,8 +2268,8 @@ function _install_sensors
         echo -e "${YELLOW}⚠️  sensors not found. Installing...${NC}"
 
     set -l pkg_name "lm-sensors"
-        [[ "$DISTRO_ID" == "arch" || "$DISTRO_ID" == "manjaro" ]] && pkg_name="lm_sensors"
-        [[ "$DISTRO_ID" == "alpine" ]] && pkg_name="lm-sensors"
+        test "$DISTRO_ID" = "arch" || "$DISTRO_ID" = "manjaro" && pkg_name="lm_sensors"
+        test "$DISTRO_ID" = "alpine" && pkg_name="lm-sensors"
 
         if ! _pkg_install "$pkg_name"
             echo -e "${RED}❌ lm-sensors installation failed${NC}" >&2
@@ -2296,7 +2297,7 @@ function _install_sensors
 
         # Load common modules
     set -l modules (coretemp nct6775 k10temp acpi_cpufreq it87)
-        for mod in "${modules[@]}"; do
+        for mod in "$modules"; do
             sudo modprobe "$mod" 2>/dev/null || true
         end
 
@@ -2342,7 +2343,7 @@ function _install_zram
                 pkg_name="systemd-zram-service"
         end
 
-        if ! _pkg_install "$pkg_name" "${extra_pkgs[@]}"
+        if ! _pkg_install "$pkg_name" "$extra_pkgs"
             echo -e "${RED}❌ zram package installation failed${NC}" >&2
             return 1
         end
@@ -2350,7 +2351,7 @@ function _install_zram
         echo -e "${BLUE}🔧 Configuring zram...${NC}"
 
         # Check if zram already configured
-        if [[ -e /dev/zram0 ]] && swapon -s 2>/dev/null | grep -q zram
+        if test -e /dev/zram0 && swapon -s 2>/dev/null | grep -q zram
             echo -e "${GREEN}✅ zram already active${NC}"
             return 0
         end
@@ -2366,9 +2367,9 @@ function _install_zram
         # Calculate size (50% of RAM)
         set -l mem_total zram_size
         mem_total=(awk '/MemTotal/{print $argv[2]}' /proc/meminfo 2>/dev/null || echo "0")
-        zram_size=$((mem_total * 512)) # KB to bytes / 2
+        set zram_size ((mem_total * 512)) # KB to bytes / 2
 
-        [[ "$zram_size" -lt 104857600 ]] && zram_size=536870912 # Minimum 512MB
+        test "$zram_size" -lt 104857600 && zram_size=536870912 # Minimum 512MB
 
         # Configure
         echo "$zram_size" | sudo tee /sys/block/zram0/disksize >/dev/null 2>/dev/null || {
@@ -2395,7 +2396,7 @@ EOF
             end
         end
 
-        echo -e "${GREEN}✅ zram configured: $((zram_size / 1024 / 1024))MB${NC}"
+        echo -e "${GREEN}✅ zram configured: ((zram_size / 1024 / 1024))MB${NC}"
         return 0
     end
 
@@ -2411,22 +2412,22 @@ EOF
     command -v sensors >/dev/null 2>&1 || missing_tools+=("sensors")
     command -v zramctl >/dev/null 2>&1 || missing_tools+=("zram")
 
-    if test ${#missing_tools[@]} -gt 0
+    if test (count $missing_tools) -gt 0
         echo -e "${YELLOW}📋 Missing: ${missing_tools[*]}${NC}"
         echo -e "${CYAN}🚀 Installing...${NC}"
         echo ""
 
-        for tool in "${missing_tools[@]}"; do
+        for tool in "$missing_tools"; do
             switch $tool
                 case fzf
                     if ! _install_fzf
-                        install_failed=$((install_failed + 1))
+                        set install_failed ((install_failed + 1))
                         echo -e "${RED}CRITICAL: fzf is required${NC}" >&2
                     end
                 case sensors
-                    _install_sensors || install_failed=$((install_failed + 1))
+                    _install_sensors || install_failed=((install_failed + 1))
                 case zram
-                    _install_zram || install_failed=$((install_failed + 1))
+                    _install_zram || install_failed=((install_failed + 1))
             end
             echo ""
         end
@@ -2492,7 +2493,7 @@ function _get_temp_zram
     set -l temp "N/A" zram_used="0"
 
         if command -v sensors >/dev/null 2>&1
-            temp=$(sensors 2>/dev/null | awk '
+            set temp (sensors 2>/dev/null | awk '
                 /°C/ {
                     gsub(/[+|°C]/, "", $argv[2])
                     if ($argv[2]+0 > max && $argv[2] ~ /^[0-9]+\.?[0-9]*$/) max=$argv[2]
@@ -2505,7 +2506,7 @@ function _get_temp_zram
         end
 
         if command -v zramctl >/dev/null 2>&1
-            zram_used=$(zramctl --output=DISKSIZE,DATA --bytes 2>/dev/null | awk '
+            set zram_used (zramctl --output=DISKSIZE,DATA --bytes 2>/dev/null | awk '
                 NR>1 {
                     if ($argv[1] ~ /^[0-9]+$/ && $argv[1] > 0) {
                         disk += $argv[1]
@@ -2519,26 +2520,26 @@ function _get_temp_zram
             ')
         end
 
-        printf '%s %s' "${temp:-N/A}" "${zram_used:-0}"
+        printf '%s %s' "(if test -n "$temp"; echo "$temp"; else; echo "N/A"; end)" "(if test -n "$zram_used"; echo "$zram_used"; else; echo "0"; end)"
     end
 
     functions -e _get_free_kb 2>/dev/null
 function _get_free_kb
     set -l avail
         avail=(df -k / 2>/dev/null | awk 'NR==2 {print $argv[4]}')
-        [[ "$avail" =~ ^[0-9]+$ ]] && echo "$avail" || echo "0"
+        test "$avail" =~ ^[0-9]+$ && echo "$avail" || echo "0"
     end
 
     functions -e _format_size 2>/dev/null
 function _format_size
     set -l kb $argv[1]
-        [[ "$kb" =~ ^[0-9]+$ ]] || {
+        test "$kb" =~ ^[0-9]+$ || {
             echo "0KB"
             return
         end
 
-    set -l mb $((kb / 1024))
-    set -l gb $((mb / 1024))
+    set -l mb ((kb / 1024))
+    set -l gb ((mb / 1024))
 
         if test $kb -lt 1024
             echo "${kb}KB"
@@ -2573,7 +2574,7 @@ function _os_clean
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
 
         read -r -p "Proceed with OS cleanup? [y/N]: " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || return 0
+        test "$confirm" =~ ^[Yy]$ || return 0
 
         _sudo_check || return 1
 
@@ -2615,17 +2616,17 @@ function _os_clean
             command -v pip >/dev/null 2>&1 && pip cache purge 2>/dev/null || true
             command -v pip3 >/dev/null 2>&1 && pip3 cache purge 2>/dev/null || true
             command -v pnpm >/dev/null 2>&1 && pnpm store prune 2>/dev/null || true
-            [[ -d "$HOME/.cache/pip" ]] && rm -rf "$HOME/.cache/pip"/* 2>/dev/null || true
-            [[ -d "$HOME/.cache/go-build" ]] && rm -rf "$HOME/.cache/go-build"/* 2>/dev/null || true
-            [[ -d "$HOME/.cargo/registry/cache" ]] && rm -rf "$HOME/.cargo/registry/cache"/* 2>/dev/null || true
+            test -d "$HOME/.cache/pip" && rm -rf "$HOME/.cache/pip"/* 2>/dev/null || true
+            test -d "$HOME/.cache/go-build" && rm -rf "$HOME/.cache/go-build"/* 2>/dev/null || true
+            test -d "$HOME/.cargo/registry/cache" && rm -rf "$HOME/.cargo/registry/cache"/* 2>/dev/null || true
             echo -e "   ${GREEN}✅ Developer caches cleared${NC}"
         end
 
         set -l space_after freed_kb freed_str
         space_after=(_get_free_kb)
-        freed_kb=$((space_after - space_before))
+        set freed_kb ((space_after - space_before))
         freed_str=""
-        [[ $freed_kb -gt 0 ]] && freed_str=" (freed: (_format_size $freed_kb))"
+        test $freed_kb -gt 0 && freed_str=" (freed: (_format_size $freed_kb))"
         echo -e "${GREEN}✅ OS cleanup completed${freed_str}${NC}"
         _log "OS clean executed"
     end
@@ -2637,7 +2638,7 @@ function _container_clean
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
 
         read -r -p "Proceed with container cleanup? [y/N]: " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || return 0
+        test "$confirm" =~ ^[Yy]$ || return 0
 
     set -l total_saved 0
 
@@ -2652,8 +2653,8 @@ function _container_clean
 
             if test -n "$snap_output"
                 while read -r name rev; do
-                    [[ "$name" =~ ^[a-z0-9-]+$ ]] || continue
-                    [[ "$rev" =~ ^[0-9]+$ ]] || continue
+                    test "$name" =~ ^[a-z0-9-]+$ || continue
+                    test "$rev" =~ ^[0-9]+$ || continue
                     echo -e "   ${YELLOW}Removing: $name (rev $rev)${NC}"
                     sudo snap remove --revision="$rev" "$name" 2>/dev/null || true
                 end
@@ -2662,9 +2663,9 @@ function _container_clean
             sudo rm -rf /var/lib/snapd/cache/* 2>/dev/null || true
 
             end_space=(_get_free_kb)
-            saved=$(((end_space - start_space) * 1024))
-            [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
-            echo -e "   ${GREEN}Snap saved: $(_format_size $((saved / 1024)))${NC}"
+            set saved (((end_space - start_space) * 1024))
+            test $saved -gt 0 && total_saved=((total_saved + saved))
+            echo -e "   ${GREEN}Snap saved: (_format_size ((saved / 1024)))${NC}"
         end
 
         # Flatpak cleanup
@@ -2683,9 +2684,9 @@ function _container_clean
             # fi
 
     set -l end_space (_get_free_kb)
-    set -l saved $(((end_space - start_space) * 1024))
-            [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
-            echo -e "   ${GREEN}Flatpak saved: $(_format_size $((saved / 1024)))${NC}"
+    set -l saved (((end_space - start_space) * 1024))
+            test $saved -gt 0 && total_saved=((total_saved + saved))
+            echo -e "   ${GREEN}Flatpak saved: (_format_size ((saved / 1024)))${NC}"
         end
 
         # Docker cleanup
@@ -2697,9 +2698,9 @@ function _container_clean
                 docker system prune -a --volumes -f 2>/dev/null || true
 
     set -l end_space (_get_free_kb)
-    set -l saved $(((end_space - start_space) * 1024))
-                [[ $saved -gt 0 ]] && total_saved=$((total_saved + saved))
-                echo -e "   ${GREEN}Docker saved: $(_format_size $((saved / 1024)))${NC}"
+    set -l saved (((end_space - start_space) * 1024))
+                test $saved -gt 0 && total_saved=((total_saved + saved))
+                echo -e "   ${GREEN}Docker saved: (_format_size ((saved / 1024)))${NC}"
             else
                 echo -e "   ${YELLOW}Docker daemon not running${NC}"
             end
@@ -2712,7 +2713,7 @@ function _container_clean
             echo -e "   ${GREEN}Podman cleaned${NC}"
         end
 
-        echo -e "${GREEN}✅ Total saved: $(_format_size $((total_saved / 1024)))${NC}"
+        echo -e "${GREEN}✅ Total saved: (_format_size ((total_saved / 1024)))${NC}"
         _log "Container clean executed"
     end
 
@@ -2723,7 +2724,7 @@ function _fix_links
         echo -e "${BLUE}╚════════════════════════════════╝${NC}"
 
         read -r -p "Remove broken symlinks in $HOME? [y/N]: " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || return 0
+        test "$confirm" =~ ^[Yy]$ || return 0
 
     set -l count 0
         while IFS= read -r -d '' link; do
@@ -2753,8 +2754,8 @@ function _orphan_engine
                     kernels+=("$line")
                 end
 
-                if test ${#kernels[@]} -le 2
-                    echo -e "${GREEN}Only ${#kernels[@]} kernels installed, skipping${NC}"
+                if test (count $kernels) -le 2
+                    echo -e "${GREEN}Only (count $kernels) kernels installed, skipping${NC}"
                     return 0
                 end
 
@@ -2763,17 +2764,17 @@ function _orphan_engine
                 echo -e "Keeping: ${GREEN}$keep1${NC} and ${GREEN}$keep2${NC}"
 
     set -l to_remove ()
-                for k in "${kernels[@]}"; do
+                for k in "$kernels"; do
                     if test "$k" != "$keep1" && "$k" != "$keep2" && "$k" != *"$current_kernel"*
                         to_remove+=("$k")
                     end
                 end
 
-                if test ${#to_remove[@]} -gt 0
+                if test (count $to_remove) -gt 0
                     echo -e "${YELLOW}Will remove: ${to_remove[*]}${NC}"
                     read -r -p "Confirm? [y/N]: " confirm2
                     if test "$confirm2" =~ ^[Yy]$
-                        sudo apt-get purge -y "${to_remove[@]}" 2>/dev/null || true
+                        sudo apt-get purge -y "$to_remove" 2>/dev/null || true
                         sudo apt-get autoremove -y 2>/dev/null || true
                     end
                 end
@@ -2831,7 +2832,7 @@ function _ai_mode
 
         # Get system stats
     set -l mem_info
-        mem_info=$(free | awk '/Mem:/{printf "%.0f %.0f %.0f", $argv[2], $argv[3], ($argv[3]/$argv[2])*100}')
+        set mem_info (free | awk '/Mem:/{printf "%.0f %.0f %.0f", $argv[2], $argv[3], ($argv[3]/$argv[2])*100}')
     set -l mem_total "${mem_info%% *}"
     set -l mem_used "${mem_info#* }"
         mem_used="${mem_used%% *}"
@@ -2850,8 +2851,8 @@ function _ai_mode
 
         # Display
         echo -e "📊 ${CYAN}System Status:${NC}"
-        echo -e "   Memory: ${mem_pct}% used ($((mem_used / 1024))MB / $((mem_total / 1024))MB)"
-        echo -e "   Disk:   ${disk_pct}% used ($(_format_size $((disk_used / 1024))) / $(_format_size $(((disk_used + disk_avail) / 1024))))"
+        echo -e "   Memory: ${mem_pct}% used (((mem_used / 1024))MB / ((mem_total / 1024))MB)"
+        echo -e "   Disk:   ${disk_pct}% used ((_format_size ((disk_used / 1024))) / (_format_size (((disk_used + disk_avail) / 1024))))"
         echo -e "   Temp:   ${temp}°C"
         echo -e "   ZRAM:   ${zram_used}% used"
 
@@ -2876,7 +2877,7 @@ function _ai_mode
         else if test "$disk_pct" -gt 80
             echo -e "\n${YELLOW}⚠️  High disk usage${NC}"
             read -r -p "   Run OS cleanup? [y/N]: " confirm
-            [[ "$confirm" =~ ^[Yy]$ ]] && _os_clean
+            test "$confirm" =~ ^[Yy]$ && _os_clean
         end
 
         if test "$temp" != "N/A" && "$temp" -gt 80
@@ -2900,7 +2901,7 @@ function _report
         echo -e "   Hostname:     (hostname)"
 
     set -l uptime_str
-        uptime_str=$(uptime -p 2>/dev/null || uptime | sed 's/.*up \([^,]*\),.*/\1/')
+        set uptime_str (uptime -p 2>/dev/null || uptime | sed 's/.*up \([^,]*\),.*/\1/')
         echo -e "   Uptime:       $uptime_str"
 
         echo -e "\n${CYAN}Resources:${NC}"
@@ -2955,7 +2956,7 @@ function _appimage_cleanup
             while IFS= read -r -d '' desktop_file; do
                 set -l exec_line bin_path
                 exec_line=(grep -i '^Exec=' "$desktop_file" 2>/dev/null | head -1 | cut -d= -f2- | awk '{print $argv[1]}')
-                [[ -z "$exec_line" ]] && continue
+                test -z "$exec_line" && continue
                 if test "$exec_line" == *.AppImage* ]] || [[ "$exec_line" == *.appimage*
                     bin_path=(echo "$exec_line" | sed 's/ .*//')
                     if test ! -f "$bin_path"
@@ -2972,7 +2973,7 @@ function _appimage_cleanup
             while IFS= read -r -d '' desktop_file; do
                 set -l exec_line bin_path
                 exec_line=(grep -i '^Exec=' "$desktop_file" 2>/dev/null | head -1 | cut -d= -f2- | awk '{print $argv[1]}')
-                [[ -z "$exec_line" ]] && continue
+                test -z "$exec_line" && continue
                 if test "$exec_line" == *.AppImage* ]] || [[ "$exec_line" == *.appimage*
                     bin_path=(echo "$exec_line" | sed 's/ .*//')
                     if test ! -f "$bin_path"
@@ -2992,9 +2993,9 @@ function _appimage_cleanup
 
         echo ""
         read -r -p "Remove $found_count orphaned file(s)? [y/N]: " confirm
-        [[ "$confirm" =~ ^[Yy]$ ]] || return 0
+        test "$confirm" =~ ^[Yy]$ || return 0
 
-        for f in "${orphans[@]}"; do
+        for f in "$orphans"; do
             rm -f "$f" 2>/dev/null && ((removed_count++)) || true
             echo -e "   ${RED}Removed: (basename "$f")${NC}"
         end
@@ -3005,7 +3006,7 @@ function _appimage_cleanup
             while IFS= read -r -d '' icon_file; do
                 rm -f "$icon_file" 2>/dev/null && ((icon_count++)) || true
             end
-            [[ $icon_count -gt 0 ]] && echo -e "   ${RED}Removed $icon_count orphaned icon(s)${NC}"
+            test $icon_count -gt 0 && echo -e "   ${RED}Removed $icon_count orphaned icon(s)${NC}"
         end
 
         # Refresh the desktop application database
@@ -3034,7 +3035,7 @@ function _show_menu
         )
 
     set -l choice
-        choice=$(printf "%s\n" "${choices[@]}" |
+        set choice (printf "%s\n" "$choices" |
             fzf --height=70% \
                 --layout=reverse \
                 --border=rounded \
@@ -3047,7 +3048,7 @@ function _show_menu
                 --no-info \
                 --cycle)
 
-        [[ -z "$choice" ]] && return 1
+        test -z "$choice" && return 1
 
         # Extract action (robust emoji & padding removal)
     set -l action
@@ -3139,7 +3140,7 @@ function rt
         "Deno (Secure JS Runtime)"
     )
 
-    selected=$(printf "%s\n" "${options[@]}" | fzf \
+    set selected (printf "%s\n" "$options" | fzf \
         --header="🚀 Ultimate Tool Installer (q to Exit)" \
         --reverse --height=40% --border --bind 'q:abort')
 
@@ -3168,9 +3169,9 @@ set -gx NVM_DIR "$HOME/.nvm"
                 echo "❌ আগে NVM ইন্সটল করুন!"
             end
         "Bun (Fast JS Runtime)")
-            command -v bun >/dev/null 2>&1 && echo "✅ Bun আছে: (bun -v)" || (curl -fsSL https://bun.sh/install | bash && export PATH="$HOME/.bun/bin:$PATH")
+            command -v bun >/dev/null 2>&1 && echo "✅ Bun আছে: (bun -v)" || (curl -fsSL https://bun.sh/install | bash ; and set -gx PATH "$HOME/.bun/bin:$PATH")
         "Deno (Secure JS Runtime)")
-            command -v deno >/dev/null 2>&1 && echo "✅ Deno আছে: (deno -v)" || (curl -fsSL https://deno.land/x/install/install.sh | sh && export PATH="$HOME/.deno/bin:$PATH")
+            command -v deno >/dev/null 2>&1 && echo "✅ Deno আছে: (deno -v)" || (curl -fsSL https://deno.land/x/install/install.sh | sh ; and set -gx PATH "$HOME/.deno/bin:$PATH")
     end
 end
 
@@ -3207,7 +3208,7 @@ function detect_distro
                 PKG_QUERY="dpkg-query -W -f='${Status}'"
             fedora | rhel | centos | rocky | almalinux | nobara)
                 PKG_MANAGER="dnf"
-                [[ "$DISTRO_ID" == "centos" ]] && [[ -z "(command -v dnf)" ]] && PKG_MANAGER="yum"
+                test "$DISTRO_ID" = "centos" && test -z "(command -v dnf)" && PKG_MANAGER="yum"
                 PKG_INSTALL="sudo $PKG_MANAGER install -y"
                 PKG_QUERY="rpm -q"
             arch | manjaro | endeavouros | garuda | cachyos | artix)
@@ -3251,7 +3252,7 @@ function install_fzf_universal
             case "apk") sudo apk add fzf ;;
             case "xbps") sudo xbps-install -y fzf ;;
             case *
-    set -l FZF_VERSION $(curl -s https://api.github.com/repos/junegunn/fzf/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' || echo "0.54.0")
+    set -l FZF_VERSION (curl -s https://api.github.com/repos/junegunn/fzf/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")' || echo "0.54.0")
                 curl -Lo /tmp/fzf.tar.gz "https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/fzf-${FZF_VERSION}-linux_amd64.tar.gz"
                 tar -xzf /tmp/fzf.tar.gz -C /tmp && sudo mv /tmp/fzf /usr/local/bin/
                 rm /tmp/fzf.tar.gz
@@ -3358,7 +3359,7 @@ function install_fzf_universal
 function get_pkg_name
     set -l generic "$argv[1]"
     set -l mapping "${PKG_MAP[$generic]}"
-        [[ -z "$mapping" ]] && echo "$generic" && return
+        test -z "$mapping" && echo "$generic" && return
     set -l idx 1
         switch $PKG_MANAGER
             case "apt") idx=1 ;;
@@ -3467,7 +3468,7 @@ function is_installed
 
     # INDEX COUNTER ADD KORA HOYECHE
     set -l idx 0
-    for item in "${tool_list[@]}"; do
+    for item in "$tool_list"; do
         ((idx++))
         IFS='|' read -r cat generic desc <<<"$item"
     set -l pkg (get_pkg_name "$generic")
@@ -3491,7 +3492,7 @@ function is_installed
     end
 
     # ===== 🖥️ UI LAUNCHER WITH INDEX =====
-    set -l selected_raw $(printf "%s\n" "${menu_items[@]}" | fzf \
+    set -l selected_raw (printf "%s\n" "$menu_items" | fzf \
         --ansi --multi --delimiter='\|' --with-nth=1 \
         --height=90% --layout=reverse --border=rounded \
         --prompt="🔍 Search Arsenal > " \
@@ -3499,7 +3500,7 @@ function is_installed
   ─────────────────────────────────────────────────────────────────────────
   STAT  [IDX]  CATEGORY       PACKAGE          DESCRIPTION")
 
-    [[ $? -ne 0 || -z "$selected_raw" ]] && {
+    test $? -ne 0 || -z "$selected_raw" && {
         echo -e "\n${YELLOW}👋 Operation cancelled.${NC}"
         return 0
     end
@@ -3509,12 +3510,12 @@ function is_installed
     mapfile -t actual_packages <<<"(echo "$selected_raw" | awk -F'|' '{print $argv[3]}')"
 
     # Trim whitespace
-    for i in "${!selected_tools[@]}"; do
+    for i in "(seq (count $selected_tools))"; do
         selected_tools[$i]=(echo "${selected_tools[$i]}" | xargs)
         actual_packages[$i]=(echo "${actual_packages[$i]}" | xargs)
     end
 
-    [[ ${#selected_tools[@]} -eq 0 ]] && {
+    test (count $selected_tools) -eq 0 && {
         echo -e "${YELLOW}⚠️ Nothing selected${NC}"
         return 0
     end
@@ -3538,7 +3539,7 @@ function is_installed
     # Disown to prevent job messages
     disown $SUDO_KEEPALIVE 2>/dev/null || true
 
-    echo -e "${CYAN}🔧 Processing ${#selected_tools[@]} tools on ${DISTRO_ID}...${NC}"
+    echo -e "${CYAN}🔧 Processing (count $selected_tools) tools on ${DISTRO_ID}...${NC}"
 
     switch $PKG_MANAGER
         case "apt") sudo apt update -y &>>"$LOGFILE" ;;
@@ -3550,7 +3551,7 @@ function is_installed
     end
 
     set -l RC_FILE "$HOME/.bashrc"
-    [[ "$SHELL" == */zsh ]] && RC_FILE="$HOME/.zshrc"
+    test "$SHELL" = */zsh && RC_FILE="$HOME/.zshrc"
     set -l SHELL_NAME (basename "$SHELL")
 
     functions -e add_config 2>/dev/null
@@ -3566,7 +3567,7 @@ function add_config
     set -l failed_pkgs ()
     set -l installed_pkgs ()
 
-    for i in "${!selected_tools[@]}"; do
+    for i in "(seq (count $selected_tools))"; do
     set -l t "${selected_tools[$i]}"
     set -l pkg "${actual_packages[$i]}"
 
@@ -3591,16 +3592,16 @@ function add_config
         switch $t
             "docker.io")
                 sudo usermod -aG docker "$USER" 2>/dev/null || true
-                [[ "$SERVICE_CMD" == "systemctl" ]] && sudo systemctl enable --now docker &>>"$LOGFILE" || true
+                test "$SERVICE_CMD" = "systemctl" && sudo systemctl enable --now docker &>>"$LOGFILE" || true
             case "tmux"
-                [[ ! -f ~/.tmux.conf ]] && echo -e "set -g mouse on\nset -g default-terminal \"screen-256color\"" >~/.tmux.conf
+                test ! -f ~/.tmux.conf && echo -e "set -g mouse on\nset -g default-terminal \"screen-256color\"" >~/.tmux.conf
             case "git"
                 git config --global color.ui auto 2>/dev/null || true
                 git config --global core.editor "nano" 2>/dev/null || true
                 git config --global init.defaultBranch main 2>/dev/null || true
             case "neovim"
                 mkdir -p ~/.config/nvim
-                [[ ! -f ~/.config/nvim/init.vim ]] && echo -e "set number\nset relativenumber\nset mouse=a\nset termguicolors" >~/.config/nvim/init.vim
+                test ! -f ~/.config/nvim/init.vim && echo -e "set number\nset relativenumber\nset mouse=a\nset termguicolors" >~/.config/nvim/init.vim
                 add_config "Neovim Alias" "alias v='nvim'\nalias vim='nvim'"
             case "zram-tools"
                 if test "$PKG_MANAGER" == "apt"
@@ -3615,17 +3616,17 @@ function add_config
                 end
             case "micro"
                 mkdir -p ~/.config/micro
-                [[ ! -f ~/.config/micro/settings.json ]] && echo '{"mouse": true, "clipboard": "terminal"}' >~/.config/micro/settings.json
+                test ! -f ~/.config/micro/settings.json && echo '{"mouse": true, "clipboard": "terminal"}' >~/.config/micro/settings.json
             case "ufw"
                 command -v ufw >/dev/null 2>&1 && { sudo ufw allow ssh 2>/dev/null && sudo ufw --force enable &>>"$LOGFILE" || true; }
             case "htop"
                 mkdir -p ~/.config/htop
-                [[ ! -f ~/.config/htop/htoprc ]] && echo "highlight_megabytes=1\nshow_program_path=1" >~/.config/htop/htoprc
+                test ! -f ~/.config/htop/htoprc && echo "highlight_megabytes=1\nshow_program_path=1" >~/.config/htop/htoprc
             case "acpi"
                 add_config "Battery Status" "alias battery='acpi -V'"
             case "bat"
     set -l bat_cmd "bat"
-                [[ "$PKG_MANAGER" == "apt" ]] && bat_cmd="batcat"
+                test "$PKG_MANAGER" = "apt" && bat_cmd="batcat"
                 add_config "Batcat Alias" "alias cat='$bat_cmd -p'\nalias bat='$bat_cmd'"
             case "eza"
                 add_config "Eza Alias" "alias ls='eza --icons --group-directories-first'"
@@ -3634,7 +3635,7 @@ function add_config
                 add_config "Zoxide Alias" "alias cd='z'"
             case "preload"
                 echo -e "${CYAN}🔧 Enabling Preload service...${NC}"
-                [[ "$SERVICE_CMD" == "systemctl" ]] && {
+                test "$SERVICE_CMD" = "systemctl" && {
                     sudo systemctl enable --now preload &>>"$LOGFILE"
                 } || {
                     sudo $SERVICE_CMD preload start &>>"$LOGFILE"
@@ -3646,7 +3647,7 @@ function add_config
                 if test -f /etc/default/earlyoom
                     sudo sed -i 's/EARLYOOM_ARGS=.*/EARLYOOM_ARGS="-m 10 -s 5 --prefer '"'^(electron|java|python)'"'"/' /etc/default/earlyoom
                 end
-                [[ "$SERVICE_CMD" == "systemctl" ]] && {
+                test "$SERVICE_CMD" = "systemctl" && {
                     sudo systemctl enable --now earlyoom &>>"$LOGFILE"
                 end
 
@@ -3654,7 +3655,7 @@ function add_config
                 echo -e "${CYAN}🔍 Detecting Hardware Sensors (Automatic)...${NC}"
                 # --yes flag gives auto-confirmation to all sensor detection prompts
                 sudo sensors-detect --auto &>>"$LOGFILE"
-                [[ "$SERVICE_CMD" == "systemctl" ]] && {
+                test "$SERVICE_CMD" = "systemctl" && {
                     sudo systemctl enable --now lm_sensors &>>"$LOGFILE" 2>/dev/null ||
                         sudo systemctl enable --now sensord &>>"$LOGFILE" 2>/dev/null
                 end
@@ -3684,15 +3685,15 @@ function add_config
 
     # Report
     echo -e "\n${GREEN}✅ Deployment Complete on ${DISTRO_ID}!${NC}"
-    echo -e "${GREEN}📦 Installed: ${#installed_pkgs[@]} tools${NC}"
+    echo -e "${GREEN}📦 Installed: (count $installed_pkgs) tools${NC}"
 
-    [[ ${#failed_pkgs[@]} -gt 0 ]] && {
-        echo -e "${RED}❌ Failed (${#failed_pkgs[@]}):${NC}"
-        printf '  - %s\n' "${failed_pkgs[@]}"
+    test (count $failed_pkgs) -gt 0 && {
+        echo -e "${RED}❌ Failed ((count $failed_pkgs)):${NC}"
+        printf '  - %s\n' "$failed_pkgs"
     end
 
-    [[ " ${installed_pkgs[*]} " =~ " docker.io " ]] && echo -e "${YELLOW}⚠️  Log out and back in for Docker group changes${NC}"
-    [[ " ${installed_pkgs[*]} " =~ " zoxide " ]] && echo -e "${CYAN}💡 Run 'source $RC_FILE' to enable zoxide${NC}"
+    test " ${installed_pkgs[*]} " =~ " docker.io " && echo -e "${YELLOW}⚠️  Log out and back in for Docker group changes${NC}"
+    test " ${installed_pkgs[*]} " =~ " zoxide " && echo -e "${CYAN}💡 Run 'source $RC_FILE' to enable zoxide${NC}"
 
     # Cleanup log
     rm -f "$LOGFILE" 2>/dev/null || true
@@ -3704,7 +3705,7 @@ end
 
 functions -e rn 2>/dev/null
 function rn
-    set -l target_dir "${1:-.}"
+    set -l target_dir "(if test -n "$argv[1]"; echo "$argv[1]"; else; echo "."; end)"
 
     if test ! -d "$target_dir"
         echo "Error: Directory $target_dir does not exist."
@@ -3934,7 +3935,7 @@ function clean
     else if command -v pacman >/dev/null 2>&1
     set -l orphans
         orphans=(pacman -Qtdq 2>/dev/null)
-        [[ -n "$orphans" ]] && sudo pacman -Rns --noconfirm $orphans 2>/dev/null || true
+        test -n "$orphans" && sudo pacman -Rns --noconfirm $orphans 2>/dev/null || true
         sudo pacman -Sc --noconfirm
     else if command -v dnf >/dev/null 2>&1
         sudo dnf autoremove -y && sudo dnf clean all
@@ -4066,7 +4067,7 @@ alias brb='bun run build'
 alias brs='bun run start'
 alias html='bun run index.html'
 alias w='bun --watch'
-alias h='bun --hot'
+alias bhot='bun --hot'
 
 # --- Git Shortcuts ---
 alias gi='git init'
@@ -4108,14 +4109,13 @@ function command_not_found_handle
     end
 end
 
-alias br='cd ~/Downloads/Brave'
+alias bv='cd ~/Downloads/Brave'
 alias ch='cd ~/Downloads/Chrome'
 alias gp='cd ~/Downloads/Google\ Photos'
 alias pa='cd ~/Downloads/Packet'
 alias ss='cd ~/Downloads/Screenshot'
 alias vi='cd ~/Downloads/Video'
 
-shopt -s autocd
 
 # Remove any Flatpak app paths from LD_LIBRARY_PATH
 if test -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/app/"*
@@ -4142,14 +4142,12 @@ function accurate_auto_ls
 
     # Fish-er native alternative array parse logic
     # (Dotglob on kore hidden file accurately count korar jonne)
-    shopt -s dotglob
     local -a total_items=(*)
-    shopt -u dotglob
 
     set -l file_count 0
     set -l hidden_count 0
 
-    for item in "${total_items[@]}"; do
+    for item in "$total_items"; do
         # Shudhu regular files count hobe
         if test -f "$item" ] && [ ! -L "$item"
             ((file_count++))
@@ -4238,7 +4236,7 @@ function _cf_install_pkg
 
     set -l dir
     set -l search_cmd
-    set -l target_dir "${1:-.}"
+    set -l target_dir "(if test -n "$argv[1]"; echo "$argv[1]"; else; echo "."; end)"
     if test "$target_dir" = "." ] && [ "$PWD" = "/"
         target_dir="$HOME"
     end
@@ -4262,7 +4260,7 @@ function _cf_install_pkg
     end
 
     # 3. Optimized Multi-Action Workflow (Folders, Videos & PDFs Supported)
-    dir=$(eval "$search_cmd" | fzf \
+    set dir (eval "$search_cmd" | fzf \
         --height 90% \
         --layout=reverse \
         --border=rounded \
@@ -4276,7 +4274,7 @@ function _cf_install_pkg
         --bind "ctrl-p:execute((google-chrome {} 2>/dev/null || chromium {} 2>/dev/null || brave {} 2>/dev/null || xdg-open {} 2>/dev/null) &)+change-prompt(📄 PDF Opened in Chrome > )" \
         --bind "ctrl-o:execute(code {} 2>/dev/null || cursor {} 2>/dev/null || nvim {})+abort" \
         --bind "ctrl-e:execute(nautilus {} 2>/dev/null || dolphin {} 2>/dev/null || explorer.exe {} 2>/dev/null || open {})" \
-        --bind "ctrl-h:reload($([ -n "$fd_cmd" ] && echo "$fd_cmd --exclude '.*' --exclude node_modules --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \(dirname {}) 2>/dev/null" || echo "find \(dirname {}) \( -path '*/.*' -o -path '*/node_modules*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"))+change-prompt(⚡ Parent: )" \
+        --bind "ctrl-h:reload(([ -n "$fd_cmd" ] && echo "$fd_cmd --exclude '.*' --exclude node_modules --exclude /proc --exclude /sys --exclude /dev --exclude /etc --exclude /var --exclude /usr --exclude /tmp --exclude /run/user --exclude /run/systemd . \(dirname {}) 2>/dev/null" || echo "find \(dirname {}) \( -path '*/.*' -o -path '*/node_modules*' -o -path '/proc*' -o -path '/sys*' -o -path '/dev*' -o -path '/etc*' -o -path '/var*' -o -path '/usr*' -o -path '/tmp*' -o -path '/run/user*' -o -path '/run/systemd*' \) -prune -o -print 2>/dev/null"))+change-prompt(⚡ Parent: )" \
         --preview '
             if test -d {}
                 echo -e "\e[1;34m📁 Contents of: {} \e[0m"
@@ -4291,7 +4289,7 @@ function _cf_install_pkg
                 if git -C {} rev-parse --is-inside-work-tree >/dev/null 2>&1
                     echo -e "\e[2m──────────────────────────────────────────\e[0m"
     set -l branch (git -C {} branch --show-current 2>/dev/null || git -C {} rev-parse --short HEAD 2>/dev/null)
-                    echo -e "\e[1;32m🌿 Git Repo:\e[0m Branch -> \e[1;36m${branch:-main}\e[0m"
+                    echo -e "\e[1;32m🌿 Git Repo:\e[0m Branch -> \e[1;36m(if test -n "$branch"; echo "$branch"; else; echo "main"; end)\e[0m"
                     git -C {} status -s 2>/dev/null | head -6 || echo "Clean"
                 end
             else
@@ -4310,7 +4308,7 @@ function _cf_install_pkg
             end
             echo -e "\e[2m──────────────────────────────────────────\e[0m"
     set -l sz (timeout 0.2s du -sh {} 2>/dev/null | cut -f1)
-            echo -e "\e[1;33m📊 Size:\e[0m ${sz:-Quick Scan}"
+            echo -e "\e[1;33m📊 Size:\e[0m (if test -n "$sz"; echo "$sz"; else; echo "Quick Scan"; end)"
         ' \
         --preview-window=right:50%:wrap)
 
@@ -4529,7 +4527,7 @@ function dman
             "Active Context: $active_context | Use Mouse or Arrow Keys"
 
     set -l module
-        module=$(gum choose \
+        set module (gum choose \
             "📦 Container Manager" \
             "🖼️ Image Manager" \
             "💾 Volume Manager" \
@@ -4568,7 +4566,7 @@ function _manage_containers
         end
 
     set -l cid
-        cid=$(docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}" 2>/dev/null | \
+        set cid (docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}" 2>/dev/null | \
             fzf --header-lines=1 \
                 --prompt="Select Container ❯ " \
                 --pointer="▶" \
@@ -4587,7 +4585,7 @@ function _manage_containers
         gum style --foreground 214 --bold "Selected Container: $cname ($cid)"
 
     set -l action
-        action=$(gum choose \
+        set action (gum choose \
             "📋 View Logs (Live)" \
             "🐚 Shell Access (Bash/Sh)" \
             "🌐 Open Port in Browser" \
@@ -4666,8 +4664,8 @@ function _copy_files
 
     if test "$direction" == "📥 Copy from Host to Container"
         set -l src dest
-        src=$(gum input --placeholder "Source Path on Host (e.g., ./app.conf)")
-        dest=$(gum input --placeholder "Dest Path in Container (e.g., /etc/app.conf)")
+        set src (gum input --placeholder "Source Path on Host (e.g., ./app.conf)")
+        set dest (gum input --placeholder "Dest Path in Container (e.g., /etc/app.conf)")
         if test -n "$src" ] && [ -n "$dest"
             if docker cp "$src" "$cid:$dest"
                 gum style --foreground 46 "✔ File copied successfully!"
@@ -4678,8 +4676,8 @@ function _copy_files
         end
     else if test "$direction" == "📤 Copy from Container to Host"
         set -l src dest
-        src=$(gum input --placeholder "Source Path in Container (e.g., /var/log/app.log)")
-        dest=$(gum input --placeholder "Dest Path on Host (e.g., ./app.log)")
+        set src (gum input --placeholder "Source Path in Container (e.g., /var/log/app.log)")
+        set dest (gum input --placeholder "Dest Path on Host (e.g., ./app.log)")
         if test -n "$src" ] && [ -n "$dest"
             if docker cp "$cid:$src" "$dest"
                 gum style --foreground 46 "✔ File copied successfully!"
@@ -4695,8 +4693,8 @@ functions -e _update_container_resources 2>/dev/null
 function _update_container_resources
     set -l cid $argv[1]
     set -l mem cpus
-    mem=$(gum input --placeholder "Memory Limit (e.g., 512m, 2g) - Leave empty to skip")
-    cpus=$(gum input --placeholder "CPU Limit (e.g., 1.5, 2) - Leave empty to skip")
+    set mem (gum input --placeholder "Memory Limit (e.g., 512m, 2g) - Leave empty to skip")
+    set cpus (gum input --placeholder "CPU Limit (e.g., 1.5, 2) - Leave empty to skip")
 
     if test -n "$mem" ] || [ -n "$cpus"
     set -l opts ""
@@ -4716,7 +4714,7 @@ functions -e _commit_container 2>/dev/null
 function _commit_container
     set -l cid $argv[1]
     set -l new_image
-    new_image=$(gum input --placeholder "New Image Name (e.g., my-custom-app:v2)")
+    set new_image (gum input --placeholder "New Image Name (e.g., my-custom-app:v2)")
     if test -n "$new_image"
         if gum spin --spinner dot --title "Creating image from container..." -- docker commit "$cid" "$new_image"
             gum style --foreground 46 "✔ Created Image: $new_image"
@@ -4740,7 +4738,7 @@ function _manage_images
 
         gum style --foreground 39 --bold "=== DOCKER IMAGES MODULE ==="
     set -l img_action
-        img_action=$(gum choose \
+        set img_action (gum choose \
             "📋 List & Inspect Local Images" \
             "📥 Pull Image from Docker Hub" \
             "🔨 Build Image from Local Dockerfile" \
@@ -4750,7 +4748,7 @@ function _manage_images
         switch $img_action
             "📋 List & Inspect Local Images")
     set -l img_id
-                img_id=$(docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}" 2>/dev/null | \
+                set img_id (docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}" 2>/dev/null | \
                     fzf --header-lines=1 --prompt="Select Image ❯ " | awk '{print $argv[3]}')
                 [ -n "$img_id" ] && docker inspect "$img_id" | fzf --header="Image Inspect"
             "📥 Pull Image from Docker Hub")
@@ -4768,7 +4766,7 @@ function _manage_images
                     continue
                 end
     set -l tag_name
-                tag_name=$(gum input --placeholder "Enter Tag Name (e.g. my-app:v1)")
+                set tag_name (gum input --placeholder "Enter Tag Name (e.g. my-app:v1)")
                 if test -n "$tag_name"
                     docker build -t "$tag_name" .
                     printf "\nPress Enter to continue..."
@@ -4776,7 +4774,7 @@ function _manage_images
                 end
             "🗑️ Remove Selected Image")
     set -l img_id
-                img_id=$(docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}" 2>/dev/null | \
+                set img_id (docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}" 2>/dev/null | \
                     fzf --header-lines=1 --prompt="Select Image to Delete ❯ " | awk '{print $argv[3]}')
                 if test -n "$img_id"
                     if gum confirm "Delete image $img_id?"
@@ -4802,7 +4800,7 @@ function _manage_volumes
 
         gum style --foreground 214 --bold "=== DOCKER VOLUMES MODULE ==="
     set -l vol_action
-        vol_action=$(gum choose \
+        set vol_action (gum choose \
             "📋 List Volumes" \
             "➕ Create New Volume" \
             "🔍 Inspect Volume" \
@@ -4847,7 +4845,7 @@ function _manage_networks
 
         gum style --foreground 120 --bold "=== DOCKER NETWORKS MODULE ==="
     set -l net_action
-        net_action=$(gum choose \
+        set net_action (gum choose \
             "📋 List Networks" \
             "🔍 Inspect Network" \
             "🗑️ Remove Unused Networks" \
@@ -4858,7 +4856,7 @@ function _manage_networks
                 docker network ls | fzf --header-lines=1
             "🔍 Inspect Network")
     set -l net_id
-                net_id=$(docker network ls --format "table {{.ID}}\t{{.Name}}\t{{.Driver}}" 2>/dev/null | \
+                set net_id (docker network ls --format "table {{.ID}}\t{{.Name}}\t{{.Driver}}" 2>/dev/null | \
                     fzf --header-lines=1 | awk '{print $argv[1]}')
                 [ -n "$net_id" ] && docker network inspect "$net_id" | fzf
             "🗑️ Remove Unused Networks")
@@ -4889,7 +4887,7 @@ function _manage_compose
 
     gum style --foreground 208 --bold "=== DOCKER COMPOSE MODULE ==="
     set -l compose_action
-    compose_action=$(gum choose \
+    set compose_action (gum choose \
         "🚀 Compose Up (-d)" \
         "🛑 Compose Down" \
         "🔄 Compose Restart" \
@@ -5336,14 +5334,14 @@ function todo
             # ── Branch 2: fzf interactive selection ────────────────────────
             if command -v fzf >/dev/null 2>&1
     set -l selected
-                selected=$(cat -n "$TODO_FILE" | fzf \
+                set selected (cat -n "$TODO_FILE" | fzf \
                     --prompt="Select task to complete ➔ " \
                     --height=40% --reverse --border)
                 if test -n "$selected"
                     set -l line_num task_text
                     line_num=(printf '%s' "$selected" | awk '{print $argv[1]}')
                     # awk strips leading whitespace+number cleanly — no sed regex needed
-                    task_text=$(printf '%s' "$selected" | awk '{$argv[1]=""; sub(/^[[:space:]]+/,""); print}')
+                    set task_text (printf '%s' "$selected" | awk '{$argv[1]=""; sub(/^[[:space:]]+/,""); print}')
                     _fb_sed_delete_line "$line_num" "$TODO_FILE"
                     printf '🎉 Completed: "%s"\n' "$task_text"
                 end
@@ -5357,7 +5355,7 @@ function todo
                     # Original code used sed with user data as a regex pattern,
                     # which crashed on tasks containing / & . * ^ $ [ etc.
     set -l match_line
-                    match_line=$(grep -Fn "$task_to_remove" "$TODO_FILE" 2>/dev/null \
+                    set match_line (grep -Fn "$task_to_remove" "$TODO_FILE" 2>/dev/null \
                         | head -1 | cut -d: -f1)
                     if test -n "$match_line"
                         _fb_sed_delete_line "$match_line" "$TODO_FILE"
@@ -5396,7 +5394,7 @@ function todo
                     --margin "1" --padding "1" \
                     "✨ FANCYBASH TO-DO MANAGER ✨"
     set -l MENU_CHOICE
-                MENU_CHOICE=$(gum choose \
+                set MENU_CHOICE (gum choose \
                     "➕ Add Task" "✅ Complete Task" \
                     "📋 View Tasks" "🗑️  Clear All" "❌ Exit")
                 switch $MENU_CHOICE
@@ -5458,18 +5456,18 @@ function notes
             # BUG FIX: `notes add` had zero fallback when gum was absent.
             if command -v fzf >/dev/null 2>&1
     set -l cats
-                cats=$(find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
+                set cats (find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
                     -exec basename {} \; 2>/dev/null)
-                category=$(printf '➕ Create New Category\n%s\n' "$cats" | \
+                set category (printf '➕ Create New Category\n%s\n' "$cats" | \
                     grep -v '^$' | \
                     fzf --prompt="📁 Select Category ➔ " \
                         --height=40% --border)
 
             else if command -v gum >/dev/null 2>&1
     set -l cats
-                cats=$(find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
+                set cats (find "$NOTE_DIR" -mindepth 1 -maxdepth 1 -type d \
                     -exec basename {} \; 2>/dev/null)
-                category=$(printf '➕ Create New Category\n%s\n' "$cats" | \
+                set category (printf '➕ Create New Category\n%s\n' "$cats" | \
                     grep -v '^$' | \
                     gum choose --header="📁 Select Category:")
 
@@ -5498,7 +5496,7 @@ function notes
             # ── Note title ──────────────────────────────────────────────────
     set -l title ""
             if command -v gum >/dev/null 2>&1
-                title=$(gum input --placeholder "Note Title (e.g. Docker Commands)...")
+                set title (gum input --placeholder "Note Title (e.g. Docker Commands)...")
             else
                 printf 'Note title: '
                 read -r title
@@ -5517,7 +5515,7 @@ function notes
                     printf 'Note already exists! Overwrite? [y/N]: '
                     read -r overwrite
                 end
-                [[ "$overwrite" != "y" && "$overwrite" != "Y" ]] && return 0
+                test "$overwrite" != "y" && "$overwrite" != "Y" && return 0
             end
 
             # Write plain-text header (no markdown — anyone can read it)
@@ -5527,18 +5525,18 @@ function notes
             # ── Content input: gum write → $EDITOR ─────────────────────────
             if command -v gum >/dev/null 2>&1
     set -l mode
-                mode=$(gum choose \
-                    "📝 Use CLI Editor (${EDITOR:-nano})" \
+                set mode (gum choose \
+                    "📝 Use CLI Editor ((if test -n "$EDITOR"; echo "$EDITOR"; else; echo "nano"; end))" \
                     "📥 Quick Input via Gum")
                 if test "$mode" == *"CLI Editor"*
-                    ${EDITOR:-nano} "$file_path"
+                    (if test -n "$EDITOR"; echo "$EDITOR"; else; echo "nano"; end) "$file_path"
                 else
     set -l content
-                    content=$(gum write --placeholder "Type your note here... (Ctrl+D to save)")
+                    set content (gum write --placeholder "Type your note here... (Ctrl+D to save)")
                     printf '%s\n' "$content" >> "$file_path"
                 end
             else
-                ${EDITOR:-nano} "$file_path"
+                (if test -n "$EDITOR"; echo "$EDITOR"; else; echo "nano"; end) "$file_path"
             end
 
             printf '✔ Saved to [%s/%s.txt]\n' "$category" "$title"
@@ -5563,7 +5561,7 @@ function notes
             end
 
     set -l match
-            match=$(grep -rnF "$query" "$NOTE_DIR" 2>/dev/null | fzf \
+            set match (grep -rnF "$query" "$NOTE_DIR" 2>/dev/null | fzf \
                 --height=60% --border \
                 --prompt="Matching Lines ➔ " \
                 --preview 'f=(echo {} | cut -d: -f1); l=(echo {} | cut -d: -f2); { command -v bat >/dev/null 2>&1 && bat --color=always --highlight-line "$l" "$f" 2>/dev/null; } || { command -v batcat >/dev/null 2>&1 && batcat --color=always --highlight-line "$l" "$f" 2>/dev/null; } || cat "$f"')
@@ -5571,7 +5569,7 @@ function notes
             if test -n "$match"
     set -l file
                 file=(printf '%s' "$match" | cut -d: -f1)
-                ${EDITOR:-nano} "$file"
+                (if test -n "$EDITOR"; echo "$EDITOR"; else; echo "nano"; end) "$file"
             end
 
         case -h|--help
@@ -5588,14 +5586,14 @@ function notes
                 find "$NOTE_DIR" -type f -name "*.txt" 2>/dev/null | \
                     while IFS= read -r f; do
                         printf '  [%s] %s\n' \
-                            "$(basename "(dirname "$f")")" \
+                            "(basename "(dirname "$f")")" \
                             "(basename "$f" .txt)"
                     end
                 return 0
             end
 
     set -l selected
-            selected=$(find "$NOTE_DIR" -type f -name "*.txt" 2>/dev/null | fzf \
+            set selected (find "$NOTE_DIR" -type f -name "*.txt" 2>/dev/null | fzf \
                 --height=70% --reverse --border \
                 --prompt="🔎 Search Notes ➔ " \
                 --preview "$PREVIEW_CMD {} 2>/dev/null || cat {}" \
@@ -5605,13 +5603,13 @@ function notes
 
             set -l title category note_action
             title=(basename "$selected" .txt)
-            category=$(basename "(dirname "$selected")")
+            set category (basename "(dirname "$selected")")
 
             # ── Action menu: gum → plain numbered prompt ────────────────────
             if command -v gum >/dev/null 2>&1
                 gum style --foreground 212 --border normal \
                     "📝 Note: $title | 📁 Category: $category"
-                note_action=$(gum choose \
+                set note_action (gum choose \
                     "👁️  Full View" "✏️  Edit Note" \
                     "📋 Copy Content" "🗑️  Delete Note" "🔙 Cancel")
             else
@@ -5645,7 +5643,7 @@ function notes
                         less "$selected"
                     end
                 "✏️  Edit Note")
-                    ${EDITOR:-nano} "$selected"
+                    (if test -n "$EDITOR"; echo "$EDITOR"; else; echo "nano"; end) "$selected"
                 "📋 Copy Content")
                     _fb_copy_to_clipboard "(cat "$selected")"
                 "🗑️  Delete Note")
@@ -5678,7 +5676,7 @@ end
 # ==============================================================================
 
 function _fb_media_select_file
-    set -l prompt "${1:-Select File:}"
+    set -l prompt "(if test -n "$argv[1]"; echo "$argv[1]"; else; echo "Select File:"; end)"
     set -l pattern "${2:-}"
     set -l selected ""
 
@@ -5707,21 +5705,21 @@ function _fb_media_choose_opt
 
     if command -v gum >/dev/null 2>&1
         gum style --foreground 212 --bold "$title"
-        choice=(printf '%s\n' "${options[@]}" | gum choose --height=15)
+        choice=(printf '%s\n' "$options" | gum choose --height=15)
     else if command -v fzf >/dev/null 2>&1
-        choice=(printf '%s\n' "${options[@]}" | fzf --prompt="$title ➔ " --height=40% --reverse)
+        choice=(printf '%s\n' "$options" | fzf --prompt="$title ➔ " --height=40% --reverse)
     else
         printf '\n=== %s ===\n' "$title"
     set -l idx 1
-        for opt in "${options[@]}"; do
+        for opt in "$options"; do
             printf '  %2d) %s\n' "$idx" "$opt"
             ((idx++))
         end
-        printf 'Select option [1-%d]: ' "${#options[@]}"
+        printf 'Select option [1-%d]: ' "(count $options)"
     set -l num
         read -r num
-        if [[ "$num" =~ ^[0-9]+$ ]] && (( num >= 1 && num <= ${#options[@]} ))
-            choice="${options[$((num-1))]}"
+        if test "$num" =~ ^[0-9]+$ && (( num >= 1 && num <= (count $options) ))
+            choice="${options[((num-1))]}"
         end
     end
     echo "$choice"
@@ -5752,7 +5750,7 @@ function ffmedia
     set -l action "${1:-}"
 
     if test -z "$action"
-        action=$(_fb_media_choose_opt "🎬 FFmedia All-in-One Multimedia Suite" \
+        set action (_fb_media_choose_opt "🎬 FFmedia All-in-One Multimedia Suite" \
             "1. 📦 Compress Video (50%-80% size reduction)" \
             "2. ✂️  Fast Lossless Trim (Instant cut)" \
             "3. 🔗 Concat Videos (Merge clips)" \
@@ -5780,19 +5778,19 @@ function ffmedia
             "❌ Exit")
     end
 
-    [ -z "$action" ] || [[ "$action" == *"Exit"* ]] && return 0
+    [ -z "$action" ] || test "$action" = *"Exit"* && return 0
 
     switch $action
         "1. "*|*"Compress"*|compress)
-    set -l file $(_fb_media_select_file "Select video to compress:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select video to compress:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
-    set -l preset $(_fb_media_choose_opt "Select Compression Preset:" \
+    set -l preset (_fb_media_choose_opt "Select Compression Preset:" \
                 case "1) Balanced Quality (CRF 23 - Recommended)" \
                 case "2) High Compression (CRF 28 - ~50-70% size reduction)" \
                 case "3) Extreme Compression (CRF 32 - ~70-80% size reduction)"
     set -l crf 23
-            [[ "$preset" == *"2)"* ]] && crf=28
-            [[ "$preset" == *"3)"* ]] && crf=32
+            test "$preset" = *"2)"* && crf=28
+            test "$preset" = *"3)"* && crf=32
     set -l ext "${file##*.}"
     set -l base "${file%.*}"
     set -l out "${base}_compressed.${ext}"
@@ -5801,10 +5799,10 @@ function ffmedia
             printf '\n✅ Done! Output saved as: %s\n' "$out"
 
         "2. "*|*"Trim"*|trim)
-    set -l file $(_fb_media_select_file "Select video to trim:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select video to trim:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
-    set -l start $(_fb_media_input "Start timestamp (HH:MM:SS or seconds)" "00:00:00")
-    set -l dur $(_fb_media_input "Duration (HH:MM:SS or seconds, e.g. 10)" "00:00:10")
+    set -l start (_fb_media_input "Start timestamp (HH:MM:SS or seconds)" "00:00:00")
+    set -l dur (_fb_media_input "Duration (HH:MM:SS or seconds, e.g. 10)" "00:00:10")
     set -l ext "${file##*.}"
     set -l base "${file%.*}"
     set -l out "${base}_trimmed.${ext}"
@@ -5814,7 +5812,7 @@ function ffmedia
 
         "3. "*|*"Concat"*|concat)
             printf 'Select files to concat. Enter file paths separated by space (or wildcard like *.mp4):\n'
-    set -l input_pattern $(_fb_media_input "Files or wildcard (e.g. video1.mp4 video2.mp4 or clip*.mp4)" "")
+    set -l input_pattern (_fb_media_input "Files or wildcard (e.g. video1.mp4 video2.mp4 or clip*.mp4)" "")
             [ -z "$input_pattern" ] && return 0
     set -l list_file (mktemp)
             for f in $input_pattern; do
@@ -5835,9 +5833,9 @@ function ffmedia
             printf '\n✅ Videos merged into: %s\n' "$out"
 
         "4. "*|*"Resolution"*|resolution)
-    set -l file $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
-    set -l mode $(_fb_media_choose_opt "Select Target Resolution / Aspect Ratio:" \
+    set -l mode (_fb_media_choose_opt "Select Target Resolution / Aspect Ratio:" \
                 case "1) 1080p Full HD (1920x1080)" \
                 case "2) 720p HD (1280x720)" \
                 case "3) 480p SD (854x480)" \
@@ -5856,20 +5854,20 @@ function ffmedia
             ;;
 
         "5. "*|*"Speed Control"*|speed)
-    set -l file $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
-    set -l spd_opt $(_fb_media_choose_opt "Select Speed:" \
+    set -l spd_opt (_fb_media_choose_opt "Select Speed:" \
                 "1) 0.25x (Super Slow-Mo)" \
                 "2) 0.5x (Slow Motion)" \
                 "3) 1.5x (Faster)" \
                 "4) 2.0x (Time-lapse 2x)" \
                 "5) 4.0x (Time-lapse 4x)")
     set -l pts "1.0" atempo="1.0"
-            [[ "$spd_opt" == *"1)"* ]] && pts="4.0" && atempo="0.5,atempo=0.5"
-            [[ "$spd_opt" == *"2)"* ]] && pts="2.0" && atempo="0.5"
-            [[ "$spd_opt" == *"3)"* ]] && pts="0.66667" && atempo="1.5"
-            [[ "$spd_opt" == *"4)"* ]] && pts="0.5" && atempo="2.0"
-            [[ "$spd_opt" == *"5)"* ]] && pts="0.25" && atempo="2.0,atempo=2.0"
+            test "$spd_opt" = *"1)"* && pts="4.0" && atempo="0.5,atempo=0.5"
+            test "$spd_opt" = *"2)"* && pts="2.0" && atempo="0.5"
+            test "$spd_opt" = *"3)"* && pts="0.66667" && atempo="1.5"
+            test "$spd_opt" = *"4)"* && pts="0.5" && atempo="2.0"
+            test "$spd_opt" = *"5)"* && pts="0.25" && atempo="2.0,atempo=2.0"
     set -l out "${file%.*}_speed.${file##*.}"
             if ffprobe -i "$file" -show_streams -select_streams a 2>&1 | grep -q "codec_type=audio"
                 ffmpeg -i "$file" -filter_complex "[0:v]setpts=${pts}*PTS[v];[0:a]atempo=${atempo}[a]" -map "[v]" -map "[a]" "$out"
@@ -5880,39 +5878,39 @@ function ffmedia
             ;;
 
         "6. "*|*"Rotate"*|rotate)
-    set -l file $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
-    set -l rot_opt $(_fb_media_choose_opt "Select Rotation / Flip Option:" \
+    set -l rot_opt (_fb_media_choose_opt "Select Rotation / Flip Option:" \
                 "1) Rotate 90° Clockwise" \
                 "2) Rotate 90° Counter-Clockwise" \
                 "3) Rotate 180°" \
                 "4) Flip Horizontally (Mirror)" \
                 "5) Flip Vertically")
     set -l vf "transpose=1"
-            [[ "$rot_opt" == *"2)"* ]] && vf="transpose=2"
-            [[ "$rot_opt" == *"3)"* ]] && vf="transpose=2,transpose=2"
-            [[ "$rot_opt" == *"4)"* ]] && vf="hflip"
-            [[ "$rot_opt" == *"5)"* ]] && vf="vflip"
+            test "$rot_opt" = *"2)"* && vf="transpose=2"
+            test "$rot_opt" = *"3)"* && vf="transpose=2,transpose=2"
+            test "$rot_opt" = *"4)"* && vf="hflip"
+            test "$rot_opt" = *"5)"* && vf="vflip"
     set -l out "${file%.*}_rotated.${file##*.}"
             ffmpeg -i "$file" -vf "$vf" -c:a copy "$out"
             printf '\n✅ Rotation/Flip complete: %s\n' "$out"
             ;;
 
         "7. "*|*"Watermark"*|watermark)
-    set -l file $(_fb_media_select_file "Select main video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select main video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
     set -l type (_fb_media_choose_opt "Watermark Type:" "1) Image Logo" "2) Text Banner")
     set -l out "${file%.*}_watermarked.${file##*.}"
             if test "$type" == *"1)"*
-    set -l logo $(_fb_media_select_file "Select watermark image (PNG/JPG):" "\.(png|jpg|jpeg)$")
+    set -l logo (_fb_media_select_file "Select watermark image (PNG/JPG):" "\.(png|jpg|jpeg)$")
                 [ -z "$logo" ] && return 0
-    set -l pos $(_fb_media_choose_opt "Watermark Position:" \
+    set -l pos (_fb_media_choose_opt "Watermark Position:" \
                     "1) Top-Right" "2) Top-Left" "3) Bottom-Right" "4) Bottom-Left" "5) Center")
     set -l overlay "main_w-overlay_w-10:10" # default top-right
-                [[ "$pos" == *"2)"* ]] && overlay="10:10"
-                [[ "$pos" == *"3)"* ]] && overlay="main_w-overlay_w-10:main_h-overlay_h-10"
-                [[ "$pos" == *"4)"* ]] && overlay="10:main_h-overlay_h-10"
-                [[ "$pos" == *"5)"* ]] && overlay="(main_w-overlay_w)/2:(main_h-overlay_h)/2"
+                test "$pos" = *"2)"* && overlay="10:10"
+                test "$pos" = *"3)"* && overlay="main_w-overlay_w-10:main_h-overlay_h-10"
+                test "$pos" = *"4)"* && overlay="10:main_h-overlay_h-10"
+                test "$pos" = *"5)"* && overlay="(main_w-overlay_w)/2:(main_h-overlay_h)/2"
                 ffmpeg -i "$file" -i "$logo" -filter_complex "[1:v]scale=150:-1[logo];[0:v][logo]overlay=${overlay}" -c:a copy "$out"
             else
     set -l text (_fb_media_input "Watermark Text" "FancyBash")
@@ -5925,16 +5923,16 @@ function ffmedia
         "8. "*|*"Video Grid"*|grid)
     set -l grid_mode (_fb_media_choose_opt "Grid Layout:" "1) 2 Videos Side-by-Side" "2) 4 Videos (2x2 Grid)")
             if test "$grid_mode" == *"1)"*
-    set -l f1 $(_fb_media_select_file "Select Video 1:" "\.(mp4|mkv|mov|avi|webm)$")
-    set -l f2 $(_fb_media_select_file "Select Video 2:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l f1 (_fb_media_select_file "Select Video 1:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l f2 (_fb_media_select_file "Select Video 2:" "\.(mp4|mkv|mov|avi|webm)$")
                 [ -z "$f1" ] || [ -z "$f2" ] && return 0
     set -l out "comparison_side_by_side.mp4"
                 ffmpeg -i "$f1" -i "$f2" -filter_complex "[0:v]scale=-1:720[v0];[1:v]scale=-1:720[v1];[v0][v1]hstack=inputs=2[v]" -map "[v]" -c:v libx264 "$out"
             else
-    set -l f1 $(_fb_media_select_file "Select Video 1 (Top-Left):" "\.(mp4|mkv|mov|avi|webm)$")
-    set -l f2 $(_fb_media_select_file "Select Video 2 (Top-Right):" "\.(mp4|mkv|mov|avi|webm)$")
-    set -l f3 $(_fb_media_select_file "Select Video 3 (Bottom-Left):" "\.(mp4|mkv|mov|avi|webm)$")
-    set -l f4 $(_fb_media_select_file "Select Video 4 (Bottom-Right):" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l f1 (_fb_media_select_file "Select Video 1 (Top-Left):" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l f2 (_fb_media_select_file "Select Video 2 (Top-Right):" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l f3 (_fb_media_select_file "Select Video 3 (Bottom-Left):" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l f4 (_fb_media_select_file "Select Video 4 (Bottom-Right):" "\.(mp4|mkv|mov|avi|webm)$")
                 [ -z "$f1" ] || [ -z "$f2" ] || [ -z "$f3" ] || [ -z "$f4" ] && return 0
     set -l out "grid_2x2.mp4"
                 ffmpeg -i "$f1" -i "$f2" -i "$f3" -i "$f4" -filter_complex "[0:v]scale=640:360[v0];[1:v]scale=640:360[v1];[2:v]scale=640:360[v2];[3:v]scale=640:360[v3];[v0][v1][v2][v3]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" -c:v libx264 "$out"
@@ -5943,21 +5941,21 @@ function ffmedia
             ;;
 
         "9. "*|*"Extract Audio"*|audio-extract)
-    set -l file $(_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|m4a|flv)$")
+    set -l file (_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|m4a|flv)$")
             [ -z "$file" ] && return 0
     set -l fmt (_fb_media_choose_opt "Select Output Audio Format:" "1) MP3" "2) AAC" "3) WAV" "4) FLAC" "5) M4A")
     set -l ext "mp3" acodec="libmp3lame"
-            [[ "$fmt" == *"2)"* ]] && ext="aac" && acodec="aac"
-            [[ "$fmt" == *"3)"* ]] && ext="wav" && acodec="pcm_s16le"
-            [[ "$fmt" == *"4)"* ]] && ext="flac" && acodec="flac"
-            [[ "$fmt" == *"5)"* ]] && ext="m4a" && acodec="aac"
+            test "$fmt" = *"2)"* && ext="aac" && acodec="aac"
+            test "$fmt" = *"3)"* && ext="wav" && acodec="pcm_s16le"
+            test "$fmt" = *"4)"* && ext="flac" && acodec="flac"
+            test "$fmt" = *"5)"* && ext="m4a" && acodec="aac"
     set -l out "${file%.*}.${ext}"
             ffmpeg -i "$file" -vn -acodec "$acodec" "$out"
             printf '\n✅ Audio extracted to: %s\n' "$out"
             ;;
 
         "10. "*|*"Mute Video"*|mute)
-    set -l file $(_fb_media_select_file "Select video to mute:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l file (_fb_media_select_file "Select video to mute:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$file" ] && return 0
     set -l out "${file%.*}_muted.${file##*.}"
             ffmpeg -i "$file" -an -c:v copy "$out"
@@ -5965,15 +5963,15 @@ function ffmedia
             ;;
 
         "11. "*|*"Replace"*|audio-replace)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
-    set -l aud $(_fb_media_select_file "Select audio track file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
+    set -l aud (_fb_media_select_file "Select audio track file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
             [ -z "$aud" ] && return 0
-    set -l mode $(_fb_media_choose_opt "Audio Integration Mode:" \
+    set -l mode (_fb_media_choose_opt "Audio Integration Mode:" \
                 "1) Replace original audio completely" \
                 "2) Mix new audio with existing video sound")
     set -l out "${vid%.*}_audio_merged.${vid##*.}"
-            if [[ "$mode" == *"1)"* ]] || ! ffprobe -i "$vid" -show_streams -select_streams a 2>&1 | grep -q "codec_type=audio"
+            if test "$mode" = *"1)"* || ! ffprobe -i "$vid" -show_streams -select_streams a 2>&1 | grep -q "codec_type=audio"
                 ffmpeg -i "$vid" -i "$aud" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -shortest "$out"
             else
                 ffmpeg -i "$vid" -i "$aud" -filter_complex "[0:a][1:a]amix=inputs=2:duration=first[a]" -map 0:v -map "[a]" -c:v copy "$out"
@@ -5982,58 +5980,58 @@ function ffmedia
             ;;
 
         "12. "*|*"Loudness"*|loudness)
-    set -l file $(_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|mp3|wav)$")
+    set -l file (_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|mp3|wav)$")
             [ -z "$file" ] && return 0
-    set -l std $(_fb_media_choose_opt "Target Loudness Standard:" \
+    set -l std (_fb_media_choose_opt "Target Loudness Standard:" \
                 "1) YouTube / Podcast (-14 LUFS - Recommended)" \
                 "2) EBU R128 Broadcast (-23 LUFS)")
     set -l lufs "-14"
-            [[ "$std" == *"2)"* ]] && lufs="-23"
+            test "$std" = *"2)"* && lufs="-23"
     set -l out "${file%.*}_normalized.${file##*.}"
             ffmpeg -i "$file" -af "loudnorm=I=${lufs}:LRA=11:TP=-1.5" "$out"
             printf '\n✅ Loudness normalized (%s LUFS): %s\n' "$lufs" "$out"
             ;;
 
         "13. "*|*"Visualizer"*|visualizer)
-    set -l aud $(_fb_media_select_file "Select audio file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
+    set -l aud (_fb_media_select_file "Select audio file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
             [ -z "$aud" ] && return 0
-    set -l viz $(_fb_media_choose_opt "Select Visualizer Style:" \
+    set -l viz (_fb_media_choose_opt "Select Visualizer Style:" \
                 "1) Vector Waveform (Neon Green Line)" \
                 "2) Frequency Spectrum (Rainbow Combined)" \
                 "3) CQT Color Spectrum" \
                 "4) Audio Stereo Histogram")
     set -l filter "showwaves=s=1280x720:mode=line:colors=0x00FF99[v]"
-            [[ "$viz" == *"2)"* ]] && filter="showspectrum=s=1280x720:mode=combined:color=rainbow[v]"
-            [[ "$viz" == *"3)"* ]] && filter="showcqt=s=1280x720[v]"
-            [[ "$viz" == *"4)"* ]] && filter="ahistogram=s=1280x720[v]"
+            test "$viz" = *"2)"* && filter="showspectrum=s=1280x720:mode=combined:color=rainbow[v]"
+            test "$viz" = *"3)"* && filter="showcqt=s=1280x720[v]"
+            test "$viz" = *"4)"* && filter="ahistogram=s=1280x720[v]"
     set -l out "${aud%.*}_visualizer.mp4"
             ffmpeg -i "$aud" -filter_complex "$filter" -map "[v]" -map 0:a -c:v libx264 -c:a aac -shortest "$out"
             printf '\n✅ Audio visualizer video created: %s\n' "$out"
             ;;
 
         "14. "*|*"Audio Speed"*|audio-speed)
-    set -l aud $(_fb_media_select_file "Select audio file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
+    set -l aud (_fb_media_select_file "Select audio file:" "\.(mp3|wav|aac|m4a|flac|ogg)$")
             [ -z "$aud" ] && return 0
-    set -l speed $(_fb_media_input "Audio speed factor (e.g. 1.25, 1.5, 0.8)" "1.25")
+    set -l speed (_fb_media_input "Audio speed factor (e.g. 1.25, 1.5, 0.8)" "1.25")
     set -l out "${aud%.*}_speed_${speed}.${aud##*.}"
             ffmpeg -i "$aud" -af "atempo=${speed}" "$out"
             printf '\n✅ Audio speed changed (pitch preserved): %s\n' "$out"
             ;;
 
         "15. "*|*"Snapshot"*|snapshot)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
-    set -l time $(_fb_media_input "Timestamp (HH:MM:SS or seconds)" "00:00:05")
+    set -l time (_fb_media_input "Timestamp (HH:MM:SS or seconds)" "00:00:05")
     set -l fmt (_fb_media_choose_opt "Image Format:" "1) JPEG (.jpg)" "2) PNG (.png)")
     set -l ext "jpg"
-            [[ "$fmt" == *"2)"* ]] && ext="png"
+            test "$fmt" = *"2)"* && ext="png"
     set -l out "${vid%.*}_snap_${time//:/}_.${ext}"
             ffmpeg -ss "$time" -i "$vid" -vframes 1 -q:v 2 "$out"
             printf '\n✅ Snapshot extracted: %s\n' "$out"
             ;;
 
         "16. "*|*"Bulk Frame"*|bulk-frames)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
     set -l interval (_fb_media_input "Extract frame every N seconds" "1")
     set -l base (basename "${vid%.*}")
@@ -6044,17 +6042,17 @@ function ffmedia
             ;;
 
         "17. "*|*"GIF"*|gif)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
     set -l start (_fb_media_input "Start timestamp" "00:00:00")
     set -l dur (_fb_media_input "GIF Duration in seconds" "5")
-    set -l res $(_fb_media_choose_opt "GIF Resolution & Quality:" \
+    set -l res (_fb_media_choose_opt "GIF Resolution & Quality:" \
                 "1) 480p @ 15fps (Standard)" \
                 "2) 720p @ 20fps (HD High Quality)" \
                 "3) 360p @ 12fps (Compact)")
     set -l scale "480" fps="15"
-            [[ "$res" == *"2)"* ]] && scale="720" && fps="20"
-            [[ "$res" == *"3)"* ]] && scale="360" && fps="12"
+            test "$res" = *"2)"* && scale="720" && fps="20"
+            test "$res" = *"3)"* && scale="360" && fps="12"
     set -l out "${vid%.*}_pro.gif"
     set -l tmp_palette "/tmp/ff_palette_$$.png"
             printf '\n⚡ Generating palette and rendering ultra-sharp GIF...\n'
@@ -6065,11 +6063,11 @@ function ffmedia
             ;;
 
         "18. "*|*"Contact Sheet"*|contact-sheet)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
     set -l grid (_fb_media_choose_opt "Grid Layout:" "1) 3x3 Grid (9 Thumbnails)" "2) 4x4 Grid (16 Thumbnails)")
     set -l tiles "3x3"
-            [[ "$grid" == *"2)"* ]] && tiles="4x4"
+            test "$grid" = *"2)"* && tiles="4x4"
     set -l out "${vid%.*}_contact_sheet.png"
             ffmpeg -i "$vid" -vf "fps=1/10,scale=320:-1,tile=${tiles}" -vsync vfr "$out"
             printf '\n✅ Mosaic Thumbnail Grid created: %s\n' "$out"
@@ -6078,7 +6076,7 @@ function ffmedia
         "19. "*|*"Screen Recorder"*|screen-record)
     set -l out "screencast_(date +%Y%m%d_%H%M%S).mp4"
     set -l os_type (uname -s)
-    set -l audio_opt $(_fb_media_choose_opt "Select Screen Record Mode:" \
+    set -l audio_opt (_fb_media_choose_opt "Select Screen Record Mode:" \
                 "1) Full Screen Video + System Audio (Mic/Speaker)" \
                 "2) Full Screen Video Only (Silent)")
 
@@ -6086,7 +6084,7 @@ function ffmedia
             printf '📌 Press "q" or Ctrl+C in this terminal to stop recording.\n\n'
 
             if test "$os_type" = "Linux"
-    set -l display "${DISPLAY:-:0.0}"
+    set -l display "(if test -n "$DISPLAY"; echo "$DISPLAY"; else; echo ":0.0"; end)"
     set -l res ""
                 if command -v xrandr >/dev/null 2>&1
                     res=(xrandr 2>/dev/null | grep '*' | awk '{print $argv[1]}' | head -n1)
@@ -6095,7 +6093,7 @@ function ffmedia
                 end
                 [ -z "$res" ] && res="1920x1080"
 
-                if [[ "$audio_opt" == *"1)"* ]] && (command -v pactl >/dev/null 2>&1 || command -v pulseaudio >/dev/null 2>&1)
+                if test "$audio_opt" = *"1)"* && (command -v pactl >/dev/null 2>&1 || command -v pulseaudio >/dev/null 2>&1)
                     ffmpeg -f x11grab -video_size "$res" -i "$display" -f pulse -i default -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac "$out"
                 else
                     ffmpeg -f x11grab -video_size "$res" -i "$display" -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out"
@@ -6120,9 +6118,9 @@ function ffmedia
             ;;
 
         "20. "*|*"Subtitle Burn"*|subtitle-burn)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mp4|mkv|mov|avi|webm)$")
             [ -z "$vid" ] && return 0
-    set -l sub $(_fb_media_select_file "Select subtitle file (.srt/.ass):" "\.(srt|ass)$")
+    set -l sub (_fb_media_select_file "Select subtitle file (.srt/.ass):" "\.(srt|ass)$")
             [ -z "$sub" ] && return 0
     set -l out "${vid%.*}_subtitled.${vid##*.}"
     set -l safe_sub (echo "$sub" | sed "s/'/\\\\'/g" | sed "s/:/\\\\:/g")
@@ -6131,7 +6129,7 @@ function ffmedia
             ;;
 
         "21. "*|*"Subtitle Extraction"*|subtitle-extract)
-    set -l vid $(_fb_media_select_file "Select video file:" "\.(mkv|mp4|mov)$")
+    set -l vid (_fb_media_select_file "Select video file:" "\.(mkv|mp4|mov)$")
             [ -z "$vid" ] && return 0
     set -l out "${vid%.*}.srt"
             ffmpeg -i "$vid" -map 0:s:0 "$out"
@@ -6139,7 +6137,7 @@ function ffmedia
             ;;
 
         "22. "*|*"Privacy Clean"*|privacy-clean)
-    set -l file $(_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|mp3|wav|jpg|png)$")
+    set -l file (_fb_media_select_file "Select media file:" "\.(mp4|mkv|mov|avi|webm|mp3|wav|jpg|png)$")
             [ -z "$file" ] && return 0
     set -l out "${file%.*}_clean.${file##*.}"
             ffmpeg -i "$file" -map_metadata -1 -c copy "$out"
@@ -6147,9 +6145,9 @@ function ffmedia
             ;;
 
         "23. "*|*"Format Conversion"*|convert)
-    set -l file $(_fb_media_select_file "Select media file to convert:" "\.(mp4|mkv|mov|avi|webm|ts|flv|mp3|wav|aac)$")
+    set -l file (_fb_media_select_file "Select media file to convert:" "\.(mp4|mkv|mov|avi|webm|ts|flv|mp3|wav|aac)$")
             [ -z "$file" ] && return 0
-    set -l fmt $(_fb_media_choose_opt "Select Target Format:" \
+    set -l fmt (_fb_media_choose_opt "Select Target Format:" \
                 "1) MP4 (.mp4)" \
                 "2) MKV (.mkv)" \
                 "3) WEBM (.webm)" \
@@ -6158,21 +6156,21 @@ function ffmedia
                 "6) MP3 (.mp3)" \
                 "7) WAV (.wav)")
     set -l ext "mp4"
-            [[ "$fmt" == *"2)"* ]] && ext="mkv"
-            [[ "$fmt" == *"3)"* ]] && ext="webm"
-            [[ "$fmt" == *"4)"* ]] && ext="mov"
-            [[ "$fmt" == *"5)"* ]] && ext="avi"
-            [[ "$fmt" == *"6)"* ]] && ext="mp3"
-            [[ "$fmt" == *"7)"* ]] && ext="wav"
+            test "$fmt" = *"2)"* && ext="mkv"
+            test "$fmt" = *"3)"* && ext="webm"
+            test "$fmt" = *"4)"* && ext="mov"
+            test "$fmt" = *"5)"* && ext="avi"
+            test "$fmt" = *"6)"* && ext="mp3"
+            test "$fmt" = *"7)"* && ext="wav"
     set -l out "${file%.*}.${ext}"
             ffmpeg -i "$file" "$out"
             printf '\n✅ Format converted to: %s\n' "$out"
             ;;
 
         "24. "*|*"Batch"*|batch)
-    set -l folder $(_fb_media_input "Enter folder path (or press enter for current directory)" ".")
+    set -l folder (_fb_media_input "Enter folder path (or press enter for current directory)" ".")
             [ ! -d "$folder" ] && printf '❌ Directory not found!\n' && return 1
-    set -l batch_task $(_fb_media_choose_opt "Select Batch Operation:" \
+    set -l batch_task (_fb_media_choose_opt "Select Batch Operation:" \
                 "1) Bulk Video Compress" \
                 "2) Bulk Format Convert to MP4" \
                 "3) Bulk Metadata Wiping (Privacy Clean)" \

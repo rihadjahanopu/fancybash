@@ -415,6 +415,7 @@ Feel free to customize, add, or remove any helper functions (like `node_version`
 | `fr` / `ba` / `fu`    | Jump to Frontend / Backend / Fullstack project folder |
 | `fig` / `ar` / `de`   | Jump to Figma / Archive / Dev folders                 |
 | `des` / `doc` / `dow` | Jump to Desktop / Documents / Downloads               |
+| `bv` / `ch` / `gp`   | Jump to Brave / Chrome / Photos Downloads             |
 
 ---
 
@@ -431,6 +432,8 @@ Feel free to customize, add, or remove any helper functions (like `node_version`
 | `bi`   | `bun install`        |
 | `br`   | `bun run`            |
 | `brd`  | `bun run dev`        |
+| `bhot` | `bun --hot`          |
+| `w`    | `bun --watch`        |
 | `brb`  | `bun run build`      |
 | `brs`  | `bun run start`      |
 | `html` | `bun run index.html` |

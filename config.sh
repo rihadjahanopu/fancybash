@@ -79,6 +79,15 @@ _fb_ensure_dep() {
     fi
 }
 
+# Portable in-place sed helper for GNU sed (Linux) and BSD sed (macOS)
+_fb_sed_i() {
+    if sed --version >/dev/null 2>&1; then
+        sed -i "$@"
+    else
+        sed -i '' "$@"
+    fi
+}
+
 unalias parse_git_branch 2>/dev/null
 function parse_git_branch {
     local branch=$(git branch --show-current 2>/dev/null)
@@ -382,7 +391,7 @@ function _ui_patch_viteconfig {
 
     # Add: import path from "path"
     if ! echo "$content" | grep -q 'import path from'; then
-        sed -i '1s|^|import path from "path"
+        _fb_sed_i '1s|^|import path from "path"
 |' "$viteconfig"
         echo "  -> Added: import path from path"
     else
@@ -391,7 +400,7 @@ function _ui_patch_viteconfig {
 
     # Add: import tailwindcss from "@tailwindcss/vite"
     if ! grep -q '@tailwindcss/vite' "$viteconfig"; then
-        sed -i '1s|^|import tailwindcss from "@tailwindcss/vite"
+        _fb_sed_i '1s|^|import tailwindcss from "@tailwindcss/vite"
 |' "$viteconfig"
         echo "  -> Added: import tailwindcss from @tailwindcss/vite"
     else
@@ -400,7 +409,7 @@ function _ui_patch_viteconfig {
 
     # Add tailwindcss() to plugins array if missing
     if ! grep -q 'tailwindcss()' "$viteconfig"; then
-        sed -i 's/plugins: \[/plugins: [tailwindcss(), /' "$viteconfig"
+        _fb_sed_i 's/plugins: \[/plugins: [tailwindcss(), /' "$viteconfig"
         echo "  -> Added: tailwindcss() to plugins"
     else
         echo "  ok: tailwindcss() plugin already exists."
@@ -408,7 +417,7 @@ function _ui_patch_viteconfig {
 
     # Add resolve.alias if missing (no leading comma)
     if ! grep -q '"@"' "$viteconfig" && ! grep -q "@:" "$viteconfig"; then
-        sed -i '/^})/i\  resolve: {
+        _fb_sed_i '/^})/i\  resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
@@ -1428,6 +1437,8 @@ function uup {
 unalias keep 2>/dev/null
 function keep {
     # Modern Color Palette
+    local RESET BOLD DIM CYAN PINK PURPLE GREEN YELLOW ORANGE BLUE RED WHITE GRAY BG_DARK BG_CARD
+    local ICON_ROCKET ICON_FOLDER ICON_FILE ICON_GEAR ICON_PACKAGE ICON_BUN ICON_GIT ICON_LIGHTNING ICON_TERMINAL ICON_WARNING ICON_STAR ICON_SEARCH ICON_PRISMA
     RESET='\033[0m'
     BOLD='\033[1m'
     DIM='\033[2m'
@@ -1518,6 +1529,7 @@ function keep {
     print_cmd "fr / ba / fu" "Frontend / Backend / Fullstack" "" "$GREEN"
     print_cmd "fig / ar / de" "Figma / Archive / Dev folders" "" "$GREEN"
     print_cmd "des / doc / dow" "Desktop / Documents / Downloads" "" "$GREEN"
+    print_cmd "bv / ch / gp" "Brave / Chrome / Photos Downloads" "" "$GREEN"
 
     # ==================== FILE OPERATIONS ====================
     print_category "$ICON_FILE" "FILE & FOLDER MANAGEMENT" "$PINK"
@@ -1745,16 +1757,21 @@ function keep {
 unalias run 2>/dev/null
 function run {
     # Color Codes
-    CYAN='\033[0;36m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[1;34m'
-    GREEN='\033[1;32m'
-    RED='\033[0;31m'
-    BOLD='\033[1m'
-    NC='\033[0m'
+    local CYAN='\033[0;36m'
+    local YELLOW='\033[1;33m'
+    local BLUE='\033[1;34m'
+    local GREEN='\033[1;32m'
+    local RED='\033[0;31m'
+    local BOLD='\033[1m'
+    local NC='\033[0m'
+    local files=() ext="" icon="" selected_file="" choice="" mode="" bun_action="" mode_label="" mode_color="" i=0
 
     # File list (.js and .ts)
-    files=($(ls *.js *.ts 2>/dev/null))
+    local orig_nullglob
+    orig_nullglob=$(shopt -p nullglob 2>/dev/null)
+    shopt -s nullglob
+    files=(*.js *.ts)
+    eval "$orig_nullglob" 2>/dev/null
 
     if [ ${#files[@]} -eq 0 ]; then
         echo -e "${RED}󱓇 No .js or .ts files found!${NC}"
@@ -1995,7 +2012,7 @@ function uc {
     # ==============================
     unalias _detect_distro 2>/dev/null
     function _detect_distro {
-        local d_id="unknown" d_name="Unknown Linux"
+        local d_id="unknown" d_name="Unknown Linux" key="" value=""
 
         if [[ -r /etc/os-release ]]; then
             # Source safely with restricted scope
@@ -3173,6 +3190,7 @@ function rt {
     fi
 
     # ২. মেনু অপশন
+    local options=() selected=""
     options=(
         "NVM (Node Version Manager)"
         "Node.js (LTS Version)"
@@ -3773,6 +3791,7 @@ function ut {
 unalias rn 2>/dev/null
 function rn {
     local target_dir="${1:-.}"
+    local dir="" f="" filename="" extension="" clean_name="" clean_ext="" new_name="" filepath=""
 
     if [ ! -d "$target_dir" ]; then
         echo "Error: Directory $target_dir does not exist."
@@ -4138,7 +4157,7 @@ alias brb='bun run build'
 alias brs='bun run start'
 alias html='bun run index.html'
 alias w='bun --watch'
-alias h='bun --hot'
+alias bhot='bun --hot'
 
 # --- Git Shortcuts ---
 alias gi='git init'
@@ -4180,7 +4199,7 @@ function command_not_found_handle {
     fi
 }
 
-alias br='cd ~/Downloads/Brave'
+alias bv='cd ~/Downloads/Brave'
 alias ch='cd ~/Downloads/Chrome'
 alias gp='cd ~/Downloads/Google\ Photos'
 alias pa='cd ~/Downloads/Packet'
@@ -4198,6 +4217,7 @@ if [[ -n "$LD_LIBRARY_PATH" ]] && [[ "$LD_LIBRARY_PATH" == *"/var/lib/flatpak/ap
     else
         unset LD_LIBRARY_PATH
     fi
+    unset new_path 2>/dev/null || true
 fi
 
 # ==============================================================================
