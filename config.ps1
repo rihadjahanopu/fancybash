@@ -1,17 +1,14 @@
 # ==============================================================================
-#   F A N C Y B A S H  •  PowerShell Configuration (config.ps1)
-#   Author: Rihad Jahan Opu (https://github.com/rihadjahanopu)
-#   License: MIT  |  Repository: github.com/rihadjahanopu/fancybash
+#   ULTRA-THIN COMPACT PRO WINDOWS POWERSHELL ENVIRONMENT
+#   Author: [Rihad Jahan Opu]
+#   Version: 2.0.0 Complete Multi-Platform Edition
+#   Purpose: A fast, beautiful, and productive terminal for Web Development
 #   Supports: Windows PowerShell 5.1+, PowerShell Core 7+ (Windows, macOS, Linux)
-#   Verified: 2026 - 100% Feature Parity with config.sh & config.zsh
+#   Verified: 2026 - Feature-Complete Parity with config.zsh & config.sh
 # ==============================================================================
 
-# 1. Console & Output Encoding
+# 1. Output Encoding
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-if ($PSVersionTable.PSVersion.Major -ge 7) {
-    $PSDefaultParameterValues["Out-File:Encoding"] = "utf8"
-}
 
 # 2. Execution Policy Bypass (Process Scope)
 if ((Get-ExecutionPolicy) -eq 'Restricted') {
@@ -19,89 +16,62 @@ if ((Get-ExecutionPolicy) -eq 'Restricted') {
 }
 
 # 3. ANSI Color Definitions & Formatting Helpers
-$ESC   = [char]27
-$RED   = "$ESC[1;31m"
-$GRN   = "$ESC[1;32m"
-$YLW   = "$ESC[1;33m"
-$BLU   = "$ESC[1;34m"
-$PUR   = "$ESC[1;35m"
-$CYN   = "$ESC[1;36m"
-$WHT   = "$ESC[1;37m"
-$GRAY  = "$ESC[1;90m"
-$BOLD  = "$ESC[1m"
-$DIM   = "$ESC[2m"
-$NC    = "$ESC[0m"
+$ESC  = [char]27
+$RED  = "$ESC[1;31m"
+$GRN  = "$ESC[1;32m"
+$YLW  = "$ESC[1;33m"
+$BLU  = "$ESC[1;34m"
+$PUR  = "$ESC[1;35m"
+$CYN  = "$ESC[1;36m"
+$WHT  = "$ESC[1;37m"
+$BOLD = "$ESC[1m"
+$DIM  = "$ESC[2m"
+$NC   = "$ESC[0m"
 
 # ==============================================================================
-# 🎨 SMART DYNAMIC PROMPT & STATUS HELPERS
+# 🎨 SMART PROMPT SYSTEM
 # ==============================================================================
 
-function rand_color {
-    $colors = @(31, 32, 33, 34, 35, 36, 91, 92, 93, 94, 95, 96)
-    return $colors[(Get-Random -Maximum $colors.Length)]
-}
-
-function rand_emoji {
-    param([string]$Dir = $PWD)
-    $folder = (Split-Path -Leaf $Dir).ToLower()
-    switch -wildcard ($folder) {
-        "*web*"  { return "🌐" }
-        "*node*" { return "🟢" }
-        "*bun*"  { return "🥐" }
-        "*py*"   { return "🐍" }
-        "*proj*" { return "💻" }
-        default  {
-            $emojis = @("🔥", "⚡️", "🚀", "💫", "🌈", "🌀", "✨", "🧠")
-            return $emojis[(Get-Random -Maximum $emojis.Length)]
-        }
-    }
-}
-
-function parse_git_branch {
+function Get-GitBranch {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return "" }
     $branch = git branch --show-current 2>$null
     if (-not $branch) {
-        $b = git rev-parse --short HEAD 2>$null
-        if ($b) { $branch = "➦ $b" }
+        $branch = git rev-parse --short HEAD 2>$null
+        if ($branch) { $branch = "➦ $branch" }
     }
     if (-not $branch) { return "" }
+
     $dirty = ""
-    if (git status --porcelain 2>$null) { $dirty = " ❗" }
-    return "$branch$dirty"
+    $status = git status --porcelain 2>$null
+    if ($status) { $dirty = " ❗" }
+    return " [🌿 $branch$dirty]"
 }
 
-function Get-GitBranch { return parse_git_branch }
-
-function node_version {
+function Get-NodeVersion {
     if (Get-Command node -ErrorAction SilentlyContinue) {
         $v = node -v 2>$null
-        if ($v) { return "🟢 $v" }
+        if ($v) { return "🟢 $v │ " }
     }
     return ""
 }
-function Get-NodeVersion { $v = node_version; if ($v) { return "$v │ " } else { return "" } }
 
-function npm_version {
+function Get-NpmVersion {
     if (Get-Command npm -ErrorAction SilentlyContinue) {
         $v = npm -v 2>$null
-        if ($v) { return "📦 v$v" }
+        if ($v) { return "📦 v$v │ " }
     }
     return ""
 }
-function Get-NpmVersion { $v = npm_version; if ($v) { return "$v │ " } else { return "" } }
 
-function bun_version {
+function Get-BunVersion {
     if (Get-Command bun -ErrorAction SilentlyContinue) {
         $v = bun -v 2>$null
-        if ($v) { return "🥐 v$v" }
+        if ($v) { return "🥐 v$v │ " }
     }
     return ""
 }
-function Get-BunVersion { $v = bun_version; if ($v) { return "$v │ " } else { return "" } }
 
-function time_date { return (Get-Date -Format "MMM dd") }
-
-function sys_info {
+function Get-SystemInfo {
     try {
         if ($IsWindows -or $env:OS -match "Windows") {
             $os = Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue
@@ -109,94 +79,58 @@ function sys_info {
                 $totalMb = [math]::Round($os.TotalVisibleMemorySize / 1024)
                 $freeMb = [math]::Round($os.FreePhysicalMemory / 1024)
                 $usedMb = $totalMb - $freeMb
-                return "🧠 ${usedMb}M/${totalMb}M"
+                return "📟 🧠 ${usedMb}M/${totalMb}M │ "
             }
         }
     } catch {}
     return ""
 }
-function Get-SystemInfo { $s = sys_info; if ($s) { return "📟 $s │ " } else { return "" } }
 
-function battery_info {
+function Get-BatteryInfo {
     try {
         if ($IsWindows -or $env:OS -match "Windows") {
             $bat = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue
             if ($bat -and $bat.EstimatedChargeRemaining) {
-                return "🔋$($bat.EstimatedChargeRemaining)%"
+                return "🔋$($bat.EstimatedChargeRemaining)% │ "
             }
         }
     } catch {}
     return ""
 }
-function Get-BatteryInfo { $b = battery_info; if ($b) { return "$b │ " } else { return "" } }
-
-function kernel_version {
-    if ($IsWindows -or $env:OS -match "Windows") {
-        return "🐧 Windows $([Environment]::OSVersion.Version)"
-    } else {
-        $k = uname -r 2>$null
-        if ($k) { return "🐧 $($k.Split('-')[0])" } else { return "🐧 Linux" }
-    }
-}
-
-function cpu_temp { }
-
-function folder_size {
-    try {
-        $files = Get-ChildItem -ErrorAction SilentlyContinue
-        $size = ($files | Measure-Object -Property Length -Sum).Sum
-        if ($size) {
-            if ($size -ge 1GB) { return "📂 $([math]::Round($size/1GB, 1))G" }
-            elseif ($size -ge 1MB) { return "📂 $([math]::Round($size/1MB, 1))M" }
-            else { return "📂 $([math]::Round($size/1KB, 1))K" }
-        }
-    } catch {}
-    return "📂 ~"
-}
-
-function disk_usage {
-    try {
-        $drive = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'" -ErrorAction SilentlyContinue
-        if ($drive) {
-            $freeGb = [math]::Round($drive.FreeSpace / 1GB)
-            return "💽 ${freeGb}G free"
-        }
-    } catch {}
-    return ""
-}
-
-function load_avg { }
-function timer_start { $global:_timer_start_time = Get-Date }
-function get_duration {
-    if ($global:_timer_start_time) {
-        $ts = (Get-Date) - $global:_timer_start_time
-        if ($ts.TotalSeconds -ge 1) {
-            return "⏱️ $([math]::Round($ts.TotalSeconds))s"
-        }
-    }
-    return ""
-}
-function check_readonly { }
-function pending_updates { }
 
 function prompt {
     $folder = Split-Path -Leaf $PWD
-    if (-not $folder) { $folder = "" }
+    if (-not $folder) { $folder = "\" }
 
-    $emoji = rand_emoji $PWD
-    $randColorNames = @("Red", "Green", "Yellow", "Blue", "Magenta", "Cyan")
-    $randColor = $randColorNames[(Get-Random -Maximum $randColorNames.Length)]
+    # Folder Emoji Selection
+    $emoji = "🚀"
+    switch -wildcard ($folder.ToLower()) {
+        "*web*"  { $emoji = "🌐" }
+        "*node*" { $emoji = "🟢" }
+        "*bun*"  { $emoji = "🥐" }
+        "*py*"   { $emoji = "🐍" }
+        "*proj*" { $emoji = "💻" }
+        default  {
+            $emojis = @("🔥", "⚡️", "🚀", "💫", "🌈", "🌀", "✨", "🧠")
+            $emoji = $emojis[(Get-Random -Maximum $emojis.Length)]
+        }
+    }
 
-    $gitInfo = parse_git_branch
+    # Dynamic Rainbow Colors
+    $rainbowColors = @("Red", "Green", "Yellow", "Blue", "Magenta", "Cyan")
+    $randColor = $rainbowColors[(Get-Random -Maximum $rainbowColors.Length)]
+
+    # Information Elements
+    $gitInfo  = Get-GitBranch
     $nodeInfo = Get-NodeVersion
-    $bunInfo = Get-BunVersion
-    $sysInfo = Get-SystemInfo
-    $batInfo = Get-BatteryInfo
+    $bunInfo  = Get-BunVersion
+    $sysInfo  = Get-SystemInfo
+    $batInfo  = Get-BatteryInfo
 
     Write-Host ""
     Write-Host "$emoji $folder" -NoNewline -ForegroundColor $randColor
     if ($gitInfo) {
-        Write-Host " [🌿 $gitInfo]" -NoNewline -ForegroundColor Cyan
+        Write-Host $gitInfo -NoNewline -ForegroundColor Cyan
     }
 
     $metaInfo = "$nodeInfo$bunInfo$sysInfo$batInfo".TrimEnd(" │ ")
@@ -210,126 +144,6 @@ function prompt {
 }
 
 # ==============================================================================
-# 🛠️ HELPER UTILITIES & PATH PATCHERS
-# ==============================================================================
-
-function _fb_ensure_dep {
-    param([string]$Cmd, [string]$WinPkg, [string]$MacPkg, [string]$LinuxPkg)
-    if (Get-Command $Cmd -ErrorAction SilentlyContinue) { return $true }
-    $pkg = if ($WinPkg) { $WinPkg } else { $Cmd }
-    Write-Host "⚡ Missing tool '$Cmd'. Auto-installing for your system..." -ForegroundColor Yellow
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        winget install --accept-source-agreements --accept-package-agreements $pkg
-    } elseif (Get-Command choco -ErrorAction SilentlyContinue) {
-        choco install $pkg -y
-    } elseif (Get-Command scoop -ErrorAction SilentlyContinue) {
-        scoop install $pkg
-    } elseif (Get-Command brew -ErrorAction SilentlyContinue) {
-        brew install $pkg
-    } else {
-        Write-Host "❌ Package manager not found. Please install '$Cmd' manually." -ForegroundColor Red
-        return $false
-    }
-    return $true
-}
-
-function _fb_sed_i {
-    param([string]$Pattern, [string]$Replacement, [string]$File)
-    if (Test-Path $File) {
-        (Get-Content $File -Raw) -replace $Pattern, $Replacement | Set-Content $File -Encoding utf8
-    }
-}
-
-function _fb_sed_delete_line {
-    param([string]$Pattern, [string]$File)
-    if (Test-Path $File) {
-        (Get-Content $File) | Where-Object { $_ -notmatch $Pattern } | Set-Content $File -Encoding utf8
-    }
-}
-
-function _fb_copy_to_clipboard {
-    param([string]$Text)
-    if ($Text) {
-        Set-Clipboard -Value $Text
-        Write-Host "📋 Copied to clipboard!" -ForegroundColor Green
-    }
-}
-
-function _ui_patch_tsconfig {
-    $tsconfig = ""
-    if (Test-Path "tsconfig.app.json") {
-        $tsconfig = "tsconfig.app.json"
-        Write-Host "  info: Vite (TS) detected -> patching tsconfig.app.json" -ForegroundColor Cyan
-    } elseif (Test-Path "tsconfig.json") {
-        $tsconfig = "tsconfig.json"
-        Write-Host "  info: TypeScript project -> patching tsconfig.json" -ForegroundColor Cyan
-    } elseif (Test-Path "jsconfig.json") {
-        $tsconfig = "jsconfig.json"
-        Write-Host "  info: JavaScript project -> patching jsconfig.json" -ForegroundColor Cyan
-    } else {
-        if ((Test-Path "package.json") -and -not (Select-String -Path "package.json" -Pattern "typescript" -Quiet)) {
-            Write-Host "  note: Creating jsconfig.json with @/* alias..." -ForegroundColor Yellow
-            $jsconfig = @{
-                compilerOptions = @{
-                    baseUrl = "."
-                    paths = @{
-                        "@/*" = @("./src/*")
-                    }
-                }
-            } | ConvertTo-Json -Depth 5
-            $jsconfig | Out-File "jsconfig.json" -Encoding utf8
-            return
-        }
-    }
-    if ($tsconfig -and (Test-Path $tsconfig)) {
-        $raw = Get-Content $tsconfig -Raw
-        if ($raw -notmatch '"@/\*"') {
-            Write-Host "  patching: $tsconfig with baseUrl & @/* paths..." -ForegroundColor Cyan
-            try {
-                $json = $raw | ConvertFrom-Json
-                if (-not $json.compilerOptions) {
-                    $json | Add-Member -MemberType NoteProperty -Name compilerOptions -Value (New-Object PSObject)
-                }
-                $json.compilerOptions | Add-Member -MemberType NoteProperty -Name baseUrl -Value "." -Force
-                $json.compilerOptions | Add-Member -MemberType NoteProperty -Name paths -Value @{ "@/*" = @("./src/*") } -Force
-                $json | ConvertTo-Json -Depth 10 | Out-File $tsconfig -Encoding utf8
-                Write-Host "  -> baseUrl & paths written to $tsconfig" -ForegroundColor Green
-            } catch {
-                Write-Host "  warning: Could not parse $tsconfig JSON." -ForegroundColor Yellow
-            }
-        }
-    }
-}
-
-function _ui_patch_viteconfig {
-    $viteconfig = @(Get-ChildItem -Path "vite.config.ts", "vite.config.js" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
-    if (-not $viteconfig) { return }
-    Write-Host "  patching: $viteconfig with path alias & tailwind..." -ForegroundColor Cyan
-    $content = Get-Content $viteconfig -Raw
-    if ($content -notmatch 'import path from') {
-        $content = "import path from `"path`"`n" + $content
-    }
-    if ($content -notmatch '@tailwindcss/vite') {
-        $content = "import tailwindcss from `"@tailwindcss/vite`"`n" + $content
-    }
-    if ($content -notmatch 'tailwindcss\(\)') {
-        $content = $content -replace 'plugins:\s*\[', 'plugins: [tailwindcss(), '
-    }
-    if ($content -notmatch '"@"' -and $content -notmatch '@:') {
-        $aliasSnippet = @"
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-"@
-        $content = $content -replace '(?s)export default defineConfig\(\{', "export default defineConfig({`n$aliasSnippet"
-    }
-    $content | Out-File $viteconfig -Encoding utf8
-    Write-Host "  -> vite.config patched successfully!" -ForegroundColor Green
-}
-
-# ==============================================================================
 # 📂 NAVIGATION & MOVEMENT
 # ==============================================================================
 
@@ -338,6 +152,7 @@ function ...  { Set-Location ..\.. }
 function .... { Set-Location ..\..\.. }
 function rd   { Set-Location \ }
 
+# Folder Shortcuts
 function dev { Set-Location "$HOME\Development" -ErrorAction SilentlyContinue }
 function doc { Set-Location "$HOME\Documents" -ErrorAction SilentlyContinue }
 function dow { Set-Location "$HOME\Downloads" -ErrorAction SilentlyContinue }
@@ -346,16 +161,16 @@ function pic { Set-Location "$HOME\Pictures" -ErrorAction SilentlyContinue }
 function vid { Set-Location "$HOME\Videos" -ErrorAction SilentlyContinue }
 function mus { Set-Location "$HOME\Music" -ErrorAction SilentlyContinue }
 
-function ar  { Set-Location "$HOME\Developerrchive" -ErrorAction SilentlyContinue }
-function ba  { Set-Location "$HOME\Developerackend" -ErrorAction SilentlyContinue }
+function ar  { Set-Location "$HOME\Developer\archive" -ErrorAction SilentlyContinue }
+function ba  { Set-Location "$HOME\Developer\backend" -ErrorAction SilentlyContinue }
 function de  { Set-Location "$HOME\Developer\dev" -ErrorAction SilentlyContinue }
 function fig { Set-Location "$HOME\Developer\Figma" -ErrorAction SilentlyContinue }
-function fr  { Set-Location "$HOME\Developerrontend" -ErrorAction SilentlyContinue }
-function fu  { Set-Location "$HOME\Developerullstack" -ErrorAction SilentlyContinue }
+function fr  { Set-Location "$HOME\Developer\frontend" -ErrorAction SilentlyContinue }
+function fu  { Set-Location "$HOME\Developer\fullstack" -ErrorAction SilentlyContinue }
 
 function drive {
     param([string]$Letter = "C")
-    $drv = "${Letter}:"
+    $drv = "${Letter}:\"
     if (Test-Path $drv) {
         Set-Location $drv
         Write-Host "📂 Switched to drive: $drv" -ForegroundColor Green
@@ -364,8 +179,7 @@ function drive {
     }
 }
 
-function accurate_auto_ls { Get-ChildItem -Force }
-
+# Auto 'ls' after cd
 function cd {
     param([string]$Path)
     if ($Path) {
@@ -373,13 +187,14 @@ function cd {
     } else {
         Set-Location ~
     }
-    accurate_auto_ls
+    Get-ChildItem -Force
 }
 
 # ==============================================================================
 # ⚡ INTERACTIVE SETUP WIZARDS (FRAMEWORKS & PROJECT INITIALIZERS)
 # ==============================================================================
 
+# --- Initialize a Project (Bun, NPM, PNPM, Yarn) ---
 function ii {
     Write-Host "🚀 Select Package Manager:`n1) 🥐 Bun (Fast)`n2) 📦 NPM (Standard)`n3) 🟡 PNPM (Strict)`n4) 🧶 Yarn (Classic)" -ForegroundColor Cyan
     $choice = Read-Host "Choice [1-4]"
@@ -442,6 +257,7 @@ Thumbs.db
     }
 }
 
+# --- Next.js Setup ---
 function next {
     Write-Host "⚡ Setup Next.js with:`n1) 🥐 Bun`n2) 📦 NPM`n3) 🟡 PNPM`n4) 🧶 Yarn" -ForegroundColor Cyan
     $c = Read-Host "Choice [1-4]"
@@ -454,6 +270,7 @@ function next {
     }
 }
 
+# --- Vite Setup ---
 function vite {
     Write-Host "⚡ Setup Vite with:`n1) 🥐 Bun`n2) 📦 NPM`n3) 🟡 PNPM`n4) 🧶 Yarn" -ForegroundColor Cyan
     $c = Read-Host "Choice [1-4]"
@@ -481,16 +298,15 @@ function vite {
         if (Test-Path "src/style.css") { $cssFile = "src/style.css" }
         '@import "tailwindcss";' | Out-File -FilePath $cssFile -Encoding utf8
         Write-Host "✅ Added '@import `"tailwindcss`";' to $cssFile" -ForegroundColor Green
-        _ui_patch_viteconfig
+        Write-Host "⚠️ Remember to add import tailwindcss from '@tailwindcss/vite' to vite.config.ts" -ForegroundColor Yellow
     }
 }
 
+# --- Shadcn UI Setup ---
 function ui {
     Write-Host "🎨 Setup Shadcn UI with:`n1) 🥐 Bun`n2) 📦 NPM`n3) 🟡 PNPM`n4) 🧶 Yarn" -ForegroundColor Cyan
     $c = Read-Host "Choice [1-4]"
     $components = Read-Host "Add specific components? (e.g. button card input dialog)"
-
-    _ui_patch_tsconfig
 
     $cmd = switch ($c) {
         '1' { "bunx --bun shadcn@latest" }
@@ -506,10 +322,10 @@ function ui {
     } else {
         Invoke-Expression "$cmd add button"
     }
-    _ui_patch_viteconfig
     Write-Host "✅ Shadcn UI setup complete!" -ForegroundColor Green
 }
 
+# --- Tailwind CSS Setup ---
 function css {
     if (-not (Test-Path "package.json")) {
         Write-Host "❌ package.json not found! Run 'ii' first." -ForegroundColor Red
@@ -530,6 +346,7 @@ function css {
     Write-Host "✅ Tailwind CSS Ready!" -ForegroundColor Green
 }
 
+# --- Express.js Setup ---
 function express {
     Write-Host "🚀 Setup Express API with:`n1) 🥐 Bun (TypeScript)`n2) 📦 NPM (JavaScript)`n3) 📦 NPM (TypeScript)" -ForegroundColor Cyan
     $c = Read-Host "Choice [1-3]"
@@ -608,6 +425,7 @@ app.listen(port, () => {
     }
 }
 
+# --- Additional Backend & Frontend Wizards ---
 function hono {
     Write-Host "🔥 Setup Hono with:`n1) 🥐 Bun`n2) 📦 NPM" -ForegroundColor Cyan
     $c = Read-Host "Choice [1/2]"
@@ -731,8 +549,7 @@ function makecpp {
 #include <stdio.h>
 
 int main() {
-    printf("Hello, World! Welcome to C project: %s
-", "$Name");
+    printf("Hello, World! Welcome to C project: %s\n", "$Name");
     return 0;
 }
 "@
@@ -790,25 +607,25 @@ function pg {
 # 🔨 INTERACTIVE UTILITIES & SUITES (TODO, NOTES, FFMEDIA)
 # ==============================================================================
 
-function _fb_todo_show_list {
-    param([string]$TodoFile)
-    $tasks = Get-Content $TodoFile -ErrorAction SilentlyContinue | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-    if ($tasks) {
-        Write-Host "`n--- 📋 YOUR TO-DO LIST ---" -ForegroundColor Cyan
-        for ($i = 0; $i -lt $tasks.Count; $i++) {
-            Write-Host ("  {0,2}. {1}" -f ($i + 1), $tasks[$i]) -ForegroundColor Yellow
-        }
-        Write-Host ""
-    } else {
-        Write-Host "📋 No tasks pending! Super productive 🎉" -ForegroundColor Green
-    }
-}
-
+# --- Todo Manager ---
 function todo {
     param([string]$action, [string]$arg1)
 
     $todoFile = Join-Path $HOME ".todo_list.txt"
     if (-not (Test-Path $todoFile)) { New-Item -ItemType File -Path $todoFile -Force | Out-Null }
+
+    function Show-TodoList {
+        $tasks = Get-Content $todoFile -ErrorAction SilentlyContinue | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        if ($tasks) {
+            Write-Host "`n--- 📋 YOUR TO-DO LIST ---" -ForegroundColor Cyan
+            for ($i = 0; $i -lt $tasks.Count; $i++) {
+                Write-Host ("  {0,2}. {1}" -f ($i + 1), $tasks[$i]) -ForegroundColor Yellow
+            }
+            Write-Host ""
+        } else {
+            Write-Host "📋 No tasks pending! Super productive 🎉" -ForegroundColor Green
+        }
+    }
 
     switch ($action) {
         "add" {
@@ -844,7 +661,7 @@ function todo {
                         Write-Host "🎉 Completed: `"$selected`"" -ForegroundColor Green
                     }
                 } else {
-                    _fb_todo_show_list $todoFile
+                    Show-TodoList
                     $choice = Read-Host "Enter task number to complete"
                     if ($choice -match '^\d+$' -and [int]$choice -gt 0 -and [int]$choice -le $tasks.Count) {
                         $idx = [int]$choice - 1
@@ -861,7 +678,7 @@ function todo {
             Write-Host "🗑️ All tasks cleared!" -ForegroundColor Green
         }
         { $_ -in "list", "ls" } {
-            _fb_todo_show_list $todoFile
+            Show-TodoList
         }
         { $_ -in "-h", "--help" } {
             Write-Host "Usage:" -ForegroundColor Cyan
@@ -890,6 +707,7 @@ function todo {
     }
 }
 
+# --- Notes Manager ---
 function notes {
     param([string]$action, [string]$arg1)
 
@@ -983,31 +801,7 @@ function notes {
     }
 }
 
-function _fb_media_select_file {
-    param([string]$PromptMsg = "Select multimedia file")
-    $file = Read-Host $PromptMsg
-    if (Test-Path $file) { return (Resolve-Path $file).Path }
-    return ""
-}
-
-function _fb_media_choose_opt {
-    param([string]$Title, [array]$Options)
-    Write-Host "`n$Title" -ForegroundColor Cyan
-    for ($i = 0; $i -lt $Options.Count; $i++) {
-        Write-Host ("  {0}) {1}" -f ($i + 1), $Options[$i])
-    }
-    $c = Read-Host "Choice [1-$($Options.Count)]"
-    if ($c -match '^\d+$' -and [int]$c -gt 0 -and [int]$c -le $Options.Count) {
-        return [int]$c
-    }
-    return 0
-}
-
-function _fb_media_input {
-    param([string]$PromptMsg)
-    return (Read-Host $PromptMsg)
-}
-
+# --- FFmpeg Multimedia Suite ---
 function ffmedia {
     if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
         Write-Host "❌ FFmpeg is not installed. Please install FFmpeg first!" -ForegroundColor Red
@@ -1075,6 +869,7 @@ function ffmedia {
     }
 }
 
+# --- Interactive Git Commit & Push ---
 function gwip {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         Write-Host "❌ Git is not installed." -ForegroundColor Red; return 1
@@ -1147,8 +942,7 @@ function gwip {
     Write-Host "✅ Committed and pushed successfully!" -ForegroundColor Green
 }
 
-function gcommit { gwip }
-
+# --- Interactive TS/JS File Runner ---
 function run {
     $files = @(Get-ChildItem -Path "*.js", "*.ts" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 
@@ -1206,6 +1000,7 @@ function run {
     }
 }
 
+# --- Video Launcher & Finder ---
 function v {
     param([string]$Target = ".")
 
@@ -1244,6 +1039,7 @@ function v {
     }
 }
 
+# --- Universal Extractor ---
 function ex {
     param([string]$File)
     if (-not $File -or -not (Test-Path $File)) {
@@ -1278,17 +1074,19 @@ function ex {
     }
 }
 
+# --- Fast File Finder ---
 function ff {
     param([string]$Name)
     if (Get-Command fd -ErrorAction SilentlyContinue) {
         fd --hidden --exclude .git --exclude node_modules $Name
     } else {
         Get-ChildItem -Path . -Recurse -Filter "*$Name*" -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -notmatch '\node_modules\' -and $_.FullName -notmatch '\.git\' } |
+            Where-Object { $_.FullName -notmatch '\\node_modules\\' -and $_.FullName -notmatch '\\.git\\' } |
             Select-Object FullName
     }
 }
 
+# --- Secret Generator ---
 function gen {
     param([int]$Length = 24)
     $bytes = New-Object byte[] $Length
@@ -1302,6 +1100,7 @@ function gen {
     Write-Host "🔑 GUID:   $guid" -ForegroundColor Yellow
 }
 
+# --- Backup Helper ---
 function bak {
     param([string]$File)
     if (Test-Path $File) {
@@ -1312,6 +1111,7 @@ function bak {
     }
 }
 
+# --- Safe Trash Mover ---
 function trash {
     param([string]$Path)
     if (-not $Path -or -not (Test-Path $Path)) {
@@ -1333,6 +1133,7 @@ function trash {
     }
 }
 
+# --- Kill Process by TCP Port ---
 function kp {
     param([int]$Port)
     if (-not $Port) { Write-Host "❌ Port number required!"; return }
@@ -1345,6 +1146,7 @@ function kp {
     }
 }
 
+# --- Directory & File Management Helpers ---
 function mkd {
     param([string]$Name)
     New-Item -ItemType Directory -Force -Path $Name | Out-Null
@@ -1394,29 +1196,6 @@ function fh {
     }
 }
 
-function fcd {
-    $fzf = Get-Command fzf -ErrorAction SilentlyContinue
-    if (-not $fzf) { Write-Host "❌ fzf is not installed." -ForegroundColor Red; return }
-    $dir = Get-ChildItem -Directory -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | & $fzf.Source --reverse
-    if ($dir) { Set-Location $dir }
-}
-
-function fkill {
-    $fzf = Get-Command fzf -ErrorAction SilentlyContinue
-    if (-not $fzf) { Write-Host "❌ fzf is not installed." -ForegroundColor Red; return }
-    $proc = Get-Process | Select-Object -Property Id, ProcessName | ForEach-Object { "$($_.Id)`t$($_.ProcessName)" } | & $fzf.Source --reverse
-    if ($proc) {
-        $id = $proc.Split("`t")[0]
-        Stop-Process -Id $id -Force
-        Write-Host "✅ Terminated process ID $id" -ForegroundColor Green
-    }
-}
-
-function cf {
-    Write-Host "🔍 Previewing folder structure..." -ForegroundColor Cyan
-    Get-ChildItem -Depth 2 -ErrorAction SilentlyContinue | Format-Table -AutoSize
-}
-
 function to { code . }
 function profile { code $PROFILE }
 function rel { . $PROFILE; Write-Host "✅ PowerShell profile reloaded successfully!" -ForegroundColor Green }
@@ -1424,207 +1203,29 @@ function serve { param([int]$Port = 8000); python -m http.server $Port }
 function myip { Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" } | Select-Object IPAddress, InterfaceAlias }
 function ports { Get-NetTCPConnection | Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, State, OwningProcess }
 function ss { Get-NetTCPConnection }
-function command_not_found_handle { param([string]$Cmd); Write-Host "❌ Command '$Cmd' not found." -ForegroundColor Red }
 
-# ==============================================================================
-# 🧹 SYSTEM & PACKAGE MAINTENANCE ENGINES
-# ==============================================================================
-
-function uu {
-    Write-Host "🔍 Universal Uninstaller Engine for Windows & Apps..." -ForegroundColor Cyan
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        $app = Read-Host "Enter App/Package Name to Uninstall"
-        if (-not [string]::IsNullOrWhiteSpace($app)) {
-            winget uninstall $app
-        }
-    } else {
-        Write-Host "❌ winget command not available." -ForegroundColor Red
-    }
-}
-
-function uup {
-    Write-Host "🚀 MEGA SYSTEM & PACKAGE UPDATER..." -ForegroundColor Cyan
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        winget upgrade --all --accept-package-agreements --accept-source-agreements
-    }
-    if (Get-Command choco -ErrorAction SilentlyContinue) { choco upgrade all -y }
-    if (Get-Command scoop -ErrorAction SilentlyContinue) { scoop update * }
-    if (Get-Command npm -ErrorAction SilentlyContinue) { npm update -g }
-    if (Get-Command bun -ErrorAction SilentlyContinue) { bun update -g }
-    Write-Host "✅ Mega Update Complete!" -ForegroundColor Green
-}
-
-function uc {
-    Write-Host "🧹 Universal Deep Cleaner Engine..." -ForegroundColor Cyan
-    Clear-RecycleBin -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
-    if (Get-Command npm -ErrorAction SilentlyContinue) { npm cache clean --force 2>$null }
-    if (Get-Command bun -ErrorAction SilentlyContinue) { bun pm cache rm 2>$null }
-    if (Get-Command docker -ErrorAction SilentlyContinue) { docker system prune -f 2>$null }
-    Write-Host "✅ Deep Clean Completed Successfully!" -ForegroundColor Green
-}
-
-function ut {
-    Write-Host "⚙️ Optimizing CLI Tools & Environment..." -ForegroundColor Cyan
-    Write-Host "✅ Checked Git, Node, Bun, Python, Winget." -ForegroundColor Green
-}
-
-function rt {
-    Write-Host "📦 Installing Core Runtimes (Node, Bun, Deno, Python)..." -ForegroundColor Cyan
-    _fb_ensure_dep "node" "OpenJS.NodeJS" "" ""
-    _fb_ensure_dep "bun" "Oven-sh.Bun" "" ""
-    _fb_ensure_dep "deno" "DenoLand.Deno" "" ""
-    _fb_ensure_dep "python" "Python.Python.3.11" "" ""
-    Write-Host "✅ Runtime Installation Complete!" -ForegroundColor Green
-}
-
-function rn {
-    param([string]$Path = ".")
-    Write-Host "🧹 Normalizing filenames in $Path..." -ForegroundColor Cyan
-    Get-ChildItem -Path $Path -File -ErrorAction SilentlyContinue | ForEach-Object {
-        $newName = $_.Name -replace '[@%\*#]', '_' -replace '\s+', '_'
-        if ($newName -ne $_.Name) {
-            Rename-Item -Path $_.FullName -NewName $newName
-            Write-Host "  Renamed: $($_.Name) -> $newName" -ForegroundColor Yellow
-        }
-    }
-    Write-Host "✅ Filename normalization complete!" -ForegroundColor Green
-}
-
-function update { uup }
-function clean { uc }
-
-# ==============================================================================
-# 🐳 INTERACTIVE DOCKER SUITE (DMAN) & CONTAINERS
-# ==============================================================================
-
-function dfind { param([string]$Name); docker ps --filter "name=$Name" }
-function droot { param([string]$Container); docker exec -it -u 0 $Container sh }
-function dip { param([string]$Container); docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $Container }
-function dwatch { docker ps --watch }
-function dnetstat { param([string]$Container); docker exec -it $Container netstat -tulpn }
-function dtop-proc { param([string]$Container); docker top $Container }
-function dbackup { param([string]$Volume, [string]$Out); docker run --rm -v ${Volume}:/volume -v ${PWD}:/backup busybox tar cvf /backup/$Out /volume }
-function dkill-force { param([string]$Container); docker kill $Container; docker rm $Container }
-function dstats { docker stats }
-function dclean { docker system prune -a --volumes -f }
-
-function _manage_containers {
-    Write-Host "=== DOCKER CONTAINERS MODULE ===" -ForegroundColor Cyan
-    docker ps -a
-    $c = Read-Host "Enter Container ID/Name action (start/stop/logs/rm/exit)"
-    if ($c -and $c -ne "exit") {
-        docker ps -a
-    }
-}
-function _manage_images { docker images }
-function _manage_volumes { docker volume ls }
-function _manage_networks { docker network ls }
-function _manage_compose { docker compose ps }
-function _switch_docker_context { docker context ls }
-function _view_docker_events { docker events }
-function _open_container_port { }
-function _copy_files { }
-function _update_container_resources { }
-function _commit_container { }
-function _docker_containers_completion { }
-function _docker_images_completion { }
-
-function dman {
-    Write-Host "🐳 Interactive Docker Suite (DMAN)" -ForegroundColor Cyan
-    Write-Host "1) 📦 Manage Containers"
-    Write-Host "2) 🖼️ Manage Images"
-    Write-Host "3) 💾 Manage Volumes"
-    Write-Host "4) 🌐 Manage Networks"
-    Write-Host "5) ⚡ Compose Actions"
-    Write-Host "6) 🧹 Prune System (dclean)"
-    $c = Read-Host "Choice [1-6]"
-    switch ($c) {
-        '1' { _manage_containers }
-        '2' { _manage_images }
-        '3' { _manage_volumes }
-        '4' { _manage_networks }
-        '5' { _manage_compose }
-        '6' { dclean }
-        default { return }
-    }
-}
-
-# ==============================================================================
-# 🐘 POSTGRESQL DATABASE HELPERS
-# ==============================================================================
-
-function pgstart   { Start-Service postgresql -ErrorAction SilentlyContinue; Write-Host "✅ PostgreSQL service started." -ForegroundColor Green }
-function pgstop    { Stop-Service postgresql -ErrorAction SilentlyContinue; Write-Host "🛑 PostgreSQL service stopped." -ForegroundColor Yellow }
-function pgrestart { Restart-Service postgresql -ErrorAction SilentlyContinue; Write-Host "🔄 PostgreSQL service restarted." -ForegroundColor Cyan }
+# --- Database / PostgreSQL Helpers ---
+function pgstart   { Start-Service postgresql -ErrorAction SilentlyContinue }
+function pgstop    { Stop-Service postgresql -ErrorAction SilentlyContinue }
+function pgrestart { Restart-Service postgresql -ErrorAction SilentlyContinue }
 function pgstatus  { Get-Service postgresql -ErrorAction SilentlyContinue }
 function pgl       { psql -U postgres $args }
 function pgls      { psql -U postgres -c "\l" }
 function pgtables  { psql -U postgres -c "\dt" }
-function pgcreate  { param([string]$DB); createdb -U postgres $DB }
-function pgdrop    { param([string]$DB); dropdb -U postgres $DB }
+function pgcreate  { createdb -U postgres $args }
+function pgdrop    { dropdb -U postgres $args }
 function pgconn    { psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;" }
 function pgdb      { param([string]$db); psql -U postgres -d $db }
 function pgdisable { Set-Service postgresql -StartupType Disabled; Write-Host "🚫 PostgreSQL auto-start disabled." -ForegroundColor Yellow }
 function pgdump    { param([string]$db, [string]$out); pg_dump -U postgres $db > $out }
 function pgenable  { Set-Service postgresql -StartupType Automatic; Write-Host "✅ PostgreSQL auto-start enabled." -ForegroundColor Green }
-function pglogs    { Get-Content "C:\Program Files\PostgreSQL\*\data\log\*.log" -Tail 50 -Wait -ErrorAction SilentlyContinue }
+function pglogs    { Get-Content "C:\Program Files\PostgreSQL\*\data\log\*.log" -Tail 50 -Wait }
 function pgrestore { param([string]$db, [string]$file); Get-Content $file | psql -U postgres -d $db }
 function pgsize    { psql -U postgres -c "SELECT pg_database.datname, pg_size_pretty(pg_database_size(pg_database.datname)) AS size FROM pg_database ORDER BY pg_database_size(pg_database.datname) DESC;" }
 function pgusers   { psql -U postgres -c "\du" }
 function pgver     { psql -U postgres -c "SELECT version();" }
 
-# ==============================================================================
-# 💎 PRISMA ORM ALIASES
-# ==============================================================================
-
-function npd   { npx prisma migrate dev $args }
-function npg   { npx prisma generate $args }
-function nps   { npx prisma studio $args }
-function npdb  { npx prisma db push $args }
-function npr   { npx prisma migrate reset $args }
-function npmmp { npx prisma db push $args }
-
-function bpd   { bunx prisma migrate dev $args }
-function bpg   { bunx prisma generate $args }
-function bps   { bunx prisma studio $args }
-function bpdb  { bunx prisma db push $args }
-function bpr   { bunx prisma migrate reset $args }
-function bpmmp { bunx prisma db push $args }
-
-# ==============================================================================
-# 📦 PACKAGE MANAGERS & GIT SHORTCUTS
-# ==============================================================================
-
-function ni  { npm install $args }
-function nid { npm install -D $args }
-function nr  { npm run $args }
-function nrd { npm run dev $args }
-function nrb { npm run build $args }
-function nrs { npm run start $args }
-
-function bi  { bun install $args }
-function brid{ bun install -d $args }
-function br  { bun run $args }
-function brd { bun run dev $args }
-function brb { bun run build $args }
-function brs { bun run start $args }
-function html{ bun run index.html $args }
-
-function gi  { git init }
-function gs  { git status -s }
-function ga  { git add . }
-function gcm { param([string]$Msg); git commit -m "$Msg" }
-function gps { git push }
-function gpl { git pull }
-function gl  { git log --oneline --graph --decorate }
-function gco { param([string]$Branch); git checkout $Branch }
-function gcb { param([string]$Branch); git checkout -b $Branch }
-function gd  { git diff }
-function gst { git stash }
-function gsta{ git stash apply }
-function gpop{ git stash pop }
-
+# --- Interactive Git Branch Switcher ---
 function gbranch {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         Write-Host "❌ Git is not installed." -ForegroundColor Red; return 1
@@ -1634,85 +1235,622 @@ function gbranch {
 
     $fzf = Get-Command fzf -ErrorAction SilentlyContinue
     if ($fzf) {
-        $sel = $branches | & $fzf.Source --prompt="Select Branch ❯ " --reverse
-        if ($sel) { git checkout $sel }
+        $sel = $branches | & $fzf.Source --prompt="Select Branch: " --height 40% --reverse
     } else {
-        Write-Host "`n🌿 Git Branches:" -ForegroundColor Cyan
+        Write-Host "🌿 Branches:" -ForegroundColor Cyan
         for ($i = 0; $i -lt $branches.Count; $i++) {
-            Write-Host ("  [{0,2}] {1}" -f ($i + 1), $branches[$i]) -ForegroundColor Yellow
+            Write-Host ("  [{0,2}] {1}" -f ($i + 1), $branches[$i])
         }
-        $choice = Read-Host "Select branch number"
-        if ($choice -match '^\d+$' -and [int]$choice -gt 0 -and [int]$choice -le $branches.Count) {
-            git checkout $branches[[int]$choice - 1]
+        $c = Read-Host "Select branch number"
+        if ($c -match '^\d+$' -and [int]$c -gt 0 -and [int]$c -le $branches.Count) {
+            $sel = $branches[[int]$c - 1]
+        }
+    }
+
+    if ($sel) {
+        $cleanBranch = $sel -replace 'remotes/origin/', ''
+        git checkout $cleanBranch
+    }
+}
+
+# --- Interactive Process Killer ---
+function fkill {
+    $procs = Get-Process | Select-Object Id, ProcessName
+    $fzf = Get-Command fzf -ErrorAction SilentlyContinue
+    if ($fzf) {
+        $lines = $procs | ForEach-Object { "$($_.Id)`t$($_.ProcessName)" }
+        $sel = $lines | & $fzf.Source --header="Select process to kill" --height 40% --reverse
+        if ($sel) {
+            $pidToKill = ($sel -split "`t")[0]
+            Stop-Process -Id $pidToKill -Force
+            Write-Host "✅ Killed process $pidToKill" -ForegroundColor Green
+        }
+    } else {
+        $c = Read-Host "Enter Process ID (PID) to kill"
+        if ($c -match '^\d+$') {
+            Stop-Process -Id $c -Force
+            Write-Host "✅ Killed process $c" -ForegroundColor Green
         }
     }
 }
 
-# ==============================================================================
-# 🧰 MODERN CLI TOOL WRAPPERS
-# ==============================================================================
+# --- Interactive Directory Search & CD ---
+function fcd {
+    $dirs = Get-ChildItem -Directory -Recurse -Depth 3 -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '\\.git\\' -and $_.FullName -notmatch '\\node_modules\\' } |
+        Select-Object -ExpandProperty FullName
 
+    $fzf = Get-Command fzf -ErrorAction SilentlyContinue
+    if ($fzf) {
+        $sel = $dirs | & $fzf.Source --prompt="Select Directory: " --height 40% --reverse
+        if ($sel) { Set-Location $sel }
+    } else {
+        for ($i = 0; $i -lt [math]::Min(20, $dirs.Count); $i++) {
+            Write-Host ("  [{0,2}] {1}" -f ($i + 1), $dirs[$i])
+        }
+        $c = Read-Host "Select directory number"
+        if ($c -match '^\d+$' -and [int]$c -gt 0 -and [int]$c -le $dirs.Count) {
+            Set-Location $dirs[[int]$c - 1]
+        }
+    }
+}
+
+# --- File Renamer & Normalizer ---
+function rn {
+    param([string]$TargetDir = ".")
+    if (-not (Test-Path $TargetDir)) { Write-Host "❌ Directory '$TargetDir' not found." -ForegroundColor Red; return 1 }
+
+    Write-Host "🧹 Normalizing filenames in '$TargetDir'..." -ForegroundColor Cyan
+    Get-ChildItem -Path $TargetDir -File | ForEach-Object {
+        $baseName = $_.BaseName.ToLower() -replace '\s+', '-' -replace '[^a-z0-9_-]', ''
+        $ext = $_.Extension.ToLower()
+        $newName = "$baseName$ext"
+        if ($_.Name -ne $newName) {
+            $destPath = Join-Path $_.DirectoryName $newName
+            if (-not (Test-Path $destPath)) {
+                Rename-Item -Path $_.FullName -NewName $newName
+                Write-Host "Renamed: '$($_.Name)' -> '$newName'" -ForegroundColor Green
+            }
+        }
+    }
+    Write-Host "Done!" -ForegroundColor Green
+}
+
+# --- Runtime Tool Installer Wizard ---
+function rt {
+    Write-Host "`n🚀 Runtime Tool Installer:" -ForegroundColor Cyan
+    Write-Host "  1) 🟢 Node.js (via NVM/Winget)"
+    Write-Host "  2) 🥐 Bun (Fast JS Runtime)"
+    Write-Host "  3) 🦕 Deno (Secure JS Runtime)"
+    Write-Host "  4) 🐍 Python (Standard)"
+
+    $c = Read-Host "Select tool to install [1-4]"
+    switch ($c) {
+        '1' { if (Get-Command winget -ErrorAction SilentlyContinue) { winget install OpenJS.NodeJS.LTS } else { Write-Host "❌ Winget not found." -ForegroundColor Red } }
+        '2' { powershell -c "irm bun.sh/install.ps1 | iex" }
+        '3' { powershell -c "irm https://deno.land/install.ps1 | iex" }
+        '4' { if (Get-Command winget -ErrorAction SilentlyContinue) { winget install Python.Python.3.12 } }
+        default { Write-Host "❌ Cancelled." -ForegroundColor Red }
+    }
+}
+
+# --- Docker Advanced Utility Functions ---
+function dfind { param([string]$Query); docker ps | Select-String $Query; docker images | Select-String $Query }
+function droot { param([string]$Container); docker exec -it -u root $Container powershell || docker exec -it -u root $Container bash || docker exec -it -u root $Container sh }
+function dip   { param([string]$Container); docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $Container }
+function dwatch{ param([string]$Container); Write-Host "Watching diff in $Container..."; while($true) { Clear-Host; docker diff $Container; Start-Sleep -Seconds 2 } }
+function dnetstat { param([string]$Container); docker exec -it $Container netstat -tulan 2>$null || docker exec -it $Container ss -tulan }
+function dtop-proc { param([string]$Container); docker top $Container aux }
+function dbackup { param([string]$Volume, [string]$OutFile); docker run --rm -v "${Volume}:/volume" -v "${PWD}:/backup" alpine tar cvf /backup/$OutFile -C /volume . }
+function dkill-force {
+    Write-Host "⚠️ WARNING: Stopping and removing ALL containers..." -ForegroundColor Red
+    $c = Read-Host "Confirm [y/N]"
+    if ($c -eq "y") {
+        docker stop $(docker ps -q) 2>$null
+        docker rm $(docker ps -a -q) 2>$null
+        Write-Host "✅ All containers cleared." -ForegroundColor Green
+    }
+}
+
+# --- Web & Application Shortcuts ---
+function brave { Start-Process "brave" $args -ErrorAction SilentlyContinue || Start-Process "https://google.com" }
+function youtube { Start-Process "https://youtube.com" }
+function ch { Start-Process "chrome" $args -ErrorAction SilentlyContinue || Start-Process "https://google.com" }
+function vi { if (Get-Command code -ErrorAction SilentlyContinue) { code $args } else { notepad $args } }
+function vlc { Start-Process "vlc" $args -ErrorAction SilentlyContinue }
+
+# --- Dev Walk Directory Navigator ---
+function cf {
+    param([string]$target_dir = ".")
+
+    $search_cmd = "Get-ChildItem -Path '$target_dir' -Directory -Recurse -ErrorAction SilentlyContinue | Where-Object { `$_.FullName -notmatch '\\.git\\' -and `$_.FullName -notmatch '\\node_modules\\' } | Select-Object -ExpandProperty FullName"
+
+    if (Get-Command fd -ErrorAction SilentlyContinue) {
+        $search_cmd = "fd --type d --hidden --exclude .git --exclude node_modules . '$target_dir'"
+    }
+
+    $previewCmd = "powershell -NoProfile -Command `" " +
+        "`$p='{}'; " +
+        "Write-Host -ForegroundColor Cyan '📁 Contents of: `$p'; " +
+        "Write-Host '──────────────────────────────────────────'; " +
+        "Get-ChildItem -Path `$p -Force -ErrorAction SilentlyContinue | Select-Object -First 20 Name; " +
+        "Write-Host '──────────────────────────────────────────'; " +
+        "if (Test-Path (`$p + '/.git')) { " +
+            "Write-Host -ForegroundColor Green '🌿 Git Repo Detect:'; " +
+            "`$b=git -C `$p branch --show-current 2> `$null; Write-Host `'Branch -> `$b`'; " +
+            "Write-Host -ForegroundColor Yellow '📝 Uncommitted Changes:'; " +
+            "git -C `$p status -s 2> `$null | Select-Object -First 10; " +
+            "Write-Host '──────────────────────────────────────────'; " +
+        "} " +
+        "`$size=(Get-ChildItem -Path `$p -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum; " +
+        "if (`$size) { `$mb=[math]::Round(`$size/1MB, 2); Write-Host -ForegroundColor Yellow ('📊 Total Size: ' + `$mb + ' MB') } " +
+    "`""
+
+    $fzfExe = (Get-Command fzf -ErrorAction SilentlyContinue)?.Source
+    if (-not $fzfExe) {
+        Write-Host "❌ fzf is not installed." -ForegroundColor Red
+        return
+    }
+
+    $selected = Invoke-Expression $search_cmd | & $fzfExe `
+        --height 90% `
+        --layout=reverse `
+        --border=rounded `
+        --prompt="⚡ Dev Walk: " `
+        --pointer="❯" `
+        --marker="✔" `
+        --header="[ENTER] Cd | [CTRL-O] VS Code | [CTRL-Y] Copy Path" `
+        --header-first `
+        --bind "ctrl-y:execute-silent(powershell -NoProfile -Command `"Set-Clipboard -Value '{}'`")+change-prompt(📋 Copied! > )" `
+        --bind "ctrl-o:execute(code {} || nvim {})+abort" `
+        --preview $previewCmd `
+        --preview-window=right:50%:wrap
+
+    if (-not [string]::IsNullOrWhiteSpace($selected)) {
+        Set-Location $selected
+    }
+}
+
+# --- Universal Package Remover ---
+function uu {
+    Write-Host "`n📦 Universal Package Remover:" -ForegroundColor Cyan
+    Write-Host "  1) 📦 NPM Global Package"
+    Write-Host "  2) 🥐 Bun Package"
+    Write-Host "  3) 🟡 PNPM Package"
+    Write-Host "  4) 🧶 Yarn Package"
+    Write-Host "  5) 🪟 Winget Package"
+    Write-Host "  6) 🍫 Chocolatey Package"
+    Write-Host "  7) 🥄 Scoop Package"
+
+    $choice = Read-Host "Select ecosystem [1-7]"
+    $pkg = Read-Host "Enter package name to remove"
+    if ([string]::IsNullOrWhiteSpace($pkg)) { Write-Host "❌ Cancelled." -ForegroundColor Red; return }
+
+    switch ($choice) {
+        '1' { npm uninstall -g $pkg }
+        '2' { bun remove $pkg }
+        '3' { pnpm remove $pkg }
+        '4' { yarn remove $pkg }
+        '5' { winget uninstall $pkg }
+        '6' { choco uninstall $pkg -y }
+        '7' { scoop uninstall $pkg }
+        default { Write-Host "❌ Invalid choice." -ForegroundColor Red }
+    }
+}
+
+# --- Universal Deep System Cleaner ---
+function uc {
+    Write-Host "🧹 Universal System Cleaner..." -ForegroundColor Red
+    @("$env:TEMP", "$env:LOCALAPPDATA\Temp", "C:\Windows\Temp") | ForEach-Object {
+        if (Test-Path $_) {
+            Get-ChildItem -Path $_ -Recurse -Force -ErrorAction SilentlyContinue |
+                Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+    try { Clear-RecycleBin -Force -ErrorAction Stop } catch {}
+    ipconfig /flushdns | Out-Null
+    Write-Host "✅ Deep System Clean Complete!" -ForegroundColor Green
+}
+
+function update {
+    Write-Host "🔄 Updating system packages..." -ForegroundColor Cyan
+    if (Get-Command winget -ErrorAction SilentlyContinue) { winget upgrade --all }
+    if (Get-Command choco -ErrorAction SilentlyContinue)  { choco upgrade all -y }
+    if (Get-Command scoop -ErrorAction SilentlyContinue)  { scoop update; scoop update * }
+}
+
+# --- Universal System Updater & Maintenance Cleaner Engine ---
+function uup {
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin) {
+        Write-Host "❌ Run PowerShell as Administrator to use uup!" -ForegroundColor Red
+        return
+    }
+
+    $hasWinget = $null -ne (Get-Command winget -ErrorAction SilentlyContinue)
+    $hasChoco  = $null -ne (Get-Command choco -ErrorAction SilentlyContinue)
+    $hasScoop  = $null -ne (Get-Command scoop -ErrorAction SilentlyContinue)
+
+    $fzfExe = (Get-Command fzf -ErrorAction SilentlyContinue)?.Source
+    if (-not $fzfExe) {
+        $searchPaths = @(
+            "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\junegunn.fzf*\fzf.exe",
+            "$env:PROGRAMFILES\fzf\fzf.exe",
+            "$env:LOCALAPPDATA\fzf\fzf.exe"
+        )
+        foreach ($sp in $searchPaths) {
+            $found = Get-ChildItem -Path $sp -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) { $fzfExe = $found.FullName; break }
+        }
+    }
+
+    if (-not $fzfExe) {
+        Write-Host "🔍 fzf not found. Installing via Winget..." -ForegroundColor Yellow
+        if ($hasWinget) {
+            winget install --id junegunn.fzf -e --accept-source-agreements --accept-package-agreements
+            $fzfExe = Get-ChildItem -Path "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\junegunn.fzf*\fzf.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+        }
+    }
+
+    Clear-Host
+    Write-Host "  User: $($env:USERNAME) | OS: Windows" -ForegroundColor Cyan
+    Write-Host "  Winget: $(if($hasWinget){'✅'}else{'❌'}) | Choco: $(if($hasChoco){'✅'}else{'❌'}) | Scoop: $(if($hasScoop){'✅'}else{'❌'})" -ForegroundColor Cyan
+    Write-Host ""
+
+    $tasks = @(
+        "0. ALL_MAINTENANCE_TASKS"
+        "1. Winget_Package_Update"
+        "2. Chocolatey_Package_Update"
+        "3. Scoop_Package_Update"
+        "4. Bun_Runtime_Upgrade"
+        "5. Node.js_LTS_Sync"
+        "6. Global_NPM_Update"
+        "7. Full_System_Deep_Clean"
+    )
+
+    if ($fzfExe) {
+        $SELECTED_TASKS = $tasks | & $fzfExe --ansi --multi --height=18 --layout=reverse --border=rounded `
+            --prompt="⚡ Action: " --header="[TAB] Select | [ENTER] Execute" `
+            --color='bg+:#292e42,hl:#bb9af7,prompt:#7dcfff,pointer:#f7768e,marker:#9ece6a'
+    } else {
+        Write-Host "Available Tasks:" -ForegroundColor Yellow
+        $tasks | ForEach-Object { Write-Host "  $_" }
+        $SELECTED_TASKS = Read-Host "Enter task numbers (comma separated, or 0 for all)"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($SELECTED_TASKS)) {
+        Write-Host "❌ No tasks selected." -ForegroundColor Red
+        return
+    }
+
+    $selectedArray = @($SELECTED_TASKS -split "`n|,| " | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    if ($selectedArray -contains "0. ALL_MAINTENANCE_TASKS" -or $selectedArray -contains "0") {
+        $selectedArray = $tasks
+    }
+
+    # 1. Winget
+    if ($selectedArray -match "1") {
+        Write-Host "`n📦 [1/7] Winget Packages..." -ForegroundColor Blue
+        if ($hasWinget) { winget upgrade --all --accept-source-agreements --accept-package-agreements }
+    }
+
+    # 2. Chocolatey
+    if ($selectedArray -match "2") {
+        Write-Host "`n🍫 [2/7] Chocolatey..." -ForegroundColor Cyan
+        if ($hasChoco) { choco upgrade all -y }
+    }
+
+    # 3. Scoop
+    if ($selectedArray -match "3") {
+        Write-Host "`n🥄 [3/7] Scoop..." -ForegroundColor Magenta
+        if ($hasScoop) { scoop update; scoop update * }
+    }
+
+    # 4. Bun
+    if ($selectedArray -match "4") {
+        Write-Host "`n🥬 [4/7] Bun..." -ForegroundColor Cyan
+        if (Get-Command bun -ErrorAction SilentlyContinue) { bun upgrade }
+    }
+
+    # 5. Node.js
+    if ($selectedArray -match "5") {
+        Write-Host "`n🟢 [5/7] Node.js LTS..." -ForegroundColor Green
+        $nvmPath = "$env:NVM_HOME\nvm.exe"
+        if (-not (Test-Path $nvmPath)) { $nvmPath = "$env:APPDATA\nvm\nvm.exe" }
+        if (Test-Path $nvmPath) { & $nvmPath install lts; & $nvmPath use lts }
+    }
+
+    # 6. Global NPM
+    if ($selectedArray -match "6") {
+        Write-Host "`n✨ [6/7] NPM..." -ForegroundColor Yellow
+        if (Get-Command npm -ErrorAction SilentlyContinue) { npm install -g npm@latest }
+    }
+
+    # 7. Deep System Clean
+    if ($selectedArray -match "7") {
+        uc
+        Write-Host "  🧽 Windows Update Cache..." -ForegroundColor Cyan
+        $wuauserv = Get-Service wuauserv -ErrorAction SilentlyContinue
+        if ($wuauserv -and $wuauserv.Status -eq 'Running') {
+            Stop-Service wuauserv -Force
+            Get-ChildItem -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+            Start-Service wuauserv
+        }
+
+        Write-Host "  💿 Component Cleanup (DISM)..." -ForegroundColor Cyan
+        Dism /Online /Cleanup-Image /StartComponentCleanup
+    }
+
+    Write-Host "`n✅ MAINTENANCE COMPLETED!" -ForegroundColor Green
+}
+
+# --- CLI Tool Wrappers ---
 function bat {
-    _fb_ensure_dep "bat" "sharkdp.bat" "" ""
-    if (Get-Command bat -ErrorAction SilentlyContinue) { & (Get-Command bat -CommandType Application) $args }
+    if (Get-Command bat -ErrorAction SilentlyContinue) { command bat $args }
+    elseif (Get-Command batcat -ErrorAction SilentlyContinue) { command batcat $args }
     else { Get-Content $args }
 }
 
 function eza {
-    _fb_ensure_dep "eza" "eza-community.eza" "" ""
-    if (Get-Command eza -ErrorAction SilentlyContinue) { & (Get-Command eza -CommandType Application) $args }
+    if (Get-Command eza -ErrorAction SilentlyContinue) { command eza $args }
     else { Get-ChildItem $args }
 }
 
 function z {
-    if (-not (Get-Command zoxide -ErrorAction SilentlyContinue)) {
-        _fb_ensure_dep "zoxide" "ajeetdsouza.zoxide" "" ""
+    if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+        zoxide $args
+    } else {
+        Set-Location $args
     }
-    if (Get-Command zoxide -ErrorAction SilentlyContinue) { zoxide $args }
-    else { Set-Location $args }
 }
 
 function tree {
     if (Get-Command eza -ErrorAction SilentlyContinue) { eza --tree $args }
-    elseif (Get-Command tree -ErrorAction SilentlyContinue) { & (Get-Command tree -CommandType Application) $args }
+    elseif (Get-Command tree.com -ErrorAction SilentlyContinue) { tree.com $args }
     else { Get-ChildItem -Recurse $args }
 }
 
 function tldr {
-    _fb_ensure_dep "tldr" "tldr-pages.tldr" "" ""
-    if (Get-Command tldr -ErrorAction SilentlyContinue) { & (Get-Command tldr -CommandType Application) $args }
+    if (Get-Command tldr -ErrorAction SilentlyContinue) { command tldr $args }
+    else { Write-Host "❌ tldr is not installed." -ForegroundColor Red }
 }
 
 # ==============================================================================
-# 📖 INTERACTIVE HELP & DASHBOARD (KEEP)
+# 📦 DEV STACK ALIASES (NPM, BUN, PNPM, YARN, GIT, DOCKER, PRISMA)
 # ==============================================================================
 
-function PrintCategory {
-    param([string]$Icon, [string]$Title, [string]$Color)
-    Write-Host "  ┌─────────────────────────────────────────────────────────────────────┐" -ForegroundColor $Color
-    Write-Host "  │ $Icon  $Title" -NoNewline -ForegroundColor $Color
-    Write-Host "                                    │" -ForegroundColor $Color
-    Write-Host "  └─────────────────────────────────────────────────────────────────────┘" -ForegroundColor $Color
-}
+# --- Builtin Alias Overrides ---
+Set-Alias -Name c -Value Clear-Host
+Set-Alias -Name cls -Value Clear-Host
+Set-Alias -Name h -Value Get-History
+Set-Alias -Name gcommit -Value gwip
+Set-Alias -Name ps1rc -Value profile
 
-function PrintCmd {
-    param([string]$Cmd, [string]$Desc, [string]$Example = "", [string]$Color = "White")
-    if ([string]::IsNullOrEmpty($Example)) {
-        Write-Host ("     " + $Cmd.PadRight(15) + " │ " + $Desc) -ForegroundColor $Color
-    } else {
-        Write-Host ("     " + $Cmd.PadRight(15) + " │ " + $Desc.PadRight(35) + " " + $Example) -ForegroundColor $Color
-    }
-}
+# --- FFmedia Aliases ---
+Set-Alias -Name ffstudio -Value ffmedia
+Set-Alias -Name fftool -Value ffmedia
+Set-Alias -Name fancy_ffmpeg -Value ffmedia
+
+# --- Navigation Shortcuts ---
+function ll { Get-ChildItem $args }
+function la { Get-ChildItem -Force $args }
+function ls { Get-ChildItem $args }
+
+# --- NPM Shortcuts ---
+function ni  { npm install $args }
+function nid { npm install -D $args }
+function nr  { npm run $args }
+function nrd { npm run dev }
+function nrb { npm run build }
+function nrs { npm run start }
+function nu  { npm uninstall $args }
+function nup { npm update $args }
+function nls { npm list --depth=0 }
+function ncl { npm cache clean --force }
+
+# --- Bun Shortcuts ---
+function bi   { bun install $args }
+function br   { bun run $args }
+function brd  { bun run dev }
+function brb  { bun run build }
+function brs  { bun run start }
+function bx   { bunx $args }
+function bu   { bun remove $args }
+function html { bun run index.html }
+function w    { bun --watch $args }
+function h    { bun --hot $args }
+
+# --- PNPM Shortcuts ---
+function pi  { pnpm install $args }
+function px  { pnpm exec $args }
+function prd { pnpm run dev }
+function prb { pnpm run build }
+function prs { pnpm run start }
+
+# --- Yarn Shortcuts ---
+function yi  { yarn install $args }
+function yx  { yarn exec $args }
+function yrd { yarn dev }
+function yrb { yarn build }
+
+# --- Git Shortcuts ---
+function gi   { git init }
+function gs   { git status -sb }
+function ga   { git add . }
+function gcm  { git commit -m $args }
+function gp   { git push $args }
+function gps  { git push $args }
+function gpl  { git pull $args }
+function gl   { git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit }
+function gco  { git checkout $args }
+function gcb  { git checkout -b $args }
+function gd   { git diff $args }
+function gr   { git restore $args }
+function grh  { git reset HEAD~1 }
+function gc   { git clone $args }
+function gst  { git stash }
+function gsta { git stash apply }
+function gpop { git stash pop }
+function gfp  { git fetch --prune }
+function gb   { git branch }
+
+# --- Node/NPX Prisma ORM Shortcuts (np*) ---
+function np    { npx prisma $args }
+function npi   { npx prisma init $args }
+function npg   { npx prisma generate $args }
+function nps   { npx prisma studio $args }
+function npmd  { npx prisma migrate dev $args }
+function npmdn { npx prisma migrate dev --name $args }
+function npmr  { npx prisma migrate reset $args }
+function npmdp { npx prisma migrate deploy $args }
+function npms  { npx prisma migrate status $args }
+function npdp  { npx prisma db push $args }
+function npdl  { npx prisma db pull $args }
+function npds  { npx prisma db seed $args }
+function npf   { npx prisma format }
+function npv   { npx prisma version }
+
+# --- Bun Prisma ORM Shortcuts (bp*) ---
+function bp    { bunx prisma $args }
+function bpi   { bunx prisma init $args }
+function bpg   { bunx prisma generate $args }
+function bps   { bunx prisma studio $args }
+function bpmd  { bunx prisma migrate dev $args }
+function bpmdn { bunx prisma migrate dev --name $args }
+function bpmr  { bunx prisma migrate reset $args }
+function bpmdp { bunx prisma migrate deploy $args }
+function bpms  { bunx prisma migrate status $args }
+function bpdp  { bunx prisma db push $args }
+function bpdl  { bunx prisma db pull $args }
+function bpds  { bunx prisma db seed $args }
+function bpf   { bunx prisma format }
+function bpv   { bunx prisma version }
+
+# --- General Prisma Shortcuts ---
+function pm    { npx prisma $args }
+function pmini { npx prisma init $args }
+function pmg   { npx prisma generate $args }
+function pms   { npx prisma studio $args }
+function pmd   { npx prisma migrate dev $args }
+function pmdn  { npx prisma migrate dev --name $args }
+function pmr   { npx prisma migrate reset $args }
+function pmdp  { npx prisma migrate deploy $args }
+function pmst  { npx prisma migrate status $args }
+function pmp   { npx prisma db push $args }
+function pml   { npx prisma db pull $args }
+function pmsd  { npx prisma db seed $args }
+function pmf   { npx prisma format $args }
+function pmv   { npx prisma version $args }
+
+# --- Bun Prisma Long-form Aliases (bpm*) ---
+function bpm   { bunx prisma $args }
+function bpmini{ bunx prisma init $args }
+function bpmg  { bunx prisma generate $args }
+function bpmst { bunx prisma migrate status $args }
+function bpmmp { bunx prisma db push $args }
+function bpml  { bunx prisma db pull $args }
+function bpmsd { bunx prisma db seed $args }
+function bpmf  { bunx prisma format $args }
+function bpmv  { bunx prisma version $args }
+
+
+# --- Docker Shortcuts ---
+function d        { docker $args }
+function dps      { docker ps $args }
+function dpsa     { docker ps -a $args }
+function di       { docker images $args }
+function dpu      { docker pull $args }
+function drun     { docker run $args }
+function dex      { docker exec -it $args }
+function dstop    { docker stop $args }
+function drm      { docker rm $args }
+function drmi     { docker rmi $args }
+function dlog     { docker logs -f $args }
+function dbuild   { docker build $args }
+function dprune   { docker system prune -f }
+function dvol     { docker volume ls }
+function dnet     { docker network ls }
+function dstopall { docker stop $(docker ps -q) }
+function drmall   { docker rm $(docker ps -aq) }
+function drmiall  { docker rmi $(docker images -q) }
+
+function dbuild-nocache { docker build --no-cache $args }
+function dcdn           { docker compose down $args }
+function dclogs         { docker compose logs -f $args }
+function dcup           { docker compose up -d $args }
+function dcupb          { docker compose up -d --build $args }
+function ddisable       { Set-Service docker -StartupType Disabled }
+function denable        { Set-Service docker -StartupType Automatic }
+function dhist          { docker history $args }
+function dkill          { docker rm -f $args }
+function dlogs          { docker logs -f $args }
+function dnl            { docker network ls }
+function doff           { Stop-Service docker }
+function dports         { docker port $args }
+function drestart       { docker restart $args }
+function dsh            { docker exec -it $args }
+function dsize          { docker system df }
+function dstart         { Start-Service docker }
+function dstatus        { Get-Service docker }
+function dtest-alpine   { docker run --rm -it alpine:latest sh }
+function dtest-node     { docker run --rm -it node:alpine sh }
+function dtest-ubuntu   { docker run --rm -it ubuntu:latest bash }
+function dtop           { docker stats }
+function dvl            { docker volume ls }
+
+function sdps           { docker ps $args }
+function sdpsa          { docker ps -a $args }
+function sdi            { docker images $args }
+function sdvl           { docker volume ls }
+function sdnl           { docker network ls }
+function sdsize         { docker system df }
+function sdtop          { docker stats }
+
+# --- Docker Compose Shortcuts ---
+function dc       { docker compose $args }
+function dcu      { docker compose up $args }
+function dcud     { docker compose up -d $args }
+function dcd      { docker compose down $args }
+function dcb      { docker compose build $args }
+function dcr      { docker compose restart $args }
+function dcl      { docker compose logs -f $args }
+function dcs      { docker compose stop $args }
+function dcps     { docker compose ps $args }
+function dcpull   { docker compose pull }
+function dcexec   { docker compose exec $args }
+
+# ==============================================================================
+# 🆘 HELP DASHBOARD (`keep`)
+# ==============================================================================
 
 function keep {
     Write-Host ""
-    Write-Host "  ╔═════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "  ║                ⚡  F A N C Y B A S H   •   P O W E R S H E L L  ║" -ForegroundColor Cyan
-    Write-Host "  ║           Developer Rihad's Ultimate PowerShell Environment         ║" -ForegroundColor Cyan
-    Write-Host "  ╚═════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
-    Write-Host "    v2.0 • Modern Terminal UX • $(Get-Date -Format 'MMMM dd, yyyy')" -ForegroundColor Gray
+    Write-Host "╔════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║  🚀  MASTER COMMAND CENTER           Developer Rihad's Ultimate PowerShell║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host "  v2.0 Complete Edition • Modern Terminal UX • $(Get-Date -Format 'MMMM dd, yyyy')" -ForegroundColor Gray
     Write-Host ""
 
+    function PrintCategory {
+        param([string]$Icon, [string]$Title, [string]$Color)
+        Write-Host "  ┌─────────────────────────────────────────────────────────────────────┐" -ForegroundColor $Color
+        Write-Host "  │ $Icon  $Title" -ForegroundColor $Color -NoNewline
+        Write-Host "                                    " -ForegroundColor $Color -NoNewline
+        Write-Host "│" -ForegroundColor $Color
+        Write-Host "  └─────────────────────────────────────────────────────────────────────┘" -ForegroundColor $Color
+    }
+
+    function PrintCmd {
+        param([string]$Cmd, [string]$Desc, [string]$Example = "", [string]$Color = "White")
+        if ([string]::IsNullOrEmpty($Example)) {
+            Write-Host ("     " + $Cmd.PadRight(15) + " │ " + $Desc) -ForegroundColor $Color
+        } else {
+            Write-Host ("     " + $Cmd.PadRight(15) + " │ " + $Desc.PadRight(35) + " " + $Example) -ForegroundColor $Color
+        }
+    }
+
+    # NAVIGATION
     PrintCategory "📂" "NAVIGATION & MOVEMENT" "Cyan"
     PrintCmd ".." "Parent directory" "" "Yellow"
     PrintCmd "..." "Two levels up" "" "Yellow"
@@ -1724,6 +1862,7 @@ function keep {
     PrintCmd "drive <letter>" "Switch drive location (e.g. drive C, drive D)" "" "Yellow"
     Write-Host ""
 
+    # PACKAGE MANAGERS
     PrintCategory "📦" "PACKAGE MANAGERS (NPM & BUN)" "Green"
     PrintCmd "ni / bi" "install dependencies (npm / bun)" "" "Green"
     PrintCmd "nid / bi -d" "install dev dependency" "" "Green"
@@ -1733,13 +1872,15 @@ function keep {
     PrintCmd "uu" "Universal package remover" "" "Red"
     Write-Host ""
 
+    # PRODUCTIVITY SUITES
     PrintCategory "📝" "PRODUCTIVITY & SUITES (TODO, NOTES, FFMEDIA)" "Magenta"
     PrintCmd "todo" "Interactive Todo Task Manager" "todo | todo add | todo done" "Green"
     PrintCmd "notes" "Fuzzy Notes Manager with preview" "notes | notes add | notes search" "Magenta"
     PrintCmd "ffmedia" "FFmpeg All-in-One Multimedia Suite" "ffmedia | ffstudio | fftool" "Cyan"
     Write-Host ""
 
-    PrintCategory "⚡" "FRAMEWORK & PROJECT WIZARDS" "Yellow"
+    # FRAMEWORK INITIALIZERS
+    PrintCategory "⚡" "FRAMEWORK & PROJECT WIZARDS" "DarkYellow"
     PrintCmd "ii" "Initialize project (Bun/NPM/PNPM/Yarn + .gitignore)" "" "Green"
     PrintCmd "makecpp" "Setup C/C++ project with Makefile & git" "makecpp app cpp" "Green"
     PrintCmd "next" "Setup Next.js project" "" "Cyan"
@@ -1752,6 +1893,7 @@ function keep {
     PrintCmd "py" "Setup Python project & .venv" "" "Green"
     Write-Host ""
 
+    # GIT VERSION CONTROL
     PrintCategory "🌿" "GIT VERSION CONTROL" "Magenta"
     PrintCmd "gi" "Initialize new repository" "" "Green"
     PrintCmd "gs" "Check short status" "" "Blue"
@@ -1762,17 +1904,19 @@ function keep {
     PrintCmd "gp / gps / gpl" "Push / Pull remote changes" "" "Magenta"
     PrintCmd "gl" "View formatted git log" "" "Cyan"
     PrintCmd "gco / gcb" "Checkout / Create branch" "gco main" "Yellow"
-    PrintCmd "gd / gr / grh" "Diff / Restore / Reset HEAD~1" "" "Yellow"
+    PrintCmd "gd / gr / grh" "Diff / Restore / Reset HEAD~1" "" "DarkYellow"
     Write-Host ""
 
+    # DOCKER & PRISMA
     PrintCategory "🐳" "DOCKER & PRISMA ORM" "Blue"
-    PrintCmd "dman" "Interactive Docker Suite Dashboard" "" "Cyan"
+    PrintCmd "d / dc" "docker / docker compose wrapper" "" "Blue"
     PrintCmd "dps / di / drun" "ps / images / run container" "" "Cyan"
     PrintCmd "dcu / dcd / dcl" "compose up / down / logs" "" "Green"
     PrintCmd "dfind / droot" "search containers / root shell" "" "Yellow"
     PrintCmd "np* / bp*" "Prisma ORM via NPX or Bun" "npd (migrate dev)" "Yellow"
     Write-Host ""
 
+    # UTILITIES & SYSTEM MAINTENANCE
     PrintCategory "💻" "UTILITY TOOLS & SYSTEM CLEAN" "Cyan"
     PrintCmd "run" "Interactive TS/JS runner (bun run/hot/watch)" "" "Green"
     PrintCmd "v <dir|file>" "Interactive video finder & launcher" "v ." "Magenta"
@@ -1792,6 +1936,7 @@ function keep {
     PrintCmd "c / cls" "Clear terminal screen" "" "Gray"
     Write-Host ""
 
+    # FOOTER
     Write-Host "  ┌─────────────────────────────────────────────────────────────────────┐" -ForegroundColor Magenta
     Write-Host "  │ ✨ PRO TIPS:                                                        │" -ForegroundColor Magenta
     Write-Host "  │   • Use Tab for command auto-completion                             │" -ForegroundColor Magenta
@@ -1800,8 +1945,6 @@ function keep {
     Write-Host "  └─────────────────────────────────────────────────────────────────────┘" -ForegroundColor Magenta
     Write-Host ""
 }
-
-function help { keep }
 
 # ==============================================================================
 # End of config.ps1
