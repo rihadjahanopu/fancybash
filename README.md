@@ -181,6 +181,10 @@ source ~/.zshrc
 
 # For PowerShell:
 .\install.bat
+
+# For Fish:
+cat config.fish >> ~/.config/fish/config.fish
+source ~/.config/fish/config.fish
 ```
 
 ---
@@ -191,7 +195,7 @@ Cleanly removes **only** the fancybash block from your config file, leaving the 
 
 ### Universal Dynamic Uninstaller (Recommended)
 
-Automatically detects your OS (Linux/macOS) and shell configuration (`.bashrc` / `.zshrc`):
+Automatically detects your OS (Linux/macOS) and shell configuration (`.bashrc` / `.zshrc` / `.config/fish/config.fish`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/u.sh | bash
@@ -219,6 +223,12 @@ curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/
   ```zsh
   sed -i '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
   ```
+
+**For Fish:**
+
+```fish
+fish <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.fish)
+```
 - **macOS (BSD):**
   ```zsh
   sed -i '' '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
