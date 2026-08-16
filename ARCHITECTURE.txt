@@ -183,6 +183,7 @@ fancybash/
 ├── .vscode/                ← VS Code workspace settings
 ├── README.md               ← Full user-facing documentation (796 lines)
 ├── ARCHITECTURE.txt        ← THIS FILE — contributor architecture guide
+├── DSA.md                 ← Advanced Data Structures, Algorithms & Systems Manual
 └── LICENSE                 ← MIT License
 
 

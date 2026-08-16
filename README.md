@@ -685,6 +685,7 @@ fancybash/
 │
 ├── README.md               # User-facing documentation (you are here)
 ├── ARCHITECTURE.txt        # Contributor system design & code map
+├── DSA.md                 # Data structures, algorithms & performance manual
 ├── CONTRIBUTING.md         # How to contribute — workflow, standards, PR guide
 ├── CHANGELOG.md            # Version history — all notable changes per release
 ├── SECURITY.md             # Vulnerability reporting policy & scope
