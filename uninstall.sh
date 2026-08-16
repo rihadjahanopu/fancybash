@@ -17,14 +17,14 @@ CYAN='\033[38;2;148;226;213m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-echo -e ""
-echo -e "${PURPLE}          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗${NC}"
-echo -e "${PURPLE}          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║${NC}"
-echo -e "${CYAN}          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║${NC}"
-echo -e "${CYAN}          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║${NC}"
-echo -e "${BLUE}          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║${NC}"
-echo -e "${BLUE}          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝${NC}"
-echo -e ""
+printf "\n"
+printf "${PURPLE}          ███████╗ █████╗ ███╗   ██╗ ██████╗██╗   ██╗██████╗  █████╗ ███████╗██╗  ██╗${NC}\n"
+printf "${PURPLE}          ██╔════╝██╔══██╗████╗  ██║██╔════╝╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║${NC}\n"
+printf "${CYAN}          █████╗  ███████║██╔██╗ ██║██║      ╚████╔╝ ██████╔╝███████║███████╗███████║${NC}\n"
+printf "${CYAN}          ██╔══╝  ██╔══██║██║╚██╗██║██║       ╚██╔╝  ██╔══██╗██╔══██║╚════██║██╔══██║${NC}\n"
+printf "${BLUE}          ██║     ██║  ██║██║ ╚████║╚██████╗   ██║   ██████╔╝██║  ██║███████║██║  ██║${NC}\n"
+printf "${BLUE}          ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝${NC}\n"
+printf "\n"
 printf "   ${BOLD}${RED}🗑️  fancybash Universal Uninstaller${NC}\n"
 printf "   ${CYAN}─────────────────────────────────────────────────────────────────${NC}\n\n"
 
@@ -94,13 +94,22 @@ printf "${CYAN}─────────────────────�
 if [ "$removed_any" = true ]; then
     printf "${GREEN}${BOLD}✨ fancybash has been successfully uninstalled!${NC}\n"
     printf "   To apply changes to your current session, run:\n\n"
-    if [ -n "${ZSH_VERSION:-}" ] || [ "${SHELL:-}" = "*/zsh" ]; then
-        printf "   ${BOLD}source ~/.zshrc${NC}\n\n"
-    elif [ -n "${FISH_VERSION:-}" ] || [ "${SHELL:-}" = "*/fish" ]; then
-        printf "   ${BOLD}source ~/.config/fish/config.fish${NC}\n\n"
-    else
-        printf "   ${BOLD}source ~/.bashrc${NC}\n\n"
+    # Detect shell from env var (set by u.sh), then ZSH_VERSION/FISH_VERSION, then $SHELL basename
+    _detected_shell="${FANCYBASH_SHELL:-}"
+    if [ -z "$_detected_shell" ]; then
+        if [ -n "${ZSH_VERSION:-}" ]; then
+            _detected_shell="zsh"
+        elif [ -n "${FISH_VERSION:-}" ]; then
+            _detected_shell="fish"
+        else
+            _detected_shell="$(basename "${SHELL:-bash}")"
+        fi
     fi
+    case "$_detected_shell" in
+        zsh)  printf "   ${BOLD}source ~/.zshrc${NC}\n\n" ;;
+        fish) printf "   ${BOLD}source ~/.config/fish/config.fish${NC}\n\n" ;;
+        *)    printf "   ${BOLD}source ~/.bashrc${NC}\n\n" ;;
+    esac
 else
     printf "${CYAN}ℹ No fancybash installation blocks were found in ~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish.${NC}\n\n"
 fi
