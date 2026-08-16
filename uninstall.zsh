@@ -197,8 +197,8 @@ remove_block() {
 }
 
 # ─── Perform Removal (all shells) ────────────────────────────────────────────
-remove_block "$HOME/.zshrc"                    "# >>> fancy-zshrc >>>"  "# <<< fancy-zshrc <<<"  "Zsh"
-remove_block "$HOME/.bashrc"                   "# >>> fancy-bashrc >>>" "# <<< fancy-bashrc <<<" "Bash"
+remove_block "$HOME/.bashrc" "# >>> fancy-bashrc >>>" "# <<< fancy-bashrc <<<" "Bash"
+remove_block "$HOME/.zshrc" "# >>> fancy-zshrc >>>" "# <<< fancy-zshrc <<<" "Zsh"
 remove_block "$HOME/.config/fish/config.fish" "# >>> fancy-fishrc >>>" "# <<< fancy-fishrc <<<" "Fish"
 
 printf "${CYAN}──────────────────────────────────────────${NC}\n"
