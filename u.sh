@@ -45,6 +45,7 @@ fi
 case "${PARENT_CMD:-}" in
     zsh)  USER_SHELL="zsh"  ;;
     bash) USER_SHELL="bash" ;;
+    fish) USER_SHELL="fish" ;;
 esac
 
 # ── 2nd: $SHELL env var ───────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ if [ -z "$USER_SHELL" ] && [ -n "${SHELL:-}" ]; then
     case "$(basename "$SHELL")" in
         zsh)  USER_SHELL="zsh"  ;;
         bash) USER_SHELL="bash" ;;
+        fish) USER_SHELL="fish" ;;
     esac
 fi
 
@@ -61,6 +63,8 @@ if [ -z "$USER_SHELL" ]; then
         USER_SHELL="zsh"
     elif [ -n "${BASH_VERSION:-}" ]; then
         USER_SHELL="bash"
+    elif [ -n "${FISH_VERSION:-}" ]; then
+        USER_SHELL="fish"
     fi
 fi
 
@@ -119,6 +123,13 @@ case "$USER_SHELL" in
             run_uninstaller "uninstall.zsh" "zsh"
         else
             run_uninstaller "uninstall.sh" "zsh"
+        fi
+        ;;
+    fish)
+        if [ -f "$SCRIPT_DIR/uninstall.fish" ] && command -v fish &>/dev/null; then
+            run_uninstaller "uninstall.fish" "fish"
+        else
+            run_uninstaller "uninstall.sh" "bash"
         fi
         ;;
     *)
