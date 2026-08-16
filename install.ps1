@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 #   F A N C Y B A S H  •  PowerShell Config Installer (install.ps1)
 #   Author: [Rihad Jahan Opu]
 #   Supports: Windows PowerShell 5.1+, PowerShell Core 7+
@@ -152,8 +152,9 @@ $missing = @('git','fzf','gum','glow','bat','zoxide') | Where-Object {
 if ($missing.Count -gt 0) {
     Write-Host "  ${YLW}⚠️  Missing tools: $($missing -join ', ')${NC}"
     if (Get-Command winget -ErrorAction SilentlyContinue) {
-        $ans = Read-Host "  👉 Auto-install via Winget + Cascadia Code font? [Y/n]"
-        if ($ans -notmatch '^[nN]') {
+        $ans = Read-Host "  👉 Auto-install missing dependencies via Winget + Cascadia Code font and proceed? [Y/n]"
+        $ansNorm = if ($ans) { $ans.Trim().ToLower() } else { "y" }
+        if ($ansNorm -eq "" -or $ansNorm -eq "y" -or $ansNorm -eq "yes") {
             $wingetIds = @{
                 git    = 'Git.Git'
                 fzf    = 'junegunn.fzf'
@@ -168,6 +169,9 @@ if ($missing.Count -gt 0) {
             }
             Write-Host "  🎨 Installing Cascadia Code font..." -ForegroundColor Cyan
             winget install --id Microsoft.CascadiaCode -e --accept-source-agreements --accept-package-agreements --silent 2>$null
+        } else {
+            Write-Host "  ${YLW}⚠️  Installation cancelled by user. No changes were made.${NC}"
+            exit 0
         }
     } else {
         Write-Host "  ${DIM}💡 Winget not found. Install manually: https://scoop.sh or https://chocolatey.org${NC}"

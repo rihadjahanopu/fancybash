@@ -176,19 +176,24 @@ check_and_install_fonts() {
     # Interactive Prompt
     echo ""
     printf "${YELLOW}  ❯ Missing components detected (${missing_deps[*]}).${NC}\n"
-    printf "    Would you like to auto-install them? [${GREEN}Y${NC}/n]: "
+    printf "    Would you like to auto-install missing dependencies and proceed? [${GREEN}Y${NC}/n]: "
 
     # Read from /dev/tty safely for curl piped scripts
-    local response="y"
+    local response=""
     if [ -t 0 ]; then
-        read -r response
+        read -r response || response=""
     elif [ -c /dev/tty ]; then
-        read -r response < /dev/tty || response="y"
+        read -r response < /dev/tty || response=""
     fi
 
-    if [[ "$response" =~ ^([nN][oO]|[nN])$ ]]; then
-        printf "  ${YELLOW}⚠ Skipped installation.${NC}\n"
-        return 0
+    response="$(echo "$response" | tr '[:upper:]' '[:lower:]' | xargs 2>/dev/null || echo "$response")"
+    if [ -z "$response" ]; then
+        response="y"
+    fi
+
+    if [[ "$response" != "y" && "$response" != "yes" ]]; then
+        printf "  ${YELLOW}⚠ Installation cancelled by user. No changes were made.${NC}\n\n"
+        return 1
     fi
 
     local pm=$(detect_pm)
@@ -408,7 +413,9 @@ main() {
     show_sysinfo
 
     draw_progress_bar 1 6
-    check_and_install_fonts
+    if ! check_and_install_fonts; then
+        exit 0
+    fi
 
     draw_progress_bar 2 6
     setup_fontconfig

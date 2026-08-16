@@ -166,20 +166,26 @@ function check_and_install_fonts
     # Interactive Prompt (Safely read from /dev/tty if piped)
     echo ""
     printf "{$YELLOW}  ❯ Missing components detected ($missing_deps).{$NC}\n"
-    printf "    Would you like to auto-install them? [{$GREEN}Y{$NC}/n]: "
+    printf "    Would you like to auto-install missing dependencies and proceed? [{$GREEN}Y{$NC}/n]: "
 
-    set -l response "y"
+    set -l response ""
     if isatty stdin
         read -l input_resp
-        test -n "$input_resp"; and set response "$input_resp"
+        set response "$input_resp"
     else if test -c /dev/tty
-        read -l input_resp < /dev/tty 2>/dev/null; and set response "$input_resp"; or set response "y"
+        read -l input_resp < /dev/tty 2>/dev/null
+        set response "$input_resp"
     end
 
+    set response (string lower (string trim -- "$response"))
+    test -z "$response"; and set response "y"
+
     switch "$response"
-        case "n" "N" "no" "NO"
-            printf "  {$YELLOW}⚠ Skipped installation.{$NC}\n"
-            return 0
+        case "y" "yes"
+            # proceed with installation
+        case "*"
+            printf "  {$YELLOW}⚠ Installation cancelled by user. No changes were made.{$NC}\n\n"
+            return 1
     end
 
     set -l pm (detect_pm)
@@ -358,7 +364,9 @@ show_header
 show_sysinfo
 
 draw_progress_bar 1 5
-check_and_install_fonts
+if not check_and_install_fonts
+    exit 0
+end
 
 draw_progress_bar 2 5
 setup_fontconfig
