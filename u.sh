@@ -129,7 +129,7 @@ case "$USER_SHELL" in
         if [ -f "$SCRIPT_DIR/uninstall.fish" ] && command -v fish &>/dev/null; then
             run_uninstaller "uninstall.fish" "fish"
         else
-            run_uninstaller "uninstall.sh" "bash"
+            run_uninstaller "uninstall.sh" "fish"
         fi
         ;;
     *)
