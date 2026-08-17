@@ -1053,6 +1053,7 @@ function gwip {
             TYPE_PREFIX="$CUSTOM_NAME"
         else
             TYPE_PREFIX=$(echo "$TYPE" | awk '{print $1 " " $2}')
+            TYPE_PREFIX="${TYPE_PREFIX%:}"
         fi
 
         # 3. Input Commit Message

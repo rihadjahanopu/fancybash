@@ -813,7 +813,7 @@ function gwip
             [ -z "$CUSTOM_NAME" ] && { echo "⚠️ Commit cancelled (no name given)."; return 0; }
             TYPE_PREFIX="$CUSTOM_NAME"
         else
-            TYPE_PREFIX=(echo "$TYPE" | awk '{print $argv[1] " " $argv[2]}')
+            set TYPE_PREFIX (echo "$TYPE" | awk '{print $1 " " $2}' | string replace -r ':$' '')
         end
 
         # 3. Input Commit Message

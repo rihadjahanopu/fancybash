@@ -923,6 +923,8 @@ function gwip {
         $msg = Read-Host "📝 Enter commit message [Enter for timestamp default]"
     }
 
+    if ($prefix) { $prefix = $prefix.TrimEnd(':') }
+
     if ([string]::IsNullOrWhiteSpace($msg)) {
         $finalMsg = "$prefix: Save point ($(Get-Date -Format 'yyyy-MM-dd HH:mm'))"
     } else {
