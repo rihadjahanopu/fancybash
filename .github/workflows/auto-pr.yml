@@ -2,22 +2,20 @@ name: Auto Create Pull Request
 
 on:
   push:
-    branches:
-      - 'dev'
-      - 'feat/**'
-      - 'fix/**'
-      - 'chore/**'
-      - 'docs/**'
-      - 'refactor/**'
-      - 'ci/**'
-      - 'perf/**'
+    branches-ignore:
+      - 'main'
+
+concurrency:
+  group: auto-pr-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   auto-create-pr:
     name: Create Pull Request
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
@@ -30,17 +28,39 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          # Ensure execution is on a valid branch ref
+          if [[ "$GITHUB_REF" != refs/heads/* ]]; then
+            echo "ℹ️ Ref '$GITHUB_REF' is not a head branch. Skipping."
+            exit 0
+          fi
+
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          if [ "$BRANCH_NAME" = "main" ]; then
+            echo "ℹ️ Current branch is main. Skipping."
+            exit 0
+          fi
+
+          # Verify that main branch exists locally for comparison
+          git fetch origin main:main --quiet || true
+
+          # Check if there are any commits on this branch ahead of main
+          AHEAD_COUNT=$(git rev-list --count main..HEAD 2>/dev/null || echo "1")
+          if [ "$AHEAD_COUNT" -eq 0 ]; then
+            echo "ℹ️ Branch '$BRANCH_NAME' has no new commits ahead of 'main'. Skipping PR creation."
+            exit 0
+          fi
 
           # Check if an OPEN Pull Request already exists for this branch
-          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --base main --state open --json number --jq '.[0].number')
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --base main --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
           if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
             echo "ℹ️ Open Pull Request #$EXISTING_PR already exists for branch '$BRANCH_NAME'. Skipping."
             exit 0
           fi
 
           # Get latest commit message subject for PR title
-          PR_TITLE=$(git log -1 --pretty=format:"%s")
+          PR_TITLE=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "Merge $BRANCH_NAME into main")
           if [ -z "$PR_TITLE" ]; then
             PR_TITLE="Merge $BRANCH_NAME into main"
           fi
@@ -83,8 +103,12 @@ jobs:
             --base main \
             --head "$BRANCH_NAME" \
             --title "$PR_TITLE" \
-            "${BODY_ARG[@]}"
+            "${BODY_ARG[@]}" || {
+              echo "⚠️ Could not create PR via GitHub CLI. Continuing."
+              exit 0
+            }
 
-          echo "⚡ Automatically merging PR for '$BRANCH_NAME'..."
+          echo "⚡ Attempting automatic merge for '$BRANCH_NAME'..."
           gh pr merge "$BRANCH_NAME" --squash --delete-branch || \
-          gh pr merge "$BRANCH_NAME" --auto --squash || true
+          gh pr merge "$BRANCH_NAME" --auto --squash || \
+          echo "ℹ️ PR created, but auto-merge requires maintainer approval or CI status check."
