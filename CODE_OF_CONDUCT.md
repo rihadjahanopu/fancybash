@@ -57,19 +57,23 @@ All complaints will be reviewed and investigated promptly and fairly. The mainta
 Maintainers will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
 
 ### 1. 💬 Correction
-**Impact:** Use of inappropriate language or other behavior deemed unprofessional.  
+
+**Impact:** Use of inappropriate language or other behavior deemed unprofessional.
 **Consequence:** A private, written warning providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate.
 
 ### 2. ⚠️ Warning
-**Impact:** A violation through a single incident or series of actions.  
+
+**Impact:** A violation through a single incident or series of actions.
 **Consequence:** A warning with consequences for continued behavior. No interaction with the people involved for a specified period of time.
 
 ### 3. 🚫 Temporary Ban
-**Impact:** A serious violation of community standards.  
+
+**Impact:** A serious violation of community standards.
 **Consequence:** A temporary ban from any sort of interaction or public communication with the community for a specified period of time.
 
 ### 4. ❌ Permanent Ban
-**Impact:** Demonstrating a pattern of violation of community standards, or harassment of an individual.  
+
+**Impact:** Demonstrating a pattern of violation of community standards, or harassment of an individual.
 **Consequence:** A permanent ban from any sort of public interaction within the community.
 
 ---
