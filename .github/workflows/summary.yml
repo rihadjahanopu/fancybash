@@ -23,7 +23,7 @@ jobs:
 
       - name: Run AI inference
         id: inference
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@v3
         continue-on-error: true
         with:
           prompt: |
