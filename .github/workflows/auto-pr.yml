@@ -3,6 +3,7 @@ name: Auto Create Pull Request
 on:
   push:
     branches:
+      - 'dev'
       - 'feat/**'
       - 'fix/**'
       - 'chore/**'
@@ -46,6 +47,7 @@ jobs:
           # Determine initial label based on branch prefix
           PREFIX="${BRANCH_NAME%%/*}"
           case "$PREFIX" in
+            dev)      LABEL="enhancement" ;;
             feat)     LABEL="enhancement" ;;
             fix)      LABEL="bug" ;;
             docs)     LABEL="documentation" ;;
