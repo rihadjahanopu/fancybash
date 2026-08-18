@@ -77,4 +77,9 @@ jobs:
             --head "$BRANCH_NAME" \
             --title "$PR_TITLE" \
             "${BODY_ARG[@]}" \
-            "${LABEL_ARG[@]}"
+            "${LABEL_ARG[@]}" || \
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "$PR_TITLE" \
+            "${BODY_ARG[@]}"
