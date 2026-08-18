@@ -665,27 +665,47 @@ fancybash/
 │
 ├── config.sh               # ★ Bash configuration — aliases, prompt, functions
 ├── config.zsh              # ★ Zsh configuration — full port of config.sh
-├── config.ps1              # ★ PowerShell configuration (in progress)
+├── config.fish             # ★ Fish configuration — full port of config.sh
+├── config.ps1              # ★ PowerShell configuration
 │
 ├── install.sh              # Bash installer — spinner, backup, idempotency guard
 ├── install.zsh             # Zsh installer — same logic, targets ~/.zshrc
+├── install.fish            # Fish installer — targets ~/.config/fish/config.fish
 ├── install.ps1             # PowerShell installer — targets $PROFILE
-├── i.ps1                   # Universal Windows installer — auto-detects PS terminal vs CMD
+├── install.bat             # Windows batch launcher — downloads & runs install.ps1
+├── i.sh                    # Universal Linux/macOS installer — auto-detects shell
+├── i.ps1                   # Universal Windows installer — auto-detects PS vs CMD
 │
 ├── u.sh                    # Universal uninstaller (Linux/macOS) — auto-detects shell
-├── uninstall.sh            # Bash/Zsh uninstaller — removes fancybash block
-├── uninstall.ps1           # PowerShell uninstaller — removes fancybash block from $PROFILE
+├── uninstall.sh            # Bash uninstaller — removes fancybash block
+├── uninstall.zsh           # Zsh uninstaller — removes fancybash block from ~/.zshrc
+├── uninstall.fish          # Fish uninstaller — removes fancybash block from config.fish
+├── uninstall.ps1           # PowerShell uninstaller — removes block from $PROFILE
 │
 ├── web/                    # Static website (fancybash.netlify.app)
-│   ├── index.html          #   Landing page (all-in-one, ~76KB)
+│   ├── index.html          #   Landing page (all-in-one)
 │   ├── style.css           #   Design system — glassmorphism, dark theme
 │   ├── main.js             #   Tabs, copy buttons, scroll animations
 │   ├── linux-setup.html    #   Linux App Ecosystem sub-page
 │   ├── linux-setup.css     #   Styles for linux-setup page
-│   └── linux-setup.js      #   Search & filter logic for app browser
+│   ├── linux-setup.js      #   Search & filter logic for app browser
+│   ├── favicon.svg         #   SVG favicon (scalable)
+│   ├── favicon.ico         #   Legacy favicon
+│   ├── favicon.png         #   PNG favicon
+│   ├── favicon-16x16.png   #   16px favicon for browser tabs
+│   ├── favicon-32x32.png   #   32px favicon for browser tabs
+│   ├── apple-touch-icon.png#   iOS home screen icon
+│   ├── og-image.png        #   Open Graph / social media preview image
+│   ├── ascii-logo.png      #   ASCII art logo image asset
+│   ├── robots.txt          #   Search engine crawl rules
+│   └── sitemap.xml         #   XML sitemap for SEO
 │
 ├── zed/
 │   └── install-settings.sh #   Zed IDE settings installer (Flatpak + native)
+│
+├── .vscode/
+│   ├── settings.json       #   Workspace editor settings
+│   └── extensions.json     #   Recommended VS Code extensions
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
@@ -693,18 +713,27 @@ fancybash/
 │   │   ├── feature_request.md     # Feature request form
 │   │   └── documentation.md       # Documentation issue form
 │   ├── PULL_REQUEST_TEMPLATE.md   # PR checklist for contributors
+│   ├── CODEOWNERS                 # Auto-assign reviewers per file/path
+│   ├── FUNDING.yml                # GitHub Sponsors & Ko-fi button config
+│   ├── dependabot.yml             # Monthly auto-update for GitHub Actions
+│   ├── labeler.yml                # Path-based auto-label rules (bash/zsh/fish/web/docs)
 │   └── workflows/
-│       ├── label.yml              # Auto-labeler for pull requests
-│       └── summary.yml            # PR/issue summary automation
+│       ├── greetings.yml          # Auto-greet first-time contributors
+│       ├── label.yml              # Auto-labeler for pull requests (labeler@v5)
+│       ├── shellcheck.yml         # CI — lint all shell scripts on push/PR
+│       ├── stale.yml              # Auto-close inactive issues (60d) & PRs (30d)
+│       └── summary.yml            # AI summary comment on new issues
 │
 ├── README.md               # User-facing documentation (you are here)
+├── wiki.md                 # Extended wiki & deep-dive reference
 ├── ARCHITECTURE.txt        # Contributor system design & code map
-├── DSA.md                 # Data structures, algorithms & performance manual
+├── DSA.md                  # Data structures, algorithms & performance manual
 ├── CONTRIBUTING.md         # How to contribute — workflow, standards, PR guide
 ├── CHANGELOG.md            # Version history — all notable changes per release
 ├── SECURITY.md             # Vulnerability reporting policy & scope
 ├── CODE_OF_CONDUCT.md      # Community behavior standards
 ├── LICENSE                 # MIT — free to use, fork, and modify
+├── .editorconfig           # Consistent editor settings (indent, charset, newlines)
 ├── .prettierrc             # Prettier config for web/ files
 └── .prettierignore         # Files excluded from Prettier formatting
 ```

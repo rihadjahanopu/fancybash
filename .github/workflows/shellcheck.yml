@@ -1,0 +1,52 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.sh"
+      - "**.zsh"
+      - "**.fish"
+      - "**.ps1"
+      - "**.bat"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**.sh"
+      - "**.zsh"
+      - "**.fish"
+      - "**.ps1"
+      - "**.bat"
+
+jobs:
+  shellcheck:
+    name: Lint Shell Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on Bash scripts
+        run: |
+          echo "🔍 Checking Bash scripts..."
+          shellcheck --severity=warning \
+            config.sh \
+            install.sh \
+            uninstall.sh \
+            i.sh \
+            u.sh \
+            zed/install-settings.sh
+          echo "✅ Bash scripts passed ShellCheck"
+
+      - name: Run ShellCheck on Zsh scripts
+        run: |
+          echo "🔍 Checking Zsh scripts (as bash-compatible)..."
+          shellcheck --shell=bash --severity=warning \
+            config.zsh \
+            install.zsh \
+            uninstall.zsh
+          echo "✅ Zsh scripts passed ShellCheck"
