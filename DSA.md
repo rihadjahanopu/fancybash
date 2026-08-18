@@ -1,4 +1,4 @@
-# 📊 fancybash — Advanced Data Structures, Algorithms & Architecture Manual
+# 📊 fancybash — Advanced Data Structures, Algorithms & Architecture Manual and Documentation
 
 > **Enterprise Technical Specification Document (v2.0):** A comprehensive deep-dive into the Data Structures, Algorithmic Paradigms, Systems Architecture, and Design Patterns implemented across the `fancybash` shell framework, installer layer, and web ecosystem. Built for senior software architects, core maintainers, and open-source engineers worldwide.
 
@@ -67,8 +67,8 @@ flowchart TB
 
 `fancybash` uses a **Monolithic Source Pattern**. All aliases, prompt engines, system monitors, and interactive utilities reside in a single file (`config.sh` or `config.zsh`).
 
-* **Design Trade-off:** Sacrifices multi-file module separation to achieve **maximum execution speed**.
-* **Startup Benchmarks:** Eliminates multi-file `source` disk I/O hits, maintaining shell initialization time at $< 8\text{ms}$.
+- **Design Trade-off:** Sacrifices multi-file module separation to achieve **maximum execution speed**.
+- **Startup Benchmarks:** Eliminates multi-file `source` disk I/O hits, maintaining shell initialization time at $< 8\text{ms}$.
 
 ### 2.2 Idempotency & Boundary Delimiter Engine
 
@@ -99,14 +99,14 @@ Long-running system maintenance tools like `uup` (Universal Package Updater) uti
 sudo -v || return
 
 # Launch background subshell heartbeat daemon bound to Parent PID ($$)
-( while true; do 
-    sudo -n true; 
-    sleep 60; 
-    kill -0 "$$" || exit; 
+( while true; do
+    sudo -n true;
+    sleep 60;
+    kill -0 "$$" || exit;
   done 2>/dev/null & )
 ```
 
-* **Process Synchronization:** The worker loop checks `kill -0 "$$"`. If the parent terminal process exits or terminates, the heartbeat subshell immediately self-terminates (`exit`), preventing orphan background processes.
+- **Process Synchronization:** The worker loop checks `kill -0 "$$"`. If the parent terminal process exits or terminates, the heartbeat subshell immediately self-terminates (`exit`), preventing orphan background processes.
 
 ### 2.4 Dynamic Dependency Injection & Fallback Matrix (`_fb_ensure_dep`)
 
@@ -137,29 +137,29 @@ _fb_ensure_dep() {
 
 ### 3.1 Contiguous & Indexed Arrays
 
-* **Shell Indexed Arrays (`config.sh` / `config.zsh`):**
-  * `rainbow_colors=(31 32 33 34 35 36 91 92 93 94 95 96)` — 1D contiguous array storing ANSI escape sequence color values.
-  * `emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)` — Dynamic icon array for prompt rendering.
-* **JavaScript Object Arrays (`web/linux-setup.js`):**
-  * Contiguous memory representation of ecosystem metadata entities (`const apps = [...]`).
+- **Shell Indexed Arrays (`config.sh` / `config.zsh`):**
+  - `rainbow_colors=(31 32 33 34 35 36 91 92 93 94 95 96)` — 1D contiguous array storing ANSI escape sequence color values.
+  - `emojis=(🔥 ⚡️ 🚀 💫 🌈 🌀 ✨ 🧠)` — Dynamic icon array for prompt rendering.
+- **JavaScript Object Arrays (`web/linux-setup.js`):**
+  - Contiguous memory representation of ecosystem metadata entities (`const apps = [...]`).
 
 ### 3.2 Associative Structures, Hash Maps & JSON Schemas
 
-* **JavaScript Key-Value Entities:** Objects storing component properties for direct attribute lookup.
-* **Environment Map (POSIX Table):** Shell environment memory namespace mapping keys to values (`export KEY=VALUE`).
-* **JSON Configuration Mappings (`zed/install-settings.sh`, `.vscode/settings.json`):** Key-value state tree consumed by modern IDE LSPs.
+- **JavaScript Key-Value Entities:** Objects storing component properties for direct attribute lookup.
+- **Environment Map (POSIX Table):** Shell environment memory namespace mapping keys to values (`export KEY=VALUE`).
+- **JSON Configuration Mappings (`zed/install-settings.sh`, `.vscode/settings.json`):** Key-value state tree consumed by modern IDE LSPs.
 
 ### 3.3 FIFO Kernel Streams, I/O Buffers & History Queue
 
-* **Dynamic PS1 Line Buffer:** String concatenation buffer evaluated on every shell newline return.
-* **UNIX FIFO Kernel Streams:** Pipeline buffers (`STDIN`/`STDOUT`/`STDERR`) passing output across kernel process boundaries (`ps aux | grep | awk`).
-* **Circular Command History Queue:** Memory & disk circular queue (`HISTFILE`, `HISTSIZE=10000`) maintaining command sequence logs.
+- **Dynamic PS1 Line Buffer:** String concatenation buffer evaluated on every shell newline return.
+- **UNIX FIFO Kernel Streams:** Pipeline buffers (`STDIN`/`STDOUT`/`STDERR`) passing output across kernel process boundaries (`ps aux | grep | awk`).
+- **Circular Command History Queue:** Memory & disk circular queue (`HISTFILE`, `HISTSIZE=10000`) maintaining command sequence logs.
 
 ### 3.4 Stack Models (LIFO Execution & Directory Stacks)
 
-* **Directory Stack (`pushd` / `popd` / `dirs`):** LIFO stack managing working directory pushes and pops.
-* **Git Stash Stack (`git stash` / `gsta` / `gpop`):** Stack structure storing uncommitted working tree states.
-* **Call Stack:** Runtime call stack evaluating shell functions and JS browser event loops.
+- **Directory Stack (`pushd` / `popd` / `dirs`):** LIFO stack managing working directory pushes and pops.
+- **Git Stash Stack (`git stash` / `gsta` / `gpop`):** Stack structure storing uncommitted working tree states.
+- **Call Stack:** Runtime call stack evaluating shell functions and JS browser event loops.
 
 ### 3.5 Hierarchical Graph Structures (File Trees, OS PIDs, Git DAG, DOM)
 
@@ -189,7 +189,7 @@ Interactive components (`fkill`, `fcd`, `uup`, `uu`, `dman`) leverage the `fzf` 
 Score(Pattern, Target) = Max Alignment Score with Keystroke Distance Penalties
 ```
 
-* **Process Termination (`fkill`):**
+- **Process Termination (`fkill`):**
   ```bash
   ps aux | fzf --header='Select process to KILL' | awk '{print $2}' | xargs sudo kill -9
   ```
@@ -199,10 +199,10 @@ Score(Pattern, Target) = Max Alignment Score with Keystroke Distance Penalties
 
 System metrics are computed via direct stream extraction:
 
-* **RAM Memory Allocation (`sys_info`):**
+- **RAM Memory Allocation (`sys_info`):**
   Reads `/proc/meminfo` and evaluates used memory:
   $$\text{RAM}_{\text{used}} = \frac{\text{MemTotal} - \text{MemAvailable}}{1024} \quad [\text{MB}]$$
-* **Thermal Evaluation (`cpu_temp`):**
+- **Thermal Evaluation (`cpu_temp`):**
   Parses sysfs thermal zones (`/sys/class/thermal/thermal_zone0/temp`) with conditional color threshold evaluation:
   $$\text{Color}(T) = \begin{cases} \text{ANSI Red (91m)}, & \text{if } T > 70^\circ\text{C} \\ \text{ANSI Yellow (93m)}, & \text{if } 55^\circ\text{C} < T \le 70^\circ\text{C} \\ \text{ANSI Green (92m)}, & \text{otherwise} \end{cases}$$
 
@@ -229,7 +229,7 @@ function get_duration {
 }
 ```
 
-* **Execution Trace:**
+- **Execution Trace:**
   1. `DEBUG` trap hooks execution onset $\implies T_{\text{start}} = \text{\$SECONDS}$.
   2. Prompt evaluation triggers $get\_duration \implies \Delta T = T_{\text{current}} - T_{\text{start}}$.
   3. If $\Delta T \ge 1$, duration telemetry badge is appended to $PS1$.
@@ -239,17 +239,18 @@ function get_duration {
 In `web/linux-setup.js`, search matching is executed via a multi-predicate linear search:
 
 ```javascript
-const filteredApps = apps.filter(app => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = app.name.toLowerCase().includes(query) || 
-                          app.desc.toLowerCase().includes(query) ||
-                          app.category.toLowerCase().includes(query);
-    const matchesCategory = currentFilter === 'all' || app.category === currentFilter;
-    return matchesSearch && matchesCategory;
+const filteredApps = apps.filter((app) => {
+  const query = searchQuery.toLowerCase();
+  const matchesSearch =
+    app.name.toLowerCase().includes(query) ||
+    app.desc.toLowerCase().includes(query) ||
+    app.category.toLowerCase().includes(query);
+  const matchesCategory = currentFilter === 'all' || app.category === currentFilter;
+  return matchesSearch && matchesCategory;
 });
 ```
 
-* **Clipboard Fallback Algorithm (`web/main.js`):**
+- **Clipboard Fallback Algorithm (`web/main.js`):**
   Uses asynchronous `navigator.clipboard.writeText()` with a fallback to transient DOM `textarea` creation and `document.execCommand('copy')` for legacy browser runtime engines.
 
 ### 4.6 Cross-Platform Stream Transformation Abstraction (`_fb_sed_i`)
@@ -272,28 +273,28 @@ _fb_sed_i() {
 
 `fancybash` incorporates full-featured Terminal User Interface (TUI) dashboards using `gum` and `fzf`:
 
-* **`dman()` — Docker Desktop TUI Controller:**
+- **`dman()` — Docker Desktop TUI Controller:**
   Provides container state management, live log streaming previews, CPU/RAM resource updating, volume inspecting, network management, and context switching within a reactive loop.
-* **`uup()` — Universal Package Updater:**
+- **`uup()` — Universal Package Updater:**
   Displays a multi-select interactive checklist for OS packages (`apt`/`pacman`/`dnf`), Snaps, Flatpaks, Bun runtimes, and Node.js versions.
-* **`todo()` — Interactive Task Manager:**
+- **`todo()` — Interactive Task Manager:**
   Provides task adding, line-numbered listing via `nl`, and validated line deletion (`todo done <num>`) preventing out-of-range indexing errors.
 
 ---
 
 ## 6. Big-O Complexity & Resource Consumption Matrix
 
-| Subsystem / Operation | Data Structure | Time Complexity (Average) | Time Complexity (Worst) | Space Complexity |
-| :--- | :--- | :--- | :--- | :--- |
-| **Shell Startup Initialization** | Monolithic File Stream | $O(1)$ | $O(1)$ | $< 8\text{ms}$ RAM |
-| **Prompt Telemetry Evaluation** | String Buffer / Sysfs | $O(1)$ | $O(1)$ | $O(1)$ |
-| **Random Color & Emoji Lookup** | Indexed Array | $O(1)$ | $O(1)$ | $O(1)$ |
-| **Fuzzy Process Search (`fkill`)** | Process List Stream | $O(N \log N)$ | $O(N^2)$ | $O(N)$ |
-| **Web Package Search Filter** | JS Object Array | $O(N)$ | $O(N)$ | $O(N)$ |
-| **Directory Stack Movement** | LIFO Array Stack | $O(1)$ | $O(1)$ | $O(D)$ |
-| **Installer Boundary Injection** | Line Stream Buffer | $O(L)$ | $O(L)$ | $O(L)$ |
+| Subsystem / Operation              | Data Structure         | Time Complexity (Average) | Time Complexity (Worst) | Space Complexity   |
+| :--------------------------------- | :--------------------- | :------------------------ | :---------------------- | :----------------- |
+| **Shell Startup Initialization**   | Monolithic File Stream | $O(1)$                    | $O(1)$                  | $< 8\text{ms}$ RAM |
+| **Prompt Telemetry Evaluation**    | String Buffer / Sysfs  | $O(1)$                    | $O(1)$                  | $O(1)$             |
+| **Random Color & Emoji Lookup**    | Indexed Array          | $O(1)$                    | $O(1)$                  | $O(1)$             |
+| **Fuzzy Process Search (`fkill`)** | Process List Stream    | $O(N \log N)$             | $O(N^2)$                | $O(N)$             |
+| **Web Package Search Filter**      | JS Object Array        | $O(N)$                    | $O(N)$                  | $O(N)$             |
+| **Directory Stack Movement**       | LIFO Array Stack       | $O(1)$                    | $O(1)$                  | $O(D)$             |
+| **Installer Boundary Injection**   | Line Stream Buffer     | $O(L)$                    | $O(L)$                  | $O(L)$             |
 
-*Key: $N = \text{Number of entities/processes}$, $D = \text{Directory stack depth}$, $L = \text{Total file lines}$.*
+_Key: $N = \text{Number of entities/processes}$, $D = \text{Directory stack depth}$, $L = \text{Total file lines}$._
 
 ---
 
