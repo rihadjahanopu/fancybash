@@ -44,6 +44,7 @@ _Beautiful • Fast • Smart • Zero Bloat_
 - [🌟 Feature Highlights](#-feature-highlights)
 - [🚀 Quick Install](#-quick-install)
 - [🗑️ Uninstall](#️-uninstall)
+- [🦄 Zsh Setup Guide](#-zsh-setup-guide)
 - [⚙️ Font Setup](#️-font-setup-for-emoji--icons)
 - [📟 Smart Prompt](#-smart-prompt-system)
 - [🛠️ Command Reference](#️-command-reference)
@@ -53,7 +54,19 @@ _Beautiful • Fast • Smart • Zero Bloat_
   - [🔧 Project Setup](#-project-initialization)
   - [⚙️ System Tools](#-system--maintenance)
   - [🔨 Utilities](#-utility-tools)
+  - [🚀 Interactive Utilities (GUM & FZF)](#-interactive-utilities-gum--fzf)
+    - [📋 Todo Manager](#-todo-manager)
+    - [📝 Notes Manager](#-notes-manager)
+    - [🎬 FFmedia Multimedia Suite](#-ffmedia-all-in-one-multimedia-suite)
+    - [🔀 Other GUM / FZF Utilities](#-other-gum--fzf-utilities)
   - [🐳 Docker & Containers](#-docker--containers)
+    - [📊 Dashboard & Monitoring](#-interactive-dashboard--monitoring)
+    - [⚡ Service Control](#-service-control)
+    - [🔄 Container Lifecycle](#-container-lifecycle)
+    - [🐛 Debugging & Building](#-debugging--building)
+    - [🧩 Docker Compose](#-docker-compose)
+    - [🧪 Quick Test Sandboxes](#-quick-test-sandboxes)
+    - [🧠 Advanced Functions](#-advanced-functions)
   - [🐘 PostgreSQL](#-postgresql)
   - [💎 Prisma ORM](#-prisma-orm)
 - [🏗️ Project Structure](#️-project-structure)
@@ -143,9 +156,9 @@ irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.
 
 <br>
 
-| Where you're running | Command to use |
-|---|---|
-| Inside **PowerShell** terminal | `irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 \| iex` |
+| Where you're running                  | Command to use                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Inside **PowerShell** terminal        | `irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 \| iex`                 |
 | From **CMD** / **Run dialog (Win+R)** | `powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/i.ps1 \| iex"` |
 
 </details>
@@ -229,6 +242,7 @@ curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/
 ```fish
 fish <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.fish)
 ```
+
 - **macOS (BSD):**
   ```zsh
   sed -i '' '/# >>> fancy-zshrc >>>/,/# <<< fancy-zshrc <<</d' ~/.zshrc && source ~/.zshrc
@@ -240,9 +254,9 @@ fish <(curl -fsSL https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs
 
 > ⚠️ **Run only ONE of these — do NOT run `powershell -c` inside a PowerShell window!**
 
-| Where you're running | Command to use |
-|---|---|
-| Inside **PowerShell** terminal | `irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 \| iex` |
+| Where you're running                  | Command to use                                                                                                       |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Inside **PowerShell** terminal        | `irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 \| iex`                 |
 | From **CMD** / **Run dialog (Win+R)** | `powershell -c "irm https://raw.githubusercontent.com/rihadjahanopu/fancybash/refs/heads/main/uninstall.ps1 \| iex"` |
 
 > 💡 Your original config remains untouched — only the `fancybash` block wrapped in `>>> / <<<` markers is removed.
@@ -415,7 +429,7 @@ Feel free to customize, add, or remove any helper functions (like `node_version`
 | `fr` / `ba` / `fu`    | Jump to Frontend / Backend / Fullstack project folder |
 | `fig` / `ar` / `de`   | Jump to Figma / Archive / Dev folders                 |
 | `des` / `doc` / `dow` | Jump to Desktop / Documents / Downloads               |
-| `bv` / `ch` / `gp`   | Jump to Brave / Chrome / Photos Downloads             |
+| `bv` / `ch` / `gp`    | Jump to Brave / Chrome / Photos Downloads             |
 
 ---
 
@@ -565,82 +579,82 @@ uu
 
 ### 🚀 Interactive Utilities (GUM & FZF)
 
-> These utilities use `gum` and/or `fzf` for rich interactive UIs.  
+> These utilities use `gum` and/or `fzf` for rich interactive UIs.
 > They degrade gracefully: **gum → fzf → plain `read` prompt** — no tool is strictly required.
 
 #### 📋 Todo Manager
 
 Tasks are saved to `~/.todo_list.txt`.
 
-| Command | Description |
-| --- | --- |
-| `todo` | Open interactive gum menu, or show numbered task list |
-| `todo add "Task"` | Add a new task directly |
-| `todo add` | Add task via interactive prompt (gum / read) |
-| `todo list` | Show all pending tasks (numbered) |
-| `todo done` | Mark done — fzf picker → gum chooser → ask for number |
-| `todo done 2` | Mark task #2 as done directly |
-| `todo clear` | Clear all tasks |
-| `todo --help` | Show usage |
+| Command           | Description                                           |
+| ----------------- | ----------------------------------------------------- |
+| `todo`            | Open interactive gum menu, or show numbered task list |
+| `todo add "Task"` | Add a new task directly                               |
+| `todo add`        | Add task via interactive prompt (gum / read)          |
+| `todo list`       | Show all pending tasks (numbered)                     |
+| `todo done`       | Mark done — fzf picker → gum chooser → ask for number |
+| `todo done 2`     | Mark task #2 as done directly                         |
+| `todo clear`      | Clear all tasks                                       |
+| `todo --help`     | Show usage                                            |
 
 #### 📝 Notes Manager
 
 Notes are stored in `~/.my_notes/<Category>/<Title>.md`.
 
-| Command | Description |
-| --- | --- |
-| `notes` | Browse all notes with fzf + live preview |
-| `notes add` | Add a note — pick category, enter title, write content |
-| `notes search` | Full-text search inside all notes with fzf |
-| `notes find` | Alias for `notes search` |
-| `notes --help` | Show usage |
+| Command        | Description                                            |
+| -------------- | ------------------------------------------------------ |
+| `notes`        | Browse all notes with fzf + live preview               |
+| `notes add`    | Add a note — pick category, enter title, write content |
+| `notes search` | Full-text search inside all notes with fzf             |
+| `notes find`   | Alias for `notes search`                               |
+| `notes --help` | Show usage                                             |
 
-**Viewer fallback:** `glow` → `bat` → `batcat` → `less`  
-**Preview (fzf):** `bat` → `batcat` → `glow` → `cat`  
+**Viewer fallback:** `glow` → `bat` → `batcat` → `less`
+**Preview (fzf):** `bat` → `batcat` → `glow` → `cat`
 **Clipboard:** `wl-copy` (Wayland) → `xclip` → `xsel` → `pbcopy` (macOS)
 
 #### 🎬 FFmedia All-in-One Multimedia Suite
 
 Interactive FFmpeg powerhouse driven by `gum`, `fzf`, and terminal prompts.
 
-| Command | Description |
-| --- | --- |
-| `ffmedia` | Launch interactive 24-in-1 FFmpeg multimedia menu |
-| `ffstudio` | Alias for `ffmedia` |
-| `fftool` | Alias for `ffmedia` |
-| `fancy_ffmpeg` | Alias for `ffmedia` |
-| `ffmedia compress` | Compress video preserving quality (50%-80% size reduction) |
-| `ffmedia trim` | Lossless video trim without re-encoding |
-| `ffmedia concat` | Merge multiple video clips into one file |
-| `ffmedia resolution` | Convert resolution (1080p/720p) or crop to 9:16 Reels/Shorts |
-| `ffmedia speed` | Slow Motion (0.25x-0.5x) or Time-lapse (2x-8x) |
-| `ffmedia rotate` | Rotate (90°/180°) or Flip horizontally/vertically |
-| `ffmedia watermark` | Apply image logo or text banner watermark |
-| `ffmedia grid` | Side-by-Side (2 videos) or 2x2 grid (4 videos) comparison |
-| `ffmedia audio-extract` | Extract audio to MP3, AAC, WAV, FLAC, M4A |
-| `ffmedia mute` | Strip audio stream completely from video |
-| `ffmedia audio-replace` | Replace or mix background audio with video track |
-| `ffmedia loudness` | Loudness Normalization (-14 LUFS YouTube / -23 LUFS EBU) |
-| `ffmedia visualizer` | Generate Waveform or Frequency Spectrum video from audio |
-| `ffmedia audio-speed` | Change audio playback speed while preserving pitch |
-| `ffmedia snapshot` | Extract Ultra HD image frame (JPG/PNG) at exact timestamp |
-| `ffmedia bulk-frames` | Bulk extract video frames as image sequence |
-| `ffmedia gif` | Render pro-quality ultra-sharp GIF using 2-pass palette |
-| `ffmedia contact-sheet` | Generate 3x3 or 4x4 mosaic thumbnail grid image |
-| `ffmedia screen-record` | Record desktop screen + audio straight from terminal |
-| `ffmedia subtitle-burn` | Hardcode .srt or .ass subtitle file into video |
-| `ffmedia subtitle-extract` | Extract embedded subtitle tracks from MKV/MP4 |
-| `ffmedia privacy-clean` | Remove EXIF, GPS location, and camera metadata |
-| `ffmedia convert` | Convert format between MP4, MKV, WEBM, MOV, AVI |
-| `ffmedia batch` | Run bulk compression/conversion/metadata wiping on a folder |
+| Command                    | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| `ffmedia`                  | Launch interactive 24-in-1 FFmpeg multimedia menu            |
+| `ffstudio`                 | Alias for `ffmedia`                                          |
+| `fftool`                   | Alias for `ffmedia`                                          |
+| `fancy_ffmpeg`             | Alias for `ffmedia`                                          |
+| `ffmedia compress`         | Compress video preserving quality (50%-80% size reduction)   |
+| `ffmedia trim`             | Lossless video trim without re-encoding                      |
+| `ffmedia concat`           | Merge multiple video clips into one file                     |
+| `ffmedia resolution`       | Convert resolution (1080p/720p) or crop to 9:16 Reels/Shorts |
+| `ffmedia speed`            | Slow Motion (0.25x-0.5x) or Time-lapse (2x-8x)               |
+| `ffmedia rotate`           | Rotate (90°/180°) or Flip horizontally/vertically            |
+| `ffmedia watermark`        | Apply image logo or text banner watermark                    |
+| `ffmedia grid`             | Side-by-Side (2 videos) or 2x2 grid (4 videos) comparison    |
+| `ffmedia audio-extract`    | Extract audio to MP3, AAC, WAV, FLAC, M4A                    |
+| `ffmedia mute`             | Strip audio stream completely from video                     |
+| `ffmedia audio-replace`    | Replace or mix background audio with video track             |
+| `ffmedia loudness`         | Loudness Normalization (-14 LUFS YouTube / -23 LUFS EBU)     |
+| `ffmedia visualizer`       | Generate Waveform or Frequency Spectrum video from audio     |
+| `ffmedia audio-speed`      | Change audio playback speed while preserving pitch           |
+| `ffmedia snapshot`         | Extract Ultra HD image frame (JPG/PNG) at exact timestamp    |
+| `ffmedia bulk-frames`      | Bulk extract video frames as image sequence                  |
+| `ffmedia gif`              | Render pro-quality ultra-sharp GIF using 2-pass palette      |
+| `ffmedia contact-sheet`    | Generate 3x3 or 4x4 mosaic thumbnail grid image              |
+| `ffmedia screen-record`    | Record desktop screen + audio straight from terminal         |
+| `ffmedia subtitle-burn`    | Hardcode .srt or .ass subtitle file into video               |
+| `ffmedia subtitle-extract` | Extract embedded subtitle tracks from MKV/MP4                |
+| `ffmedia privacy-clean`    | Remove EXIF, GPS location, and camera metadata               |
+| `ffmedia convert`          | Convert format between MP4, MKV, WEBM, MOV, AVI              |
+| `ffmedia batch`            | Run bulk compression/conversion/metadata wiping on a folder  |
 
 #### 🔀 Other GUM / FZF Utilities
 
-| Command | Description |
-| --- | --- |
-| `gbranch` | Fuzzy Git branch switcher (fzf / gum) |
-| `fkill` | Fuzzy interactive process killer (fzf / gum) |
-| `fcd` | Fuzzy quick directory jump (fzf / gum) |
+| Command   | Description                                  |
+| --------- | -------------------------------------------- |
+| `gbranch` | Fuzzy Git branch switcher (fzf / gum)        |
+| `fkill`   | Fuzzy interactive process killer (fzf / gum) |
+| `fcd`     | Fuzzy quick directory jump (fzf / gum)       |
 
 ---
 
@@ -837,17 +851,17 @@ This page has been integrated into the main `fancybash` website and can be acces
 
 ### 📊 Interactive Dashboard & Monitoring
 
-| Command  | Description                                                         |
-| -------- | ------------------------------------------------------------------- |
-| `dman`   | 🐳 Docker Desktop & DevOps Terminal Edition (interactive TUI)      |
-| `dstats` | Live realtime resource dashboard (CPU, RAM, Net IO, PIDs)           |
-| `dps`    | List running containers (clean table format)                        |
-| `dpsa`   | List **all** containers including stopped ones                      |
-| `di`     | List all downloaded Docker images                                   |
-| `dvl`    | List all Docker volumes                                             |
-| `dnl`    | List all Docker networks                                            |
-| `dsize`  | Inspect total Docker disk usage                                     |
-| `dtop`   | Live resource monitor — CPU, RAM, Net & Block I/O                   |
+| Command  | Description                                                   |
+| -------- | ------------------------------------------------------------- |
+| `dman`   | 🐳 Docker Desktop & DevOps Terminal Edition (interactive TUI) |
+| `dstats` | Live realtime resource dashboard (CPU, RAM, Net IO, PIDs)     |
+| `dps`    | List running containers (clean table format)                  |
+| `dpsa`   | List **all** containers including stopped ones                |
+| `di`     | List all downloaded Docker images                             |
+| `dvl`    | List all Docker volumes                                       |
+| `dnl`    | List all Docker networks                                      |
+| `dsize`  | Inspect total Docker disk usage                               |
+| `dtop`   | Live resource monitor — CPU, RAM, Net & Block I/O             |
 
 #### Sudo variants (for rootless-mode setups)
 
@@ -962,32 +976,32 @@ dbackup mydata backup.tar
 
 ### 🔌 Service Control
 
-| Alias | Description |
-|---|---|
-| `pgstart` | Start the PostgreSQL service |
-| `pgstop` | Stop the PostgreSQL service |
-| `pgrestart` | Restart the PostgreSQL service |
-| `pgstatus` | Check PostgreSQL service status |
-| `pgenable` | Enable PostgreSQL auto-start on boot |
+| Alias       | Description                           |
+| ----------- | ------------------------------------- |
+| `pgstart`   | Start the PostgreSQL service          |
+| `pgstop`    | Stop the PostgreSQL service           |
+| `pgrestart` | Restart the PostgreSQL service        |
+| `pgstatus`  | Check PostgreSQL service status       |
+| `pgenable`  | Enable PostgreSQL auto-start on boot  |
 | `pgdisable` | Disable PostgreSQL auto-start on boot |
-| `pglogs` | Follow the PostgreSQL log file live |
+| `pglogs`    | Follow the PostgreSQL log file live   |
 
 ### 🗄️ Database Management
 
-| Alias | Usage | Description |
-|---|---|---|
-| `pgl` | `pgl` | Login as `postgres` user via `psql` |
-| `pgdb <name>` | `pgdb mydb` | Connect to a specific database |
-| `pgls` | `pgls` | List all databases (`\l`) |
-| `pgtables` | `pgtables` | List all tables in current DB (`\dt`) |
-| `pgusers` | `pgusers` | List all users / roles (`\du`) |
-| `pgsize` | `pgsize` | Show size of each database |
-| `pgver` | `pgver` | Show PostgreSQL version |
-| `pgconn` | `pgconn` | Show active connections count |
-| `pgcreate <db>` | `pgcreate mydb` | Create a new database |
-| `pgdrop <db>` | `pgdrop mydb` | Drop / delete a database |
-| `pgdump <db>` | `pgdump mydb > backup.sql` | Dump / backup a database |
-| `pgrestore <db>` | `pgrestore mydb < backup.sql` | Restore a database from file |
+| Alias            | Usage                         | Description                           |
+| ---------------- | ----------------------------- | ------------------------------------- |
+| `pgl`            | `pgl`                         | Login as `postgres` user via `psql`   |
+| `pgdb <name>`    | `pgdb mydb`                   | Connect to a specific database        |
+| `pgls`           | `pgls`                        | List all databases (`\l`)             |
+| `pgtables`       | `pgtables`                    | List all tables in current DB (`\dt`) |
+| `pgusers`        | `pgusers`                     | List all users / roles (`\du`)        |
+| `pgsize`         | `pgsize`                      | Show size of each database            |
+| `pgver`          | `pgver`                       | Show PostgreSQL version               |
+| `pgconn`         | `pgconn`                      | Show active connections count         |
+| `pgcreate <db>`  | `pgcreate mydb`               | Create a new database                 |
+| `pgdrop <db>`    | `pgdrop mydb`                 | Drop / delete a database              |
+| `pgdump <db>`    | `pgdump mydb > backup.sql`    | Dump / backup a database              |
+| `pgrestore <db>` | `pgrestore mydb < backup.sql` | Restore a database from file          |
 
 ---
 
@@ -999,47 +1013,43 @@ dbackup mydata backup.tar
 
 ### 🟢 Node / NPX Prisma — `np*`
 
-| Alias | Full Command | Description |
-|---|---|---|
-| `np` | `npx prisma` | Base Prisma CLI command |
-| `npi` | `npx prisma init` | Initialize Prisma project |
-| `npg` | `npx prisma generate` | Generate Prisma Client |
-| `nps` | `npx prisma studio` | Open Prisma Studio GUI |
-| `npmd` | `npx prisma migrate dev` | Run dev migrations |
+| Alias          | Full Command                           | Description                                  |
+| -------------- | -------------------------------------- | -------------------------------------------- |
+| `np`           | `npx prisma`                           | Base Prisma CLI command                      |
+| `npi`          | `npx prisma init`                      | Initialize Prisma project                    |
+| `npg`          | `npx prisma generate`                  | Generate Prisma Client                       |
+| `nps`          | `npx prisma studio`                    | Open Prisma Studio GUI                       |
+| `npmd`         | `npx prisma migrate dev`               | Run dev migrations                           |
 | `npmdn <name>` | `npx prisma migrate dev --name <name>` | Run named migration (e.g. `npmdn add_users`) |
-| `npmr` | `npx prisma migrate reset` | Reset database & re-migrate |
-| `npmdp` | `npx prisma migrate deploy` | Apply migrations in production |
-| `npms` | `npx prisma migrate status` | Check migration status |
-| `npdp` | `npx prisma db push` | Push schema state directly to DB |
-| `npdl` | `npx prisma db pull` | Pull schema from DB / Introspect |
-| `npds` | `npx prisma db seed` | Seed the database |
-| `npf` | `npx prisma format` | Format `schema.prisma` file |
-| `npv` | `npx prisma version` | Show Prisma CLI & engine version |
+| `npmr`         | `npx prisma migrate reset`             | Reset database & re-migrate                  |
+| `npmdp`        | `npx prisma migrate deploy`            | Apply migrations in production               |
+| `npms`         | `npx prisma migrate status`            | Check migration status                       |
+| `npdp`         | `npx prisma db push`                   | Push schema state directly to DB             |
+| `npdl`         | `npx prisma db pull`                   | Pull schema from DB / Introspect             |
+| `npds`         | `npx prisma db seed`                   | Seed the database                            |
+| `npf`          | `npx prisma format`                    | Format `schema.prisma` file                  |
+| `npv`          | `npx prisma version`                   | Show Prisma CLI & engine version             |
 
 ### 🥐 Bun Runtime Prisma — `bp*`
 
-| Alias | Full Command | Description |
-|---|---|---|
-| `bp` | `bunx prisma` | Base Prisma CLI via Bun runner |
-| `bpi` | `bunx prisma init` | Initialize Prisma project via Bun |
-| `bpg` | `bunx prisma generate` | Generate Prisma Client via Bun |
-| `bps` | `bunx prisma studio` | Open Prisma Studio GUI via Bun |
-| `bpmd` | `bunx prisma migrate dev` | Run dev migrations via Bun |
-| `bpmdn <name>` | `bunx prisma migrate dev --name <name>` | Run named migration via Bun |
-| `bpmr` | `bunx prisma migrate reset` | Reset database via Bun |
-| `bpmdp` | `bunx prisma migrate deploy` | Apply migrations in prod via Bun |
-| `bpms` | `bunx prisma migrate status` | Check migration status via Bun |
-| `bpdp` | `bunx prisma db push` | Push schema directly to DB via Bun |
-| `bpdl` | `bunx prisma db pull` | Pull schema from DB via Bun |
-| `bpds` | `bunx prisma db seed` | Seed database via Bun |
-| `bpf` | `bunx prisma format` | Format `schema.prisma` file via Bun |
-| `bpv` | `bunx prisma version` | Check Prisma version via Bun |
-
-
+| Alias          | Full Command                            | Description                         |
+| -------------- | --------------------------------------- | ----------------------------------- |
+| `bp`           | `bunx prisma`                           | Base Prisma CLI via Bun runner      |
+| `bpi`          | `bunx prisma init`                      | Initialize Prisma project via Bun   |
+| `bpg`          | `bunx prisma generate`                  | Generate Prisma Client via Bun      |
+| `bps`          | `bunx prisma studio`                    | Open Prisma Studio GUI via Bun      |
+| `bpmd`         | `bunx prisma migrate dev`               | Run dev migrations via Bun          |
+| `bpmdn <name>` | `bunx prisma migrate dev --name <name>` | Run named migration via Bun         |
+| `bpmr`         | `bunx prisma migrate reset`             | Reset database via Bun              |
+| `bpmdp`        | `bunx prisma migrate deploy`            | Apply migrations in prod via Bun    |
+| `bpms`         | `bunx prisma migrate status`            | Check migration status via Bun      |
+| `bpdp`         | `bunx prisma db push`                   | Push schema directly to DB via Bun  |
+| `bpdl`         | `bunx prisma db pull`                   | Pull schema from DB via Bun         |
+| `bpds`         | `bunx prisma db seed`                   | Seed database via Bun               |
+| `bpf`          | `bunx prisma format`                    | Format `schema.prisma` file via Bun |
+| `bpv`          | `bunx prisma version`                   | Check Prisma version via Bun        |
 
 ---
-
-
 
 ## 🤝 Contributing
 
