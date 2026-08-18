@@ -1,0 +1,78 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches:
+      - 'feat/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'docs/**'
+      - 'refactor/**'
+      - 'ci/**'
+      - 'perf/**'
+
+jobs:
+  auto-create-pr:
+    name: Create Pull Request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create PR via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+
+          # Check if a Pull Request already exists for this branch
+          if gh pr view "$BRANCH_NAME" --json number >/dev/null 2>&1; then
+            echo "ℹ️ Pull Request already exists for branch '$BRANCH_NAME'. Skipping."
+            exit 0
+          fi
+
+          # Get latest commit message subject for PR title
+          PR_TITLE=$(git log -1 --pretty=format:"%s")
+          if [ -z "$PR_TITLE" ]; then
+            PR_TITLE="Merge $BRANCH_NAME into main"
+          fi
+
+          # Determine initial label based on branch prefix
+          PREFIX="${BRANCH_NAME%%/*}"
+          case "$PREFIX" in
+            feat)     LABEL="enhancement" ;;
+            fix)      LABEL="bug" ;;
+            docs)     LABEL="documentation" ;;
+            chore)    LABEL="chore" ;;
+            refactor) LABEL="refactor" ;;
+            ci)       LABEL="ci" ;;
+            perf)     LABEL="performance" ;;
+            *)        LABEL="" ;;
+          esac
+
+          # Prepare body argument using template if available
+          if [ -f ".github/PULL_REQUEST_TEMPLATE.md" ]; then
+            BODY_ARG=("--body-file" ".github/PULL_REQUEST_TEMPLATE.md")
+          else
+            BODY_ARG=("--body" "Automated PR created from $BRANCH_NAME")
+          fi
+
+          # Prepare label argument if non-empty
+          LABEL_ARG=()
+          if [ -n "$LABEL" ]; then
+            LABEL_ARG=("--label" "$LABEL")
+          fi
+
+          echo "🚀 Creating PR for '$BRANCH_NAME' -> 'main' with title: '$PR_TITLE'"
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "$PR_TITLE" \
+            "${BODY_ARG[@]}" \
+            "${LABEL_ARG[@]}"
