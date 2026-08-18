@@ -3,6 +3,7 @@ name: Auto Create Pull Request
 on:
   push:
     branches:
+      - 'dev'
       - 'feat/**'
       - 'fix/**'
       - 'chore/**'
@@ -31,9 +32,10 @@ jobs:
         run: |
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
 
-          # Check if a Pull Request already exists for this branch
-          if gh pr view "$BRANCH_NAME" --json number >/dev/null 2>&1; then
-            echo "ℹ️ Pull Request already exists for branch '$BRANCH_NAME'. Skipping."
+          # Check if an OPEN Pull Request already exists for this branch
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --base main --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
+            echo "ℹ️ Open Pull Request #$EXISTING_PR already exists for branch '$BRANCH_NAME'. Skipping."
             exit 0
           fi
 
@@ -46,6 +48,7 @@ jobs:
           # Determine initial label based on branch prefix
           PREFIX="${BRANCH_NAME%%/*}"
           case "$PREFIX" in
+            dev)      LABEL="enhancement" ;;
             feat)     LABEL="enhancement" ;;
             fix)      LABEL="bug" ;;
             docs)     LABEL="documentation" ;;
@@ -75,4 +78,9 @@ jobs:
             --head "$BRANCH_NAME" \
             --title "$PR_TITLE" \
             "${BODY_ARG[@]}" \
-            "${LABEL_ARG[@]}"
+            "${LABEL_ARG[@]}" || \
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "$PR_TITLE" \
+            "${BODY_ARG[@]}"

@@ -1683,6 +1683,7 @@ function ga   { git add . }
 function gcm  { git commit -m $args }
 function gp   { git push $args }
 function gps  { git push $args }
+function gpu  { git push -u origin (git branch --show-current) }
 function gpl  { git pull $args }
 function gl   { git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit }
 function gco  { git checkout $args }
