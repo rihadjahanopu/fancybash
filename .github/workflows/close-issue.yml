@@ -4,11 +4,19 @@ on:
   issue_comment:
     types: [created]
 
+concurrency:
+  group: close-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   close-issue:
     name: Close Issue
-    if: ${{ !github.event.issue.pull_request && (contains(github.event.comment.body, '/close') || contains(github.event.comment.body, '/resolved')) }}
+    if: |
+      !github.event.issue.pull_request &&
+      (contains(github.event.comment.body, '/close') || contains(github.event.comment.body, '/resolved')) &&
+      (github.event.comment.user.login == github.event.issue.user.login || contains(fromJSON('["MEMBER", "OWNER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       issues: write
 
@@ -16,5 +24,6 @@ jobs:
       - name: Close Issue via GitHub CLI
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh issue close ${{ github.event.issue.number }} --comment "🔒 Closed automatically by bot command (`/close` / `/resolved`)."
+          gh issue close "$ISSUE_NUMBER" --comment "🔒 Closed automatically by authorized bot command (`/close` / `/resolved`)."
