@@ -1,0 +1,20 @@
+name: Close Issue on Slash Command
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  close-issue:
+    name: Close Issue
+    if: ${{ !github.event.issue.pull_request && (contains(github.event.comment.body, '/close') || contains(github.event.comment.body, '/resolved')) }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Close Issue via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue close ${{ github.event.issue.number }} --comment "🔒 Closed automatically by bot command (`/close` / `/resolved`)."
