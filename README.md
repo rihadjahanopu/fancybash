@@ -1091,6 +1091,15 @@ Contributions are welcome! Whether it's a new alias, a bug fix, or a feature ide
 
 Please keep functions focused, well-commented, and compatible with **Bash 4+**.
 
+### 📚 Community & Documentation Links
+- 🤝 **[CONTRIBUTING.md](CONTRIBUTING.md)** — Step-by-step guidelines for contributing to fancybash.
+- 🆘 **[SUPPORT.md](SUPPORT.md)** — Support options, quick troubleshooting, and issue reporting.
+- 🗺️ **[ROADMAP.md](ROADMAP.md)** — Future feature plans, version milestones, and community voting.
+- 👥 **[AUTHORS.md](AUTHORS.md)** — Core maintainers and project leadership.
+- 🤝 **[CONTRIBUTORS.md](CONTRIBUTORS.md)** — Community contributor recognition wall.
+- 🌟 **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Community standards and covenant.
+- 🔒 **[SECURITY.md](SECURITY.md)** — Vulnerability reporting policy.
+
 ---
 
 ## 📄 License
