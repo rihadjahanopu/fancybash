@@ -280,9 +280,14 @@ Before submitting your PR, check off this self-review list:
 - [ ] Code passes `shellcheck -s bash config.sh` without critical warnings.
 - [ ] My commit messages follow the Conventional Commit format.
 
----
+## 7. Useful Resources & Links
 
-## 7. Need Help or Have Questions?
+* 🆘 **[SUPPORT.md](SUPPORT.md)** — Getting help, troubleshooting common issues, and reporting bugs.
+* 🗺️ **[ROADMAP.md](ROADMAP.md)** — Project vision, upcoming release goals, and feature proposals.
+* 👥 **[AUTHORS.md](AUTHORS.md)** — Core team, lead maintainers, and creator profile.
+* 🤝 **[CONTRIBUTORS.md](CONTRIBUTORS.md)** — Wall of contributors and community recognition.
+* 🌟 **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Community guidelines and pledges.
+* 🔒 **[SECURITY.md](SECURITY.md)** — Security disclosure policies.
 
 If you get stuck or have questions at any point:
 * Open a discussion in [GitHub Discussions](https://github.com/rihadjahanopu/fancybash/discussions).
