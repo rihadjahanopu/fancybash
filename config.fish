@@ -919,7 +919,10 @@ function gwip
             "🧪 test: Adding tests" \
             "🔧 chore: Maintenance")
 
-        [ -z "$TYPE" ] && { echo "⚠️ Commit cancelled."; return 0; }
+        if test -z "$TYPE"
+            echo "⚠️ Commit cancelled."
+            return 0
+        end
 
         set -l TYPE_PREFIX
         set -l CUSTOM_NAME
@@ -929,7 +932,7 @@ function gwip
             set -l custom_status $status
             if test $custom_status -ne 0 -o -z "$CUSTOM_NAME"
                 echo "⚠️ Commit cancelled."
-                sleep 0.05; dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null; or true
+                while read -t 0.05 -n 1 -l _ 2>/dev/null; end
                 return 0
             end
             set TYPE_PREFIX "$CUSTOM_NAME"
@@ -942,7 +945,7 @@ function gwip
         set -l msg_status $status
 
         # Flush leftover stdin response bytes before committing
-        sleep 0.05; dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null; or true
+        while read -t 0.05 -n 1 -l _ 2>/dev/null; end
 
         if test $msg_status -ne 0
             echo "⚠️ Commit cancelled."
@@ -1004,12 +1007,12 @@ function gwip
             end
             rm -f "$push_log" 2>/dev/null
             echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
-            sleep 0.05; dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null; or true
+            while read -t 0.05 -n 1 -l _ 2>/dev/null; end
             return 1
         end
 
         # Final stdin flush to prevent escape sequence leakage into shell prompt
-        sleep 0.05; dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null; or true
+        while read -t 0.05 -n 1 -l _ 2>/dev/null; end
     else
         # Fallback if gum is not installed
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
@@ -1449,7 +1452,7 @@ function uup
         --preview 'if test {1} == "0." echo "Execute all updates and cleanup."; else echo "Action: {1}" | sed "s/_/ /g"; end' \
         --preview-window='up:1:wrap')
 
-    [ -z "$SELECTED_TASKS" ] && {
+    if test -z "$SELECTED_TASKS"
         echo -e "${RED}❌ No tasks selected. Aborting...${NC}"
         return
     end
