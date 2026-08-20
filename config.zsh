@@ -1051,19 +1051,28 @@ function gwip {
         FULL_MSG="$prefix: ${rest_msg:-Save point ($(date +'%Y-%m-%d %H:%M'))}"
         git commit -m "$FULL_MSG" || return 1
 
-        local cur_branch push_cmd
+        local cur_branch push_cmd push_log
         cur_branch=$(git branch --show-current 2>/dev/null)
+
         if [ -n "$cur_branch" ]; then
-            push_cmd="git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
+            push_cmd="git push -u origin \"$cur_branch\""
         else
-            push_cmd="git push"
+            push_cmd="git push -u"
         fi
 
+        push_log=$(mktemp 2>/dev/null || echo "/tmp/gwip_push.log")
+
         if command -v gum &>/dev/null; then
-            if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"; then
+            if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd >\"$push_log\" 2>&1"; then
                 gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+                rm -f "$push_log" 2>/dev/null
             else
-                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[0;31m❌ Push failed!\033[0m"
+                if [ -s "$push_log" ]; then
+                    echo -e "\033[1;33mGit Error Details:\033[0m"
+                    cat "$push_log"
+                fi
+                rm -f "$push_log" 2>/dev/null
                 echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
                 return 1
             fi
@@ -1071,7 +1080,7 @@ function gwip {
             if sh -c "$push_cmd"; then
                 echo -e "\033[1;32m✅ Everything committed and pushed successfully!\033[0m"
             else
-                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[0;31m❌ Push failed!\033[0m"
                 echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
                 return 1
             fi
@@ -1141,19 +1150,27 @@ function gwip {
         git commit -m "$FULL_MSG" || return 1
 
         # 5. Push with Gum Spinner
-        local cur_branch push_cmd
+        local cur_branch push_cmd push_log
         cur_branch=$(git branch --show-current 2>/dev/null)
 
         if [ -n "$cur_branch" ]; then
-            push_cmd="git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
+            push_cmd="git push -u origin \"$cur_branch\""
         else
-            push_cmd="git push"
+            push_cmd="git push -u"
         fi
 
-        if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"; then
+        push_log=$(mktemp 2>/dev/null || echo "/tmp/gwip_push.log")
+
+        if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd >\"$push_log\" 2>&1"; then
             gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+            rm -f "$push_log" 2>/dev/null
         else
-            echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+            echo -e "\033[0;31m❌ Push failed!\033[0m"
+            if [ -s "$push_log" ]; then
+                echo -e "\033[1;33mGit Error Details:\033[0m"
+                cat "$push_log"
+            fi
+            rm -f "$push_log" 2>/dev/null
             echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
             while read -t 0.05 -k 10000 _ 2>/dev/null; do :; done
             return 1
@@ -1166,7 +1183,7 @@ function gwip {
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
         read -r "msg?📝 Enter commit message [Enter for default]: "
         local final_msg="${msg:-Work in progress (Save Point)}"
-        git commit -m "🚧 WIP: $final_msg"
+        git commit -m "🚧 WIP: $final_msg" || return 1
 
         local cur_branch
         cur_branch=$(git branch --show-current 2>/dev/null)

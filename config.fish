@@ -834,16 +834,24 @@ function gwip
         set -l cur_branch (git branch --show-current 2>/dev/null)
         set -l push_cmd
         if test -n "$cur_branch"
-            set push_cmd "git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
+            set push_cmd "git push -u origin \"$cur_branch\""
         else
-            set push_cmd "git push"
+            set push_cmd "git push -u"
         end
 
+        set -l push_log (mktemp 2>/dev/null; or echo "/tmp/gwip_push.log")
+
         if command -v gum >/dev/null 2>&1
-            if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"
+            if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd >\"$push_log\" 2>&1"
                 gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+                rm -f "$push_log" 2>/dev/null
             else
-                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[0;31m❌ Push failed!\033[0m"
+                if test -s "$push_log"
+                    echo -e "\033[1;33mGit Error Details:\033[0m"
+                    cat "$push_log"
+                end
+                rm -f "$push_log" 2>/dev/null
                 echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
                 return 1
             end
@@ -851,7 +859,7 @@ function gwip
             if sh -c "$push_cmd"
                 echo -e "\033[1;32m✅ Everything committed and pushed successfully!\033[0m"
             else
-                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[0;31m❌ Push failed!\033[0m"
                 echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
                 return 1
             end
@@ -932,15 +940,23 @@ function gwip
         set -l cur_branch (git branch --show-current 2>/dev/null)
         set -l push_cmd
         if test -n "$cur_branch"
-            set push_cmd "git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
+            set push_cmd "git push -u origin \"$cur_branch\""
         else
-            set push_cmd "git push"
+            set push_cmd "git push -u"
         end
 
-        if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"
+        set -l push_log (mktemp 2>/dev/null; or echo "/tmp/gwip_push.log")
+
+        if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd >\"$push_log\" 2>&1"
             gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+            rm -f "$push_log" 2>/dev/null
         else
-            echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+            echo -e "\033[0;31m❌ Push failed!\033[0m"
+            if test -s "$push_log"
+                echo -e "\033[1;33mGit Error Details:\033[0m"
+                cat "$push_log"
+            end
+            rm -f "$push_log" 2>/dev/null
             echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
             while read -t 0.05 -n 10000 -l _ 2>/dev/null; do; end
             return 1
@@ -956,13 +972,13 @@ function gwip
         if test -z "$final_msg"
             set final_msg "Work in progress (Save Point)"
         end
-        git commit -m "🚧 WIP: $final_msg"
+        git commit -m "🚧 WIP: $final_msg" || return 1
 
         set -l cur_branch (git branch --show-current 2>/dev/null)
         if test -n "$cur_branch"
-            git push origin "$cur_branch" || git push -u origin "$cur_branch"
+            git push -u origin "$cur_branch"
         else
-            git push
+            git push -u
         end
     end
 end
