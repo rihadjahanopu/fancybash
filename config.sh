@@ -786,9 +786,67 @@ function gwip {
 
     local TYPE MSG FULL_MSG
 
+    # Direct CLI argument mode (e.g. gwip "my commit message" or gwip feat "new feature")
+    if [ $# -gt 0 ]; then
+        local first_arg="$1"
+        local prefix="🚧 WIP"
+        local rest_msg=""
+
+        case "$first_arg" in
+            feat|✨)     prefix="✨ feat"; shift; rest_msg="$*" ;;
+            fix|🐛)      prefix="🐛 fix"; shift; rest_msg="$*" ;;
+            docs|📝)     prefix="📝 docs"; shift; rest_msg="$*" ;;
+            style|💄)    prefix="💄 style"; shift; rest_msg="$*" ;;
+            refactor|♻️) prefix="♻️ refactor"; shift; rest_msg="$*" ;;
+            test|🧪)     prefix="🧪 test"; shift; rest_msg="$*" ;;
+            chore|🔧)    prefix="🔧 chore"; shift; rest_msg="$*" ;;
+            wip|🚧)      prefix="🚧 WIP"; shift; rest_msg="$*" ;;
+            -m)          shift; rest_msg="$*" ;;
+            *)           rest_msg="$*" ;;
+        esac
+
+        FULL_MSG="$prefix: ${rest_msg:-Save point ($(date +'%Y-%m-%d %H:%M'))}"
+        git commit -m "$FULL_MSG" || return 1
+
+        local cur_branch push_cmd
+        cur_branch=$(git branch --show-current 2>/dev/null)
+        if [ -n "$cur_branch" ]; then
+            push_cmd="git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
+        else
+            push_cmd="git push"
+        fi
+
+        if command -v gum &>/dev/null; then
+            if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"; then
+                gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+            else
+                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
+                return 1
+            fi
+        else
+            if sh -c "$push_cmd"; then
+                echo -e "\033[1;32m✅ Everything committed and pushed successfully!\033[0m"
+            else
+                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
+                return 1
+            fi
+        fi
+        return 0
+    fi
+
     if command -v gum &>/dev/null; then
         # 2. Select Commit Type
-        TYPE=$(gum choose --height 6 \
+        local term_rows
+        term_rows=$(stty size 2>/dev/null | awk '{print $1}')
+        term_rows=${term_rows:-$(tput lines 2>/dev/null)}
+        term_rows=${term_rows:-${LINES:-15}}
+        local choose_h=$(( term_rows - 2 ))
+        [ "$choose_h" -gt 10 ] && choose_h=10
+        [ "$choose_h" -lt 3 ] && choose_h=3
+
+        TYPE=$(gum choose --height "$choose_h" \
             "✏️  Custom..." \
             "🚧 WIP: Work in progress" \
             "✨ feat: New feature" \
@@ -803,10 +861,15 @@ function gwip {
 
         local TYPE_PREFIX CUSTOM_NAME
 
-        # Handle the custom-name WIP:: case — user types the full label themselves
-        if [ "$TYPE" = "✏️  Custom..." ]; then
+        # Handle the custom-name WIP case
+        if [[ "$TYPE" == *"Custom"* ]]; then
             CUSTOM_NAME=$(gum input --placeholder "Type your custom commit prefix (e.g. 🚧 WIP:: login-ui)...")
-            [ -z "$CUSTOM_NAME" ] && { echo "⚠️ Commit cancelled (no name given)."; return 0; }
+            local custom_status=$?
+            if [ $custom_status -ne 0 ] || [ -z "$CUSTOM_NAME" ]; then
+                echo "⚠️ Commit cancelled."
+                while read -t 0.05 -n 10000 _ 2>/dev/null; do :; done
+                return 0
+            fi
             TYPE_PREFIX="$CUSTOM_NAME"
         else
             TYPE_PREFIX=$(echo "$TYPE" | awk '{print $1 " " $2}')
@@ -815,6 +878,15 @@ function gwip {
 
         # 3. Input Commit Message
         MSG=$(gum input --placeholder "Enter commit message (Leave empty for default)...")
+        local msg_status=$?
+
+        # Flush leftover stdin response bytes before committing
+        while read -t 0.05 -n 10000 _ 2>/dev/null; do :; done
+
+        if [ $msg_status -ne 0 ]; then
+            echo "⚠️ Commit cancelled."
+            return 0
+        fi
 
         if [ -z "$MSG" ]; then
             FULL_MSG="$TYPE_PREFIX: Save point ($(date +'%Y-%m-%d %H:%M'))"
@@ -830,28 +902,33 @@ function gwip {
         cur_branch=$(git branch --show-current 2>/dev/null)
 
         if [ -n "$cur_branch" ]; then
-            push_cmd="git push origin $cur_branch 2>/dev/null || git push -u origin $cur_branch 2>/dev/null"
+            push_cmd="git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
         else
-            push_cmd="git push 2>/dev/null"
+            push_cmd="git push"
         fi
 
         if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"; then
             gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
         else
             echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+            echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
+            while read -t 0.05 -n 10000 _ 2>/dev/null; do :; done
             return 1
         fi
+
+        # Final stdin flush to prevent escape sequence leakage (e.g. 2026;2$y2027;0$y) into shell prompt
+        while read -t 0.05 -n 10000 _ 2>/dev/null; do :; done
     else
         # Fallback if gum is not installed
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
         read -r -p "📝 Enter commit message [Enter for default]: " msg
         local final_msg="${msg:-Work in progress (Save Point)}"
-        git commit -m "🚧 WIP: $final_msg"
+        git commit -m "🚧 WIP: $final_msg" || return 1
 
         local cur_branch
         cur_branch=$(git branch --show-current 2>/dev/null)
         if [ -n "$cur_branch" ]; then
-            git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch"
+            git push origin "$cur_branch" || git push -u origin "$cur_branch"
         else
             git push
         fi
@@ -5844,8 +5921,16 @@ _fb_media_choose_opt() {
     local choice=""
 
     if command -v gum >/dev/null 2>&1; then
+        local term_rows
+        term_rows=$(stty size 2>/dev/null | awk '{print $1}')
+        term_rows=${term_rows:-$(tput lines 2>/dev/null)}
+        term_rows=${term_rows:-${LINES:-15}}
+        local choose_h=$(( term_rows - 2 ))
+        [ "$choose_h" -gt 15 ] && choose_h=15
+        [ "$choose_h" -lt 3 ] && choose_h=3
+
         gum style --foreground 212 --bold "$title"
-        choice=$(printf '%s\n' "${options[@]}" | gum choose --height=15)
+        choice=$(printf '%s\n' "${options[@]}" | gum choose --height="$choose_h")
     elif command -v fzf >/dev/null 2>&1; then
         choice=$(printf '%s\n' "${options[@]}" | fzf --prompt="$title ➔ " --height=40% --reverse)
     else

@@ -788,11 +788,96 @@ function gwip
     # 1. Auto stage files
     git add .
 
-    set -l TYPE MSG FULL_MSG
+    # Direct CLI argument mode
+    if test (count $argv) -gt 0
+        set -l first_arg $argv[1]
+        set -l prefix "🚧 WIP"
+        set -l rest_msg ""
+
+        switch $first_arg
+            case "feat" "✨"
+                set prefix "✨ feat"
+                set rest_msg (string join " " $argv[2..-1])
+            case "fix" "🐛"
+                set prefix "🐛 fix"
+                set rest_msg (string join " " $argv[2..-1])
+            case "docs" "📝"
+                set prefix "📝 docs"
+                set rest_msg (string join " " $argv[2..-1])
+            case "style" "💄"
+                set prefix "💄 style"
+                set rest_msg (string join " " $argv[2..-1])
+            case "refactor" "♻️"
+                set prefix "♻️ refactor"
+                set rest_msg (string join " " $argv[2..-1])
+            case "test" "🧪"
+                set prefix "🧪 test"
+                set rest_msg (string join " " $argv[2..-1])
+            case "chore" "🔧"
+                set prefix "🔧 chore"
+                set rest_msg (string join " " $argv[2..-1])
+            case "wip" "🚧"
+                set prefix "🚧 WIP"
+                set rest_msg (string join " " $argv[2..-1])
+            case "-m"
+                set rest_msg (string join " " $argv[2..-1])
+            case "*"
+                set rest_msg (string join " " $argv)
+        end
+
+        if test -z "$rest_msg"
+            set rest_msg "Save point ("(date +'%Y-%m-%d %H:%M')")"
+        end
+        set -l full_msg "$prefix: $rest_msg"
+        git commit -m "$full_msg" || return 1
+
+        set -l cur_branch (git branch --show-current 2>/dev/null)
+        set -l push_cmd
+        if test -n "$cur_branch"
+            set push_cmd "git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
+        else
+            set push_cmd "git push"
+        end
+
+        if command -v gum >/dev/null 2>&1
+            if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"
+                gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+            else
+                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
+                return 1
+            end
+        else
+            if sh -c "$push_cmd"
+                echo -e "\033[1;32m✅ Everything committed and pushed successfully!\033[0m"
+            else
+                echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+                echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
+                return 1
+            end
+        end
+        return 0
+    end
 
     if command -v gum >/dev/null 2>&1
         # 2. Select Commit Type
-        set TYPE (gum choose --height 6 \
+        set -l term_rows (stty size 2>/dev/null | awk '{print $1}')
+        if test -z "$term_rows"
+            set term_rows (tput lines 2>/dev/null)
+        end
+        if test -z "$term_rows"
+            set term_rows 15
+        end
+
+        set -l choose_h (math "$term_rows - 2")
+        if test $choose_h -gt 10
+            set choose_h 10
+        end
+        if test $choose_h -lt 3
+            set choose_h 3
+        end
+
+        set -l TYPE (gum choose --height "$choose_h" \
             "✏️  Custom..." \
             "🚧 WIP: Work in progress" \
             "✨ feat: New feature" \
@@ -805,56 +890,77 @@ function gwip
 
         [ -z "$TYPE" ] && { echo "⚠️ Commit cancelled."; return 0; }
 
-        set -l TYPE_PREFIX CUSTOM_NAME
+        set -l TYPE_PREFIX
+        set -l CUSTOM_NAME
 
-        # Handle the custom-name WIP:: case — user types the full label themselves
-        if test "$TYPE" = "✏️  Custom..."
+        if string match -q "*Custom*" -- "$TYPE"
             set CUSTOM_NAME (gum input --placeholder "Type your custom commit prefix (e.g. 🚧 WIP:: login-ui)...")
-            [ -z "$CUSTOM_NAME" ] && { echo "⚠️ Commit cancelled (no name given)."; return 0; }
-            TYPE_PREFIX="$CUSTOM_NAME"
+            set -l custom_status $status
+            if test $custom_status -ne 0 -o -z "$CUSTOM_NAME"
+                echo "⚠️ Commit cancelled."
+                while read -t 0.05 -n 10000 -l _ 2>/dev/null; do; end
+                return 0
+            end
+            set TYPE_PREFIX "$CUSTOM_NAME"
         else
             set TYPE_PREFIX (echo "$TYPE" | awk '{print $1 " " $2}' | string replace -r ':$' '')
         end
 
         # 3. Input Commit Message
-        set MSG (gum input --placeholder "Enter commit message (Leave empty for default)...")
+        set -l MSG (gum input --placeholder "Enter commit message (Leave empty for default)...")
+        set -l msg_status $status
 
+        # Flush leftover stdin response bytes before committing
+        while read -t 0.05 -n 10000 -l _ 2>/dev/null; do; end
+
+        if test $msg_status -ne 0
+            echo "⚠️ Commit cancelled."
+            return 0
+        end
+
+        set -l FULL_MSG
         if test -z "$MSG"
-            FULL_MSG="$TYPE_PREFIX: Save point ((date +'%Y-%m-%d %H:%M'))"
+            set FULL_MSG "$TYPE_PREFIX: Save point ("(date +'%Y-%m-%d %H:%M')")"
         else
-            FULL_MSG="$TYPE_PREFIX: $MSG"
+            set FULL_MSG "$TYPE_PREFIX: $MSG"
         end
 
         # 4. Commit
         git commit -m "$FULL_MSG" || return 1
 
         # 5. Push with Gum Spinner
-        set -l cur_branch push_cmd
-        cur_branch=(git branch --show-current 2>/dev/null)
-
+        set -l cur_branch (git branch --show-current 2>/dev/null)
+        set -l push_cmd
         if test -n "$cur_branch"
-            push_cmd="git push origin $cur_branch 2>/dev/null || git push -u origin $cur_branch 2>/dev/null"
+            set push_cmd "git push origin \"$cur_branch\" || git push -u origin \"$cur_branch\""
         else
-            push_cmd="git push 2>/dev/null"
+            set push_cmd "git push"
         end
 
         if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd"
             gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
         else
             echo -e "\033[0;31m❌ Push failed! Check your internet or remote settings.\033[0m"
+            echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
+            while read -t 0.05 -n 10000 -l _ 2>/dev/null; do; end
             return 1
         end
+
+        # Final stdin flush to prevent escape sequence leakage (e.g. 2026;2$y2027;0$y) into shell prompt
+        while read -t 0.05 -n 10000 -l _ 2>/dev/null; do; end
     else
         # Fallback if gum is not installed
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
-        read -r -p "📝 Enter commit message [Enter for default]: " msg
-    set -l final_msg "(if test -n "$msg"; echo "$msg"; else; echo "Work in progress (Save Point)"; end)"
+        read -P "📝 Enter commit message [Enter for default]: " msg
+        set -l final_msg "$msg"
+        if test -z "$final_msg"
+            set final_msg "Work in progress (Save Point)"
+        end
         git commit -m "🚧 WIP: $final_msg"
 
-    set -l cur_branch
-        cur_branch=(git branch --show-current 2>/dev/null)
+        set -l cur_branch (git branch --show-current 2>/dev/null)
         if test -n "$cur_branch"
-            git push origin "$cur_branch" 2>/dev/null || git push -u origin "$cur_branch"
+            git push origin "$cur_branch" || git push -u origin "$cur_branch"
         else
             git push
         end

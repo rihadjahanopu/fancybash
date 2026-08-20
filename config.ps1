@@ -871,6 +871,8 @@ function ffmedia {
 
 # --- Interactive Git Commit & Push ---
 function gwip {
+    param([string]$Message)
+
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         Write-Host "❌ Git is not installed." -ForegroundColor Red; return 1
     }
@@ -881,6 +883,22 @@ function gwip {
 
     git add .
     $gum = Get-Command gum -ErrorAction SilentlyContinue
+
+    if ($Message) {
+        $finalMsg = "🚧 WIP: $Message"
+        git commit -m $finalMsg
+        if ($LASTEXITCODE -ne 0) { return 1 }
+        $curBranch = git branch --show-current 2>$null
+        Write-Host "🚀 Pushing to remote..." -ForegroundColor Cyan
+        if ($curBranch) {
+            git push origin $curBranch
+            if ($LASTEXITCODE -ne 0) { git push -u origin $curBranch }
+        } else {
+            git push
+        }
+        Write-Host "✅ Committed and pushed successfully!" -ForegroundColor Green
+        return 0
+    }
 
     if ($gum) {
         $typeSel = & $gum.Source choose "🚧 WIP: Work in progress" "✨ feat: New feature" "🐛 fix: Bug fix" "📝 docs: Documentation" "💄 style: Styling" "♻️ refactor: Refactoring" "🧪 test: Adding tests" "🔧 chore: Maintenance" "✏️ Custom..."
@@ -896,6 +914,12 @@ function gwip {
             default      { "🚧 WIP" }
         }
         $msg = & $gum.Source input --placeholder="Enter commit message (empty for timestamp default)..."
+
+        try {
+            if ([Console]::KeyAvailable) {
+                while ([Console]::KeyAvailable) { [void][Console]::ReadKey($true) }
+            }
+        } catch {}
     } else {
         Write-Host "`n🚀 Select Commit Type:" -ForegroundColor Cyan
         Write-Host "  1) 🚧 WIP: Work in progress"
@@ -932,11 +956,12 @@ function gwip {
     }
 
     git commit -m $finalMsg
+    if ($LASTEXITCODE -ne 0) { return 1 }
 
     $curBranch = git branch --show-current 2>$null
     Write-Host "🚀 Pushing to remote..." -ForegroundColor Cyan
     if ($curBranch) {
-        git push origin $curBranch 2>$null
+        git push origin $curBranch
         if ($LASTEXITCODE -ne 0) { git push -u origin $curBranch }
     } else {
         git push
