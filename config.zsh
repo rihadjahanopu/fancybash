@@ -1138,7 +1138,7 @@ function gwip {
             local custom_status=$?
             if [ $custom_status -ne 0 ] || [ -z "$CUSTOM_NAME" ]; then
                 echo "⚠️ Commit cancelled."
-                while read -t 0.05 -k 10000 _ 2>/dev/null; do :; done
+                read -t 0.01 -k 10000 _ 2>/dev/null || true
                 return 0
             fi
             TYPE_PREFIX="$CUSTOM_NAME"
@@ -1152,7 +1152,7 @@ function gwip {
         local msg_status=$?
 
         # Flush leftover stdin response bytes before committing
-        while read -t 0.05 -k 10000 _ 2>/dev/null; do :; done
+        read -t 0.01 -k 10000 _ 2>/dev/null || true
 
         if [ $msg_status -ne 0 ]; then
             echo "⚠️ Commit cancelled."
@@ -1210,12 +1210,12 @@ function gwip {
             fi
             rm -f "$push_log" 2>/dev/null
             echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
-            while read -t 0.05 -k 10000 _ 2>/dev/null; do :; done
+            read -t 0.01 -k 10000 _ 2>/dev/null || true
             return 1
         fi
 
-        # Final stdin flush to prevent escape sequence leakage (e.g. 2026;2$y2027;0$y) into shell prompt
-        while read -t 0.05 -k 10000 _ 2>/dev/null; do :; done
+        # Final stdin flush to prevent escape sequence leakage into shell prompt
+        read -t 0.01 -k 10000 _ 2>/dev/null || true
     else
         # Fallback if gum is not installed
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
