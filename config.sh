@@ -821,7 +821,7 @@ function gwip {
 
         if command -v gum &>/dev/null; then
             if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd >\"$push_log\" 2>&1"; then
-                gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+                printf '\033[1;32m✅ Everything committed and pushed successfully!\033[0m\n'
                 rm -f "$push_log" 2>/dev/null
             else
                 if grep -qE "(non-fast-forward|fetch first|behind)" "$push_log" 2>/dev/null; then
@@ -830,7 +830,7 @@ function gwip {
                     if git pull --rebase origin "${cur_branch:-HEAD}"; then
                         echo -e "\033[1;36m🚀 Retrying push...\033[0m"
                         if git push -u origin "${cur_branch:-HEAD}"; then
-                            gum style --foreground 82 --bold "✅ Synced and pushed successfully!"
+                            printf '\033[1;32m✅ Synced and pushed successfully!\033[0m\n'
                             return 0
                         fi
                     else
@@ -895,7 +895,7 @@ function gwip {
             local custom_status=$?
             if [ $custom_status -ne 0 ] || [ -z "$CUSTOM_NAME" ]; then
                 echo "⚠️ Commit cancelled."
-                read -t 0.01 -n 10000 _ 2>/dev/null || true
+                dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null || true
                 return 0
             fi
             TYPE_PREFIX="$CUSTOM_NAME"
@@ -909,7 +909,7 @@ function gwip {
         local msg_status=$?
 
         # Flush leftover stdin response bytes before committing
-        read -t 0.01 -n 10000 _ 2>/dev/null || true
+        dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null || true
 
         if [ $msg_status -ne 0 ]; then
             echo "⚠️ Commit cancelled."
@@ -938,7 +938,7 @@ function gwip {
         push_log=$(mktemp 2>/dev/null || echo "/tmp/gwip_push.log")
 
         if gum spin --spinner dot --title "Pushing to remote..." -- sh -c "$push_cmd >\"$push_log\" 2>&1"; then
-            gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
+            printf '\033[1;32m✅ Everything committed and pushed successfully!\033[0m\n'
             rm -f "$push_log" 2>/dev/null
         else
             if grep -qE "(non-fast-forward|fetch first|behind)" "$push_log" 2>/dev/null; then
@@ -947,7 +947,7 @@ function gwip {
                 if git pull --rebase origin "${cur_branch:-HEAD}"; then
                     echo -e "\033[1;36m🚀 Retrying push...\033[0m"
                     if git push -u origin "${cur_branch:-HEAD}"; then
-                        gum style --foreground 82 --bold "✅ Synced and pushed successfully!"
+                        printf '\033[1;32m✅ Synced and pushed successfully!\033[0m\n'
                         return 0
                     fi
                 else
@@ -967,12 +967,12 @@ function gwip {
             fi
             rm -f "$push_log" 2>/dev/null
             echo -e "\033[1;33m💡 Note: Your local commit was created successfully.\033[0m"
-            read -t 0.01 -n 10000 _ 2>/dev/null || true
+            dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null || true
             return 1
         fi
 
         # Final stdin flush to prevent escape sequence leakage into shell prompt
-        read -t 0.01 -n 10000 _ 2>/dev/null || true
+        dd if=/dev/tty bs=4096 count=1 iflag=nonblock of=/dev/null 2>/dev/null || true
     else
         # Fallback if gum is not installed
         echo -e "\033[1;36m🚀 Git Quick Push Mode\033[0m"
