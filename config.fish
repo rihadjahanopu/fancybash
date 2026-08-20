@@ -846,6 +846,29 @@ function gwip
                 gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
                 rm -f "$push_log" 2>/dev/null
             else
+                if grep -qE "(non-fast-forward|fetch first|behind)" "$push_log" 2>/dev/null
+                    echo -e "\033[1;33m🔄 Remote has new commits. Auto-syncing (git pull --rebase)...\033[0m"
+                    rm -f "$push_log" 2>/dev/null
+                    set -l sync_branch "$cur_branch"
+                    if test -z "$sync_branch"
+                        set sync_branch "HEAD"
+                    end
+                    if git pull --rebase origin "$sync_branch"
+                        echo -e "\033[1;36m🚀 Retrying push...\033[0m"
+                        if git push -u origin "$sync_branch"
+                            gum style --foreground 82 --bold "✅ Synced and pushed successfully!"
+                            return 0
+                        end
+                    else
+                        echo -e "\033[0;31m⚠️ Merge Conflict detected!\033[0m"
+                        echo -e "\033[1;33mPlease resolve conflicts in VS Code, then run:\033[0m"
+                        echo -e "  1) \033[1;36mgit add .\033[0m"
+                        echo -e "  2) \033[1;36mgit rebase --continue\033[0m"
+                        echo -e "  3) \033[1;36mgwip\033[0m"
+                        return 1
+                    end
+                end
+
                 echo -e "\033[0;31m❌ Push failed!\033[0m"
                 if test -s "$push_log"
                     echo -e "\033[1;33mGit Error Details:\033[0m"
@@ -951,6 +974,29 @@ function gwip
             gum style --foreground 82 --bold "✅ Everything committed and pushed successfully!"
             rm -f "$push_log" 2>/dev/null
         else
+            if grep -qE "(non-fast-forward|fetch first|behind)" "$push_log" 2>/dev/null
+                echo -e "\033[1;33m🔄 Remote has new commits. Auto-syncing (git pull --rebase)...\033[0m"
+                rm -f "$push_log" 2>/dev/null
+                set -l sync_branch "$cur_branch"
+                if test -z "$sync_branch"
+                    set sync_branch "HEAD"
+                end
+                if git pull --rebase origin "$sync_branch"
+                    echo -e "\033[1;36m🚀 Retrying push...\033[0m"
+                    if git push -u origin "$sync_branch"
+                        gum style --foreground 82 --bold "✅ Synced and pushed successfully!"
+                        return 0
+                    end
+                else
+                    echo -e "\033[0;31m⚠️ Merge Conflict detected!\033[0m"
+                    echo -e "\033[1;33mPlease resolve conflicts in VS Code, then run:\033[0m"
+                    echo -e "  1) \033[1;36mgit add .\033[0m"
+                    echo -e "  2) \033[1;36mgit rebase --continue\033[0m"
+                    echo -e "  3) \033[1;36mgwip\033[0m"
+                    return 1
+                end
+            end
+
             echo -e "\033[0;31m❌ Push failed!\033[0m"
             if test -s "$push_log"
                 echo -e "\033[1;33mGit Error Details:\033[0m"
